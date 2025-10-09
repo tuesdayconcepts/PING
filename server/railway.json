@@ -1,0 +1,19 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "services": [
+    {
+      "name": "backend",
+      "source": "server",
+      "envVars": {
+        "PORT": "8080"
+      }
+    }
+  ],
+  "plugins": [
+    {
+      "name": "PostgreSQL",
+      "env": "DATABASE_URL"
+    }
+  ]
+}
+

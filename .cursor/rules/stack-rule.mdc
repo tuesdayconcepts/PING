@@ -1,0 +1,341 @@
+# Cursor Project Bootstrap — Railway + Netlify + GitHub
+# Filetype: .mdc (Model Directive for Cursor)
+
+## 🧭 Purpose
+Make Cursor default to this stack whenever I say things like “start a new project” or “scaffold a repo”:
+- **Backend** on **Railway** (Node/Express by default) with optional **PostgreSQL**
+- **Frontend** on **Netlify** (Vite React by default)
+- **Repo** on **GitHub** under **tuesdayconcepts** org (unless otherwise specified)
+- Shared CI/CD via GitHub Actions; environment variables wired end‑to‑end
+
+---
+
+## 🎛️ Global Behavior
+1. Prefer **TypeScript** for both client and server unless I say otherwise.
+2. Use a **monorepo**: `/server` (backend, Railway) and `/client` (frontend, Netlify).
+3. Always create `.env.example` files with sensible defaults and comments.
+4. Use **PostgreSQL** via `DATABASE_URL` when I mention a DB, and scaffold migrations.
+5. Keep diffs minimal; match existing lint/format configs if present.
+6. Produce a short README with run, env, and deploy instructions.
+
+---
+
+## 🧩 When I say “new project …”
+**If I say:** “Start a new project called X” (optionally I may specify stack variants)
+1. Create this structure:
+```
+{{PROJECT_NAME}}/
+├─ client/        # Netlify app (React + Vite, TypeScript)
+├─ server/        # Railway API (Express + TypeScript)
+├─ .github/workflows/deploy.yml
+├─ README.md
+```
+2. Initialize Git and **assume GitHub**: `https://github.com/tuesdayconcepts/{{PROJECT_NAME}}` (ask before creating if repo doesn’t exist).
+3. Generate the files below (fill {{…}} placeholders).
+
+---
+
+## 🗄️ Backend (Railway)
+**Assumptions:**
+- Node 20+, Express, TypeScript, `ts-node` / build to `dist/`
+- `PORT` from env, default 8080
+- Optional Postgres with `DATABASE_URL`
+
+**server/package.json**
+```json
+{
+  "name": "{{PROJECT_NAME}}-server",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "lint": "eslint .",
+    "format": "prettier -w ."
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "tsx": "^4.16.2",
+    "typescript": "^5.6.3",
+    "eslint": "^9.10.0",
+    "prettier": "^3.3.3"
+  }
+}
+```
+
+**server/tsconfig.json**
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "outDir": "dist",
+    "rootDir": "src",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
+```
+
+**server/src/index.ts**
+```ts
+import "dotenv/config";
+import express from "express";
+import cors from "cors";
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.get("/health", (_req, res) => {
+  res.json({ ok: true, service: "{{PROJECT_NAME}}-server" });
+});
+
+// Example CRUD placeholder
+app.get("/api/v1/items", (_req, res) => {
+  res.json([{ id: 1, name: "example" }]);
+});
+
+const port = process.env.PORT ? Number(process.env.PORT) : 8080;
+app.listen(port, () => {
+  console.log(`API listening on :${port}`);
+});
+```
+
+**server/.env.example**
+```
+# Set by Railway
+PORT=8080
+
+# Optional Postgres (Railway will inject this automatically if you add a Postgres plugin)
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DBNAME?sslmode=require
+```
+
+**server/railway.json**
+```json
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "services": [
+    {
+      "name": "backend",
+      "source": "server",
+      "envVars": {
+        "PORT": "8080"
+      }
+    }
+  ],
+  "plugins": [
+    {
+      "name": "PostgreSQL",
+      "env": "DATABASE_URL"
+    }
+  ]
+}
+```
+
+**server/Dockerfile**
+```dockerfile
+# Railway supports Docker or Nixpacks; this Dockerfile is explicit.
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules node_modules
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app/node_modules node_modules
+COPY --from=build /app/dist dist
+EXPOSE 8080
+CMD ["node", "dist/index.js"]
+```
+
+> **If I request Prisma:** add `prisma/schema.prisma`, `npx prisma init`, and example migration + CRUD route wired to `DATABASE_URL`.
+
+---
+
+## 🌐 Frontend (Netlify)
+**client/package.json**
+```json
+{
+  "name": "{{PROJECT_NAME}}-client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "format": "prettier -w ."
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^5.4.6",
+    "@types/react": "^18.3.7",
+    "@types/react-dom": "^18.3.0",
+    "eslint": "^9.10.0",
+    "prettier": "^3.3.3"
+  }
+}
+```
+
+**client/index.html**, **client/src/main.tsx**, **client/src/App.tsx** — standard Vite React boilerplate.
+
+**client/.env.example**
+```
+# Netlify exposes only variables prefixed with VITE_ to the client
+VITE_API_URL=https://{{RAILWAY_BACKEND_DOMAIN}}   # e.g., https://{{PROJECT_NAME}}.up.railway.app
+```
+
+**netlify.toml** (in repo root or /client)
+```toml
+[build]
+  base = "client"
+  command = "npm ci && npm run build"
+  publish = "client/dist"
+
+[dev]
+  command = "npm run dev"
+  port = 5173
+```
+
+---
+
+## 🔗 Wiring & Conventions
+- **API URL**: Frontend uses `import.meta.env.VITE_API_URL`. Set this in **Netlify** to your Railway public URL.
+- **Database**: When Postgres is used, Railway provides `DATABASE_URL`. Code must **not** hard‑code credentials.
+- **Health check**: Backend exposes `/health` for readiness probes and debugging.
+
+---
+
+## 🤖 CI/CD — GitHub Actions
+**.github/workflows/deploy.yml**
+```yaml
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+      # Deploy via Railway CLI (requires token)
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+      - name: Link & Deploy
+        env:
+          RAILWAY_TOKEN: \${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway up --service backend
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    needs: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+      - name: Deploy to Netlify
+        uses: netlify/actions/cli@v4.0.1
+        with:
+          args: deploy --dir=dist --prod
+        env:
+          NETLIFY_AUTH_TOKEN: \${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: \${{ secrets.NETLIFY_SITE_ID }}
+```
+
+> Store secrets in GitHub: `RAILWAY_TOKEN`, `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`. Keep `DATABASE_URL` only in Railway and never commit it.
+
+---
+
+## 📘 README seed
+Generate a concise README with:
+- Local dev: how to run server & client, and set `VITE_API_URL`
+- Env vars: list and where to set (Railway vs Netlify vs GitHub)
+- Deploy steps: CLI commands + CI/CD overview
+- Links: GitHub repo slug, Railway service URL, Netlify site URL
+
+---
+
+## 🧪 Quick Commands (insert as needed)
+```bash
+# Monorepo init
+git init && git add . && git commit -m "chore: bootstrap"
+
+# Create GitHub repo (confirm org and name)
+gh repo create tuesdayconcepts/{{PROJECT_NAME}} --public --source=. --remote=origin
+git push -u origin main
+
+# Railway
+npm i -g @railway/cli
+railway login
+railway init
+railway up   # deploy backend; add Postgres plugin if needed
+
+# Netlify
+npm i -g netlify-cli
+netlify login
+cd client && netlify init   # link or create site, set VITE_API_URL in dashboard
+netlify deploy --build --prod
+```
+
+---
+
+## 🗣️ Assistant Prompts (what Cursor should proactively do)
+- “When I say *start a new project called X*, scaffold everything above with placeholders filled.”
+- “When I say *deploy*, output the exact CLI commands for Railway and Netlify, and verify env variables.”
+- “When I say *add database*, add Prisma (or SQL library I specify), generate migration boilerplate, and wire `DATABASE_URL`.”
+- “When I say *generate README*, create the README per the template.”
+
+---
+
+## 🔁 Variants (if I change framework)
+- **Backend Python/FastAPI**: use `uvicorn`, `requirements.txt`, `Dockerfile`, same env and Railway wiring.
+- **Frontend Next.js**: update `netlify.toml` build command and output detection accordingly.
+
+---
+
+## ✅ Success Criteria
+- Running `railway up` deploys the server and health check returns 200.
+- Netlify site builds successfully and consumes `VITE_API_URL`.
+- GitHub Actions workflow passes on `main` and can trigger both deploys.
+- README shows clear local + prod instructions.
+
