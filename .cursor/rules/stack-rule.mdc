@@ -62,6 +62,7 @@ Make Cursor default to this stack whenever I say things like “start a new proj
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
     "tsx": "^4.16.2",
     "typescript": "^5.6.3",
     "eslint": "^9.10.0",
@@ -166,6 +167,39 @@ EXPOSE 8080
 CMD ["node", "dist/index.js"]
 ```
 
+**server/nixpacks.toml**
+```toml
+# Nixpacks configuration for Railway deployment
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"
+```
+
+**railway.toml** (in repo root)
+```toml
+# Railway configuration for monorepo
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[deploy.healthcheck]
+path = "/health"
+timeout = 10
+```
+
+> **Railway Deployment Note:** In Railway dashboard, set **Root Directory** to `server` under Settings → Build. This tells Railway to build from the server folder in the monorepo.
+
 > **If I request Prisma:** add `prisma/schema.prisma`, `npx prisma init`, and example migration + CRUD route wired to `DATABASE_URL`.
 
 ---
@@ -191,6 +225,7 @@ CMD ["node", "dist/index.js"]
   "devDependencies": {
     "typescript": "^5.6.3",
     "vite": "^5.4.6",
+    "@vitejs/plugin-react": "^4.3.1",
     "@types/react": "^18.3.7",
     "@types/react-dom": "^18.3.0",
     "eslint": "^9.10.0",
@@ -199,7 +234,202 @@ CMD ["node", "dist/index.js"]
 }
 ```
 
-**client/index.html**, **client/src/main.tsx**, **client/src/App.tsx** — standard Vite React boilerplate.
+**client/vite.config.ts**
+```ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+```
+
+**client/tsconfig.json**
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+```
+
+**client/src/vite-env.d.ts**
+```ts
+/// <reference types="vite/client" />
+
+// Declare Vite environment variables with proper types
+interface ImportMetaEnv {
+  readonly VITE_API_URL: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+```
+
+**client/index.html**
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{PROJECT_NAME}}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
+**client/src/main.tsx**
+```tsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
+```
+
+**client/src/App.tsx**
+```tsx
+/// <reference types="vite/client" />
+import { useState, useEffect } from 'react'
+import './App.css'
+
+// Get API URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+
+function App() {
+  const [items, setItems] = useState<Array<{ id: number; name: string }>>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch items from API on component mount
+  useEffect(() => {
+    fetch(`${API_URL}/api/v1/items`)
+      .then(res => res.json())
+      .then(data => {
+        setItems(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        setError(err.message)
+        setLoading(false)
+      })
+  }, [])
+
+  return (
+    <div className="app">
+      <h1>{{PROJECT_NAME}}</h1>
+      <div className="card">
+        {loading && <p>Loading...</p>}
+        {error && <p className="error">Error: {error}</p>}
+        {!loading && !error && (
+          <ul>
+            {items.map(item => (
+              <li key={item.id}>{item.name}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default App
+```
+
+**client/src/App.css**
+```css
+.app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+}
+
+.card {
+  padding: 2em;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  background-color: #2a2a2a;
+  border-radius: 4px;
+}
+
+.error {
+  color: #ff6b6b;
+}
+```
+
+**client/src/index.css**
+```css
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+}
+```
 
 **client/.env.example**
 ```
@@ -207,12 +437,12 @@ CMD ["node", "dist/index.js"]
 VITE_API_URL=https://{{RAILWAY_BACKEND_DOMAIN}}   # e.g., https://{{PROJECT_NAME}}.up.railway.app
 ```
 
-**netlify.toml** (in repo root or /client)
+**netlify.toml** (in repo root)
 ```toml
 [build]
   base = "client"
   command = "npm ci && npm run build"
-  publish = "client/dist"
+  publish = "dist"  # Relative to base directory
 
 [dev]
   command = "npm run dev"
@@ -338,4 +568,62 @@ netlify deploy --build --prod
 - Netlify site builds successfully and consumes `VITE_API_URL`.
 - GitHub Actions workflow passes on `main` and can trigger both deploys.
 - README shows clear local + prod instructions.
+- Zero console errors (no missing favicon, TypeScript errors, or CORS issues).
+
+---
+
+## 🔧 Troubleshooting Common Issues
+
+### Railway Build Failures
+
+**Issue:** "Nixpacks could not determine how to build the app"
+- **Solution:** Set **Root Directory** to `server` in Railway Settings → Build
+
+**Issue:** "npm: command not found" during build
+- **Solution:** Ensure `server/nixpacks.toml` exists with Node.js configuration
+
+**Issue:** TypeScript error "Could not find declaration file for module 'cors'"
+- **Solution:** Add `@types/cors` to `devDependencies` in `server/package.json`
+
+### Netlify Build Failures
+
+**Issue:** "Property 'env' does not exist on type 'ImportMeta'"
+- **Solution:** Ensure `client/src/vite-env.d.ts` exists with proper type definitions
+
+**Issue:** "404 Not Found" for published site
+- **Solution:** Verify `publish = "dist"` in `netlify.toml` (not `client/dist`)
+
+**Issue:** Missing favicon causing 404 errors
+- **Solution:** Add inline SVG favicon to `index.html` as shown in template
+
+### Environment Variables
+
+**Issue:** Frontend can't connect to backend
+- **Solution:** Set `VITE_API_URL` in Netlify dashboard (Site Configuration → Environment variables)
+
+**Issue:** Backend not responding on Railway
+- **Solution:** Verify Railway assigned a public domain (Settings → Networking → Generate Domain)
+
+---
+
+## 🚀 Deployment Checklist
+
+When deploying a new project, follow this order:
+
+1. ✅ Push code to GitHub
+2. ✅ Deploy backend to Railway:
+   - Connect GitHub repo
+   - Set Root Directory to `server`
+   - Wait for build to complete
+   - Generate public domain
+3. ✅ Deploy frontend to Netlify:
+   - Connect GitHub repo
+   - Verify build settings (base: `client`, publish: `dist`)
+   - Set `VITE_API_URL` environment variable with Railway URL
+   - Trigger deploy
+4. ✅ Test the app:
+   - Visit Netlify URL
+   - Check browser console for errors
+   - Verify API calls work
+5. ✅ Optional: Setup GitHub Actions secrets for CI/CD
 
