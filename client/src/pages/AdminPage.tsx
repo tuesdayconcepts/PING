@@ -381,17 +381,16 @@ function AdminPage() {
             zoom={13} 
             className="admin-map"
           >
-            {/* ESRI Ocean Basemap - naturally blue themed */}
+            {/* ESRI Dark Gray Canvas Basemap */}
             <TileLayer
               attribution='Tiles &copy; Esri'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}"
-              maxZoom={13}
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={16}
             />
-            {/* ESRI Ocean Reference (labels) */}
             <TileLayer
               attribution='&copy; Esri'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}"
-              maxZoom={13}
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={16}
             />
             <MapClickHandler onMapClick={handleMapClick} />
             <Marker position={markerPosition} icon={createPulseIcon()} />
