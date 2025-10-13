@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -15,6 +16,29 @@ app.use(express.json());
 
 // JWT Secret from environment
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production";
+
+// Encryption key for Solana private keys (32 bytes)
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "00000000000000000000000000000000"; // Must be 32 bytes
+const algorithm = 'aes-256-cbc';
+
+// Encryption utilities
+const encrypt = (text: string): string => {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(algorithm, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return iv.toString('hex') + ':' + encrypted;
+};
+
+const decrypt = (text: string): string => {
+  const parts = text.split(':');
+  const iv = Buffer.from(parts[0], 'hex');
+  const encryptedText = Buffer.from(parts[1], 'hex');
+  const decipher = crypto.createDecipheriv(algorithm, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+  let decrypted = decipher.update(encryptedText);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+  return decrypted.toString('utf8');
+};
 
 // Rate limiter for login endpoint (5 attempts per 15 minutes)
 const loginLimiter = rateLimit({
@@ -61,6 +85,37 @@ const validateDates = (startDate: string, endDate: string): boolean => {
 
 const sanitizeString = (input: string): string => {
   return input.trim();
+};
+
+// Distance calculation using Haversine formula (returns meters)
+const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+  const R = 6371e3; // Earth radius in meters
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lng2 - lng1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+};
+
+// Promote next hotspot in queue
+const promoteNextHotspot = async () => {
+  const nextHotspot = await prisma.hotspot.findFirst({
+    where: { queuePosition: { gt: 0 }, claimStatus: 'unclaimed' },
+    orderBy: { queuePosition: 'asc' },
+  });
+
+  if (nextHotspot) {
+    await prisma.hotspot.update({
+      where: { id: nextHotspot.id },
+      data: { queuePosition: 0 },
+    });
+  }
 };
 
 // Log admin action helper
@@ -229,9 +284,17 @@ app.get("/api/hotspots", async (req, res) => {
       }
     }
 
+    // For public: only show queuePosition = 0 and claimStatus != "claimed"
+    // For admin: show all hotspots
     const hotspots = await prisma.hotspot.findMany({
-      where: includeInactive ? {} : { active: true },
-      orderBy: { createdAt: "desc" },
+      where: includeInactive 
+        ? {} 
+        : { 
+            active: true, 
+            queuePosition: 0,
+            claimStatus: { not: "claimed" }
+          },
+      orderBy: includeInactive ? { createdAt: "desc" } : { queuePosition: "asc" },
     });
 
     res.json(hotspots);
@@ -273,6 +336,7 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
       endDate,
       active,
       imageUrl,
+      privateKey,
     } = req.body;
 
     // Validation
@@ -306,6 +370,18 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
     const roundedLat = roundCoordinate(parseFloat(lat));
     const roundedLng = roundCoordinate(parseFloat(lng));
 
+    // Encrypt private key if provided
+    const encryptedPrivateKey = privateKey ? encrypt(sanitizeString(privateKey)) : null;
+
+    // Determine queue position: if there are active unclaimed hotspots, add to queue
+    const activeHotspots = await prisma.hotspot.findMany({
+      where: { queuePosition: 0, claimStatus: 'unclaimed' },
+    });
+
+    const queuePosition = activeHotspots.length > 0 
+      ? (await prisma.hotspot.count()) + 1 
+      : 0;
+
     // Create hotspot
     const hotspot = await prisma.hotspot.create({
       data: {
@@ -318,6 +394,9 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
         endDate: finalEndDate,
         active: active !== undefined ? active : true,
         imageUrl: imageUrl ? sanitizeString(imageUrl) : null,
+        privateKey: encryptedPrivateKey,
+        queuePosition,
+        claimStatus: 'unclaimed',
       },
     });
 
@@ -327,7 +406,7 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
       "CREATE",
       "Hotspot",
       hotspot.id,
-      `Created hotspot: ${hotspot.title}`
+      `Created hotspot: ${hotspot.title} (queue position: ${queuePosition})`
     );
 
     res.status(201).json(hotspot);
@@ -438,6 +517,133 @@ app.delete("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
     res.json({ message: "Hotspot deleted successfully" });
   } catch (error) {
     console.error("Delete hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/hotspots/:id/claim - Claim a hotspot (public)
+app.post("/api/hotspots/:id/claim", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { lat, lng, tweetUrl } = req.body;
+
+    // Validation
+    if (lat === undefined || lng === undefined) {
+      return res.status(400).json({
+        error: "Latitude and longitude are required",
+      });
+    }
+
+    // Get hotspot
+    const hotspot = await prisma.hotspot.findUnique({ where: { id } });
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Check if already claimed or pending
+    if (hotspot.claimStatus !== "unclaimed") {
+      return res.status(400).json({
+        error: `This hotspot is already ${hotspot.claimStatus}`,
+      });
+    }
+
+    // Verify geofence (50m radius)
+    const distance = calculateDistance(lat, lng, hotspot.lat, hotspot.lng);
+    if (distance > 50) {
+      return res.status(403).json({
+        error: "You must be within 50 meters of the location to claim",
+        distance: Math.round(distance),
+      });
+    }
+
+    // Get user identifier (IP address as fallback)
+    const claimedBy = req.ip || 'unknown';
+
+    // Update hotspot to pending status
+    await prisma.hotspot.update({
+      where: { id },
+      data: {
+        claimStatus: "pending",
+        claimedBy,
+        claimedAt: new Date(),
+        tweetUrl: tweetUrl || null,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: "Claim submitted! Waiting for admin approval.",
+      status: "pending",
+    });
+  } catch (error) {
+    console.error("Claim hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/hotspots/:id/approve - Approve a claim (admin only)
+app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get hotspot
+    const hotspot = await prisma.hotspot.findUnique({ where: { id } });
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Check if pending
+    if (hotspot.claimStatus !== "pending") {
+      return res.status(400).json({
+        error: "Hotspot is not pending approval",
+      });
+    }
+
+    // Update hotspot to claimed status
+    await prisma.hotspot.update({
+      where: { id },
+      data: {
+        claimStatus: "claimed",
+      },
+    });
+
+    // Promote next hotspot in queue
+    await promoteNextHotspot();
+
+    // Decrypt private key to return to user
+    const decryptedKey = hotspot.privateKey ? decrypt(hotspot.privateKey) : null;
+
+    // Log action
+    await logAdminAction(
+      req.adminId,
+      "APPROVE_CLAIM",
+      "Hotspot",
+      id,
+      `Approved claim for hotspot: ${hotspot.title}`
+    );
+
+    res.json({
+      success: true,
+      message: "Claim approved!",
+      privateKey: decryptedKey,
+    });
+  } catch (error) {
+    console.error("Approve claim error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/claims - Get pending claims (admin only)
+app.get("/api/admin/claims", authenticateAdmin, async (req, res) => {
+  try {
+    const pendingClaims = await prisma.hotspot.findMany({
+      where: { claimStatus: "pending" },
+      orderBy: { claimedAt: "asc" },
+    });
+
+    res.json(pendingClaims);
+  } catch (error) {
+    console.error("Get pending claims error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

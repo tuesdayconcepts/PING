@@ -74,9 +74,11 @@ function AdminPage() {
     endDate: '',
     active: true,
     imageUrl: '',
+    privateKey: '',
   });
 
   const [hasExpiration, setHasExpiration] = useState(false);
+  const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
 
   const [markerPosition, setMarkerPosition] = useState<[number, number]>([40.7128, -74.0060]);
 
@@ -85,8 +87,17 @@ function AdminPage() {
       setIsAuthenticated(true);
       fetchHotspots();
       fetchLogs();
+      fetchPendingClaims();
     }
   }, []);
+
+  // Poll for pending claims every 10 seconds
+  useEffect(() => {
+    if (isAuthenticated) {
+      const interval = setInterval(fetchPendingClaims, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
 
   // Login handler
   const handleLogin = async (e: React.FormEvent) => {
@@ -151,6 +162,45 @@ function AdminPage() {
       }
     } catch (err) {
       console.error('Failed to fetch logs:', err);
+    }
+  };
+
+  // Fetch pending claims
+  const fetchPendingClaims = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/claims`, {
+        headers: getAuthHeaders(),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPendingClaims(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch pending claims:', err);
+    }
+  };
+
+  // Approve a claim
+  const handleApprove = async (hotspotId: string) => {
+    if (!confirm('Approve this claim? The private key will be revealed to the user.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/hotspots/${hotspotId}/approve`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to approve claim');
+      }
+
+      alert('Claim approved! Private key revealed to user.');
+      fetchPendingClaims();
+      fetchHotspots();
+    } catch (err) {
+      alert(`Error: ${err instanceof Error ? err.message : 'Failed to approve claim'}`);
     }
   };
 
@@ -364,6 +414,36 @@ function AdminPage() {
       </div>
 
       <div className="admin-content">
+        {/* Pending claims section */}
+        {pendingClaims.length > 0 && (
+          <div className="pending-claims-section">
+            <h3>🔔 Pending Claims ({pendingClaims.length})</h3>
+            <div className="pending-claims-list">
+              {pendingClaims.map((claim) => (
+                <div key={claim.id} className="claim-card">
+                  <div className="claim-header">
+                    <h4>{claim.title}</h4>
+                    <span className="claim-time">{formatDate(claim.claimedAt || '')}</span>
+                  </div>
+                  <div className="claim-details">
+                    <p><strong>Claimed by:</strong> {claim.claimedBy || 'Unknown'}</p>
+                    <p><strong>Location:</strong> {claim.lat.toFixed(6)}, {claim.lng.toFixed(6)}</p>
+                    {claim.tweetUrl && <p><strong>Tweet:</strong> Posted</p>}
+                  </div>
+                  <div className="claim-actions">
+                    <button 
+                      onClick={() => handleApprove(claim.id)} 
+                      className="approve-btn"
+                    >
+                      ✅ Approve Claim
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Hotspots list */}
         <div className="hotspots-sidebar">
           <h3>Hotspots ({hotspots.length})</h3>
@@ -476,6 +556,19 @@ function AdminPage() {
                 value={formData.prize}
                 onChange={handleInputChange}
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="privateKey">Solana Private Key</label>
+              <input
+                type="password"
+                id="privateKey"
+                name="privateKey"
+                value={formData.privateKey}
+                onChange={handleInputChange}
+                placeholder="Enter private key (encrypted in database)"
+              />
+              <small className="form-hint">⚠️ This will be encrypted and revealed only when claim is approved</small>
             </div>
 
             <div className="form-group checkbox">

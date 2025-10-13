@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import Confetti from 'react-confetti';
 import L from 'leaflet';
 import { Hotspot } from '../types';
 import { getHotspotStatus } from '../utils/time';
@@ -8,6 +9,22 @@ import 'leaflet/dist/leaflet.css';
 import './MapPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+// Distance calculation using Haversine formula (returns meters)
+const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+  const R = 6371e3; // Earth radius in meters
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lng2 - lng1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+};
 
 // Create pulsing marker icon with custom star SVG
 const createPulseIcon = (isActive: boolean = true) => {
@@ -45,6 +62,19 @@ function MapPage() {
   const [center, setCenter] = useState<[number, number]>([40.7128, -74.0060]); // Default: NYC
   const [zoom, setZoom] = useState(13);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
+  const [claimStatus, setClaimStatus] = useState<'unclaimed' | 'pending' | 'claimed'>('unclaimed');
+  const [privateKey, setPrivateKey] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [claimError, setClaimError] = useState<string | null>(null);
+
+  // Check URL for NFC routing (e.g., /ping/:hotspotId)
+  useEffect(() => {
+    const pathParts = window.location.pathname.split('/ping/');
+    if (pathParts.length > 1 && pathParts[1]) {
+      const hotspotId = pathParts[1];
+      fetchHotspotById(hotspotId);
+    }
+  }, []);
 
   useEffect(() => {
     fetchHotspots();
@@ -88,6 +118,104 @@ function MapPage() {
       setLoading(false);
     }
   };
+
+  // Fetch specific hotspot by ID (for NFC routing)
+  const fetchHotspotById = async (hotspotId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/api/hotspots/${hotspotId}`);
+      if (!response.ok) {
+        console.error('Hotspot not found');
+        return;
+      }
+      const hotspot = await response.json();
+      setSelectedHotspot(hotspot);
+      setCenter([hotspot.lat, hotspot.lng]);
+      setZoom(16);
+    } catch (err) {
+      console.error('Error fetching hotspot:', err);
+    }
+  };
+
+  // Handle claim button click
+  const handleClaim = async () => {
+    if (!selectedHotspot) return;
+
+    setClaimError(null);
+
+    // Get user's current location
+    if (!navigator.geolocation) {
+      setClaimError('Geolocation is not supported by your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+
+        // Check distance (50m radius)
+        const distance = calculateDistance(userLat, userLng, selectedHotspot.lat, selectedHotspot.lng);
+
+        if (distance > 50) {
+          setClaimError(`You must be within 50 meters of the location! You are ${Math.round(distance)}m away.`);
+          return;
+        }
+
+        // Open Twitter Web Intent
+        const tweetText = `Just found a PING! 🎉 @YourPingAccount #PINGGame`;
+        const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+        window.open(tweetUrl, '_blank');
+
+        // Submit claim to backend
+        try {
+          const response = await fetch(`${API_URL}/api/hotspots/${selectedHotspot.id}/claim`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lat: userLat, lng: userLng, tweetUrl: 'user-tweeted' }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            setClaimError(errorData.error || 'Failed to submit claim');
+            return;
+          }
+
+          // Show "Waiting for approval" state
+          setClaimStatus('pending');
+        } catch (err) {
+          setClaimError('Failed to submit claim. Please try again.');
+        }
+      },
+      (err) => {
+        setClaimError(`Geolocation error: ${err.message}`);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  // Poll for approval status
+  useEffect(() => {
+    if (claimStatus === 'pending' && selectedHotspot) {
+      const interval = setInterval(async () => {
+        try {
+          const response = await fetch(`${API_URL}/api/hotspots/${selectedHotspot.id}`);
+          const data = await response.json();
+          if (data.claimStatus === 'claimed') {
+            setClaimStatus('claimed');
+            setPrivateKey(data.privateKey);
+            setShowConfetti(true);
+            clearInterval(interval);
+            // Stop confetti after 5 seconds
+            setTimeout(() => setShowConfetti(false), 5000);
+          }
+        } catch (err) {
+          console.error('Error polling claim status:', err);
+        }
+      }, 5000); // Poll every 5 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [claimStatus, selectedHotspot]);
 
   const getStatusColor = (startDate: string, endDate: string): string => {
     const now = new Date();
@@ -241,12 +369,57 @@ function MapPage() {
               </div>
             )}
 
-            {/* Action section */}
-            <div className="modal-section modal-actions">
-              <button className="claim-btn">
-                Claim Prize
-              </button>
-            </div>
+            {/* Action section - Different states */}
+            {claimStatus === 'unclaimed' && (
+              <div className="modal-section modal-actions">
+                {claimError && (
+                  <p className="claim-error">{claimError}</p>
+                )}
+                <button className="claim-btn" onClick={handleClaim}>
+                  Claim Prize
+                </button>
+              </div>
+            )}
+
+            {claimStatus === 'pending' && (
+              <div className="modal-section modal-pending">
+                <div className="pending-animation">⏳</div>
+                <h3>Waiting for Approval</h3>
+                <p>Your claim is being reviewed by the admin. This usually takes a few minutes.</p>
+                <p className="pending-note">Stay on this page to see when it's approved!</p>
+              </div>
+            )}
+
+            {claimStatus === 'claimed' && privateKey && (
+              <div className="modal-section modal-reveal">
+                {showConfetti && (
+                  <Confetti
+                    width={window.innerWidth}
+                    height={window.innerHeight}
+                    recycle={false}
+                    numberOfPieces={200}
+                  />
+                )}
+                <h3 className="congrats-title">🎉 Congratulations! 🎉</h3>
+                <p className="congrats-text">You've successfully claimed this PING!</p>
+                <div className="private-key-box">
+                  <label>Solana Private Key:</label>
+                  <code>{privateKey}</code>
+                  <button 
+                    className="copy-btn"
+                    onClick={() => {
+                      navigator.clipboard.writeText(privateKey);
+                      alert('Private key copied to clipboard!');
+                    }}
+                  >
+                    📋 Copy to Clipboard
+                  </button>
+                </div>
+                <p className="warning-text">
+                  ⚠️ Save this private key securely! You won't be able to see it again.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

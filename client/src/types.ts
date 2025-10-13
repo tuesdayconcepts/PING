@@ -11,6 +11,12 @@ export interface Hotspot {
   endDate: string;
   active: boolean;
   imageUrl: string | null;
+  privateKey?: string | null;
+  claimStatus?: string;
+  claimedBy?: string | null;
+  claimedAt?: string | null;
+  tweetUrl?: string | null;
+  queuePosition?: number;
   createdAt: string;
   updatedAt?: string;
 }

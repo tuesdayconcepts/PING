@@ -520,6 +520,146 @@
   transform: translateY(0);
 }
 
+/* Claim Error */
+.claim-error {
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid rgba(231, 76, 60, 0.5);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 15px;
+  color: #e74c3c;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* Pending State */
+.modal-pending {
+  background: rgba(255, 255, 255, 0.05);
+  text-align: center;
+  padding: 30px 25px !important;
+}
+
+.pending-animation {
+  font-size: 3rem;
+  animation: pulse-pending 1.5s ease-in-out infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes pulse-pending {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.modal-pending h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.4rem;
+  color: #f39c12;
+}
+
+.modal-pending p {
+  margin: 10px 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+.pending-note {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Claimed/Reveal State */
+.modal-reveal {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  text-align: center;
+  padding: 30px 25px !important;
+}
+
+.congrats-title {
+  margin: 0 0 10px 0;
+  font-size: 1.8rem;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+}
+
+.congrats-text {
+  margin: 0 0 25px 0;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.private-key-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.private-key-box label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.private-key-box code {
+  display: block;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px 0;
+  color: #3498db;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.copy-btn {
+  width: 100%;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.copy-btn:active {
+  transform: translateY(0);
+}
+
+.warning-text {
+  margin: 20px 0 0 0;
+  padding: 12px;
+  background: rgba(230, 126, 34, 0.2);
+  border: 1px solid rgba(230, 126, 34, 0.4);
+  border-radius: 8px;
+  color: #e67e22;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .map-nav {

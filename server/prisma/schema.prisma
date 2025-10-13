@@ -18,18 +18,24 @@ model Admin {
 
 // Hotspot model for scavenger hunt locations
 model Hotspot {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  lat         Float
-  lng         Float
-  prize       String?
-  startDate   DateTime
-  endDate     DateTime
-  active      Boolean  @default(true)
-  imageUrl    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String    @id @default(uuid())
+  title         String
+  description   String
+  lat           Float
+  lng           Float
+  prize         String?
+  startDate     DateTime
+  endDate       DateTime
+  active        Boolean   @default(true)
+  imageUrl      String?
+  privateKey    String?   // Encrypted Solana private key
+  claimStatus   String    @default("unclaimed") // unclaimed, pending, claimed
+  claimedBy     String?   // User identifier (IP or temp ID)
+  claimedAt     DateTime?
+  tweetUrl      String?   // Twitter proof URL
+  queuePosition Int       @default(0) // 0 = active, 1+ = queued
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 // Admin action log for audit trail

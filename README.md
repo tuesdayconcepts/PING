@@ -1,29 +1,42 @@
-# 🗺️ Scavenger Hunt Map
+# 🗺️ PING - NFC Scavenger Hunt Game
 
-An interactive web application for creating and managing location-based scavenger hunts using OpenStreetMap and Leaflet. Users can discover active hunt locations on a map, while admins can create, edit, and manage hotspots through a secure dashboard.
+An interactive location-based scavenger hunt game with NFC card support, social verification via Twitter, and Solana cryptocurrency prizes. Users tap NFC cards to discover hotspots, admins approve claims live on stream, and winners receive encrypted private keys for Solana wallets.
 
 ## 🚀 Features
 
+### NFC Claim System
+- **NFC Card Integration**: Tap NFC cards (URL: `yourapp.com/ping/{hotspotId}`) to open hotspot details
+- **Geofencing**: 50-meter radius verification to confirm physical presence
+- **Twitter Verification**: Auto-tweet with Web Intent to spread the game socially
+- **Admin Approval**: Live stream approval workflow for claims
+- **Encrypted Prizes**: Solana private keys encrypted in database, revealed only on approval
+- **Queue System**: Only one active hotspot on map at a time, automatic queue promotion
+
 ### Public Map View
-- Interactive map with OpenStreetMap tiles
-- Hotspot markers showing scavenger hunt locations
-- Popup details with prize information and time remaining
+- Interactive map with pulsing star markers
+- Frosted glass modals with hotspot details
+- Real-time claim status (unclaimed → pending → claimed)
+- Confetti animation on prize reveal
 - Auto-center on active hunts or user's geolocation
-- Responsive design for mobile and desktop
+- Fully responsive design for mobile and desktop
 
 ### Admin Dashboard
 - Secure JWT-based authentication
-- Create, edit, and delete hotspots
+- **Pending Claims Section**: Real-time claim notifications
+- **One-Click Approval**: Approve claims and reveal private keys
+- Create/edit hotspots with private key encryption
 - Click-to-place markers on interactive map
+- Queue position management
 - Activity log tracking all admin actions
-- Toggle hotspot active/inactive status
 - Rate-limited login for security
 
 ### Backend API
 - RESTful API with Express and TypeScript
 - PostgreSQL database with Prisma ORM
-- bcrypt password hashing
-- JWT token authentication
+- **AES-256-CBC Encryption** for Solana private keys
+- **Haversine Geofencing** (50m radius verification)
+- **Queue Management** (auto-promote next hotspot on claim)
+- bcrypt password hashing & JWT authentication
 - Input validation and sanitization
 - Rate limiting on sensitive endpoints
 
@@ -90,6 +103,10 @@ cp .env.example .env
 # PORT=8080
 # DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DBNAME
 # JWT_SECRET=your-secret-key-change-in-production
+# ENCRYPTION_KEY=your-32-byte-hex-key-for-solana-private-keys
+
+# Generate a secure 32-byte hex key for ENCRYPTION_KEY:
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 3. **Setup database:**
@@ -141,17 +158,20 @@ After seeding the database:
 - `POST /api/auth/login` - Admin login (rate-limited)
 
 ### Hotspots (Public)
-- `GET /api/hotspots` - Get active hotspots
+- `GET /api/hotspots` - Get active hotspots (queue position 0, not claimed)
 - `GET /api/hotspots/:id` - Get single hotspot
+- `POST /api/hotspots/:id/claim` - Claim a hotspot (geofence verification)
 
 ### Hotspots (Admin)
 - `GET /api/hotspots?admin=true` - Get all hotspots (requires auth)
-- `POST /api/hotspots` - Create hotspot (requires auth)
+- `POST /api/hotspots` - Create hotspot with optional private key (requires auth)
 - `PUT /api/hotspots/:id` - Update hotspot (requires auth)
 - `DELETE /api/hotspots/:id` - Delete hotspot (requires auth)
+- `POST /api/hotspots/:id/approve` - Approve claim & reveal private key (requires auth)
 
 ### Admin
 - `GET /api/admin/logs` - Get admin activity logs (requires auth)
+- `GET /api/admin/claims` - Get pending claims (requires auth)
 
 ## 🌐 Deployment
 
@@ -174,6 +194,7 @@ railway login
 
 4. **Set environment variables:**
 - `JWT_SECRET` - Your secret key for JWT tokens
+- `ENCRYPTION_KEY` - 32-byte hex key for encrypting Solana private keys (generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
 - `PORT` - Will be set automatically by Railway
 
 5. **Deploy:**
