@@ -97,12 +97,23 @@ function MapPage() {
 
   return (
     <div className="map-page">
-      {/* Header */}
-      <div className="map-header">
-        <h1>🗺️ Scavenger Hunt Map</h1>
-        <p>{hotspots.length} active hunt{hotspots.length !== 1 ? 's' : ''} available</p>
-        <a href="/admin" className="admin-link">Admin Login</a>
-      </div>
+      {/* Navigation Bar */}
+      <nav className="map-nav">
+        <div className="nav-left">
+          <img src="/logo/logo.svg" alt="Logo" className="nav-logo" />
+        </div>
+        <div className="nav-center">
+          <a href="#about" className="nav-link">About Us</a>
+          <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="nav-link">
+            <span>𝕏</span>
+          </a>
+        </div>
+        <div className="nav-right">
+          <span className="active-pings">
+            {hotspots.length} Active {hotspots.length !== 1 ? 'Pings' : 'Ping'}
+          </span>
+        </div>
+      </nav>
 
       {/* Loading/Error States */}
       {loading && (

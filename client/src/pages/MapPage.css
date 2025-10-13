@@ -7,49 +7,79 @@
   overflow: hidden;
 }
 
-/* Header overlay */
-.map-header {
+/* Vignette overlay - dark fade from all edges */
+.map-page::after {
+  content: '';
   position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 600;
-  background: rgba(13, 71, 161, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 15px 25px;
-  border-radius: 8px;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 30%,
+    rgba(0, 0, 0, 0.4) 70%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  z-index: 1;
 }
 
-.map-header h1 {
-  margin: 0 0 5px 0;
-  font-size: 1.5rem;
-  color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+/* Sticky navigation bar */
+.map-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background: transparent;
 }
 
-.map-header p {
-  margin: 0 0 10px 0;
+.nav-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  height: 40px;
+  width: auto;
+  filter: brightness(0) invert(1); /* Makes logo white */
+}
+
+.nav-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.nav-link {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 0.9rem;
-}
-
-.admin-link {
-  display: inline-block;
-  color: #ffffff;
   text-decoration: none;
-  font-size: 0.85rem;
-  padding: 5px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 4px;
-  transition: all 0.3s;
-  background: rgba(255, 255, 255, 0.1);
+  font-size: 1rem;
+  font-weight: 500;
+  transition: color 0.3s;
 }
 
-.admin-link:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: #ffffff;
-  color: white;
+.nav-link:hover {
+  color: #ffffff;
+}
+
+.nav-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.active-pings {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 /* Map container */
@@ -250,14 +280,20 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .map-header {
-    top: 10px;
-    left: 10px;
+  .map-nav {
     padding: 10px 15px;
   }
-
-  .map-header h1 {
-    font-size: 1.2rem;
+  
+  .nav-center {
+    gap: 15px;
+  }
+  
+  .nav-link {
+    font-size: 0.9rem;
+  }
+  
+  .active-pings {
+    font-size: 0.9rem;
   }
 
   .hotspot-popup h3 {
