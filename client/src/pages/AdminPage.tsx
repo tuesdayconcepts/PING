@@ -8,25 +8,34 @@ import { formatDate } from '../utils/time';
 import 'leaflet/dist/leaflet.css';
 import './AdminPage.css';
 
-// Fix for default marker icon
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-});
-
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+// Create pulsing marker icon
+const createPulseIcon = () => {
+  return L.divIcon({
+    className: 'custom-pulse-icon',
+    html: `
+      <div class="pulse-marker">
+        <div class="pulse-marker-ring"></div>
+        <div class="pulse-marker-ring"></div>
+        <div class="pulse-marker-ring"></div>
+        <div class="pulse-marker-center"></div>
+      </div>
+    `,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -15],
+  });
+};
 
 // Component to handle map clicks
 function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
   useMapEvents({
     click: (e) => {
-      onMapClick(e.latlng.lat, e.latlng.lng);
+      // Round to 6 decimal places (~11cm precision)
+      const roundedLat = Math.round(e.latlng.lat * 1000000) / 1000000;
+      const roundedLng = Math.round(e.latlng.lng * 1000000) / 1000000;
+      onMapClick(roundedLat, roundedLng);
     },
   });
   return null;
@@ -377,7 +386,7 @@ function AdminPage() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <MapClickHandler onMapClick={handleMapClick} />
-            <Marker position={markerPosition} />
+            <Marker position={markerPosition} icon={createPulseIcon()} />
           </MapContainer>
         </div>
 

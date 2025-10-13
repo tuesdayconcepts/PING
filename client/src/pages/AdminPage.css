@@ -228,6 +228,8 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+  color: #2c3e50;
+  font-weight: 500;
 }
 
 .status-dot {
@@ -375,6 +377,59 @@
 
 .cancel-btn:hover {
   background: #7f8c8d;
+}
+
+/* Pulsing marker animation (same as MapPage) */
+.pulse-marker {
+  position: relative;
+  width: 30px;
+  height: 30px;
+}
+
+.pulse-marker-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  background: #e74c3c;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.6);
+  z-index: 10;
+}
+
+.pulse-marker-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  border: 2px solid #e74c3c;
+  border-radius: 50%;
+  animation: pulse-ring 2s ease-out infinite;
+  opacity: 0;
+}
+
+.pulse-marker-ring:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.pulse-marker-ring:nth-child(3) {
+  animation-delay: 1s;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
 }
 
 /* Responsive */

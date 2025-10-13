@@ -8,19 +8,25 @@ import { truncateText } from '../utils/sanitize';
 import 'leaflet/dist/leaflet.css';
 import './MapPage.css';
 
-// Fix for default marker icon in React Leaflet
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-});
-
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+// Create pulsing marker icon
+const createPulseIcon = (isActive: boolean = true) => {
+  return L.divIcon({
+    className: 'custom-pulse-icon',
+    html: `
+      <div class="pulse-marker ${isActive ? '' : 'inactive'}">
+        <div class="pulse-marker-ring"></div>
+        <div class="pulse-marker-ring"></div>
+        <div class="pulse-marker-ring"></div>
+        <div class="pulse-marker-center"></div>
+      </div>
+    `,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -15],
+  });
+};
 
 function MapPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
@@ -126,12 +132,19 @@ function MapPage() {
           />
 
           {/* Render markers for each hotspot */}
-          {hotspots.map((hotspot) => (
-            <Marker 
-              key={hotspot.id} 
-              position={[hotspot.lat, hotspot.lng]}
-            >
-              <Popup className="hotspot-popup" maxWidth={300}>
+          {hotspots.map((hotspot) => {
+            // Check if hotspot is active/expired
+            const now = new Date();
+            const endDate = new Date(hotspot.endDate);
+            const isActive = now <= endDate && hotspot.active;
+            
+            return (
+              <Marker 
+                key={hotspot.id} 
+                position={[hotspot.lat, hotspot.lng]}
+                icon={createPulseIcon(isActive)}
+              >
+                <Popup className="hotspot-popup" maxWidth={300}>
                 <div className="popup-content">
                   <h3>{hotspot.title}</h3>
                   
@@ -164,7 +177,8 @@ function MapPage() {
                 </div>
               </Popup>
             </Marker>
-          ))}
+            );
+          })}
         </MapContainer>
       )}
 
