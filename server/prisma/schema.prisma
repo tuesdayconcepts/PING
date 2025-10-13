@@ -1,0 +1,44 @@
+// Prisma schema for Scavenger Hunt Map App
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Admin user model for authentication
+model Admin {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String   // bcrypt hashed
+  createdAt DateTime @default(now())
+}
+
+// Hotspot model for scavenger hunt locations
+model Hotspot {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  lat         Float
+  lng         Float
+  prize       String?
+  startDate   DateTime
+  endDate     DateTime
+  active      Boolean  @default(true)
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Admin action log for audit trail
+model AdminLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String   // CREATE, UPDATE, DELETE
+  entity    String   // Hotspot
+  entityId  String
+  details   String?  // Optional details about the action
+  timestamp DateTime @default(now())
+}

@@ -1,136 +1,302 @@
-# PING
+# 🗺️ Scavenger Hunt Map
 
-Full-stack TypeScript application with Express backend (Railway) and React frontend (Netlify).
+An interactive web application for creating and managing location-based scavenger hunts using OpenStreetMap and Leaflet. Users can discover active hunt locations on a map, while admins can create, edit, and manage hotspots through a secure dashboard.
+
+## 🚀 Features
+
+### Public Map View
+- Interactive map with OpenStreetMap tiles
+- Hotspot markers showing scavenger hunt locations
+- Popup details with prize information and time remaining
+- Auto-center on active hunts or user's geolocation
+- Responsive design for mobile and desktop
+
+### Admin Dashboard
+- Secure JWT-based authentication
+- Create, edit, and delete hotspots
+- Click-to-place markers on interactive map
+- Activity log tracking all admin actions
+- Toggle hotspot active/inactive status
+- Rate-limited login for security
+
+### Backend API
+- RESTful API with Express and TypeScript
+- PostgreSQL database with Prisma ORM
+- bcrypt password hashing
+- JWT token authentication
+- Input validation and sanitization
+- Rate limiting on sensitive endpoints
+
+## 📦 Tech Stack
+
+**Frontend:**
+- React 18 + TypeScript
+- Vite for build tooling
+- React Leaflet for maps
+- React Router for navigation
+- Deployed on Netlify
+
+**Backend:**
+- Node.js 20 + Express
+- TypeScript
+- Prisma ORM
+- PostgreSQL database
+- JWT authentication
+- Deployed on Railway
 
 ## 🏗️ Project Structure
 
 ```
 PING/
-├─ client/        # React + Vite frontend (Netlify)
-├─ server/        # Express + TypeScript API (Railway)
-├─ .github/workflows/deploy.yml
+├─ client/              # React frontend
+│  ├─ src/
+│  │  ├─ pages/        # MapPage & AdminPage
+│  │  ├─ utils/        # Helper functions
+│  │  └─ types.ts      # TypeScript types
+│  └─ package.json
+├─ server/              # Express backend
+│  ├─ src/
+│  │  └─ index.ts      # API routes
+│  ├─ prisma/
+│  │  ├─ schema.prisma # Database schema
+│  │  └─ seed.ts       # Seed data
+│  └─ package.json
+├─ netlify.toml
+├─ railway.toml
+└─ README.md
 ```
 
-## 🚀 Local Development
+## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js 20+
+- PostgreSQL database (or use Railway's managed database)
 - npm or yarn
 
 ### Backend Setup
 
+1. **Install dependencies:**
 ```bash
 cd server
 npm install
+```
+
+2. **Setup environment variables:**
+```bash
+# Copy example env file
 cp .env.example .env
-# Edit .env with your local settings
-npm run dev  # Runs on http://localhost:8080
+
+# Edit .env with your values:
+# PORT=8080
+# DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DBNAME
+# JWT_SECRET=your-secret-key-change-in-production
+```
+
+3. **Setup database:**
+```bash
+# Run Prisma migrations
+npm run prisma:migrate
+
+# Seed database with admin user and sample data
+npm run prisma:seed
+```
+
+4. **Start development server:**
+```bash
+npm run dev
+# Server runs on http://localhost:8080
 ```
 
 ### Frontend Setup
 
+1. **Install dependencies:**
 ```bash
 cd client
 npm install
-cp .env.example .env
-# Edit VITE_API_URL to point to your backend (default: http://localhost:8080)
-npm run dev  # Runs on http://localhost:5173
 ```
 
-## 🌍 Environment Variables
+2. **Setup environment variables:**
+```bash
+# Create .env file
+echo "VITE_API_URL=http://localhost:8080" > .env
+```
 
-### Backend (Railway)
-- `PORT` - Server port (Railway sets this automatically)
-- `DATABASE_URL` - PostgreSQL connection string (set in Railway dashboard)
+3. **Start development server:**
+```bash
+npm run dev
+# Client runs on http://localhost:5173
+```
 
-### Frontend (Netlify)
-- `VITE_API_URL` - Backend API URL (set in Netlify dashboard)
+## 🔐 Default Admin Credentials
 
-### GitHub Actions
-Store these secrets in GitHub Settings → Secrets and variables → Actions:
-- `RAILWAY_TOKEN` - Railway API token
-- `NETLIFY_AUTH_TOKEN` - Netlify authentication token
-- `NETLIFY_SITE_ID` - Netlify site ID
+After seeding the database:
+- **Username:** `admin`
+- **Password:** `admin123`
 
-## 📦 Deployment
+⚠️ **Change these credentials in production!**
+
+## 📡 API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - Admin login (rate-limited)
+
+### Hotspots (Public)
+- `GET /api/hotspots` - Get active hotspots
+- `GET /api/hotspots/:id` - Get single hotspot
+
+### Hotspots (Admin)
+- `GET /api/hotspots?admin=true` - Get all hotspots (requires auth)
+- `POST /api/hotspots` - Create hotspot (requires auth)
+- `PUT /api/hotspots/:id` - Update hotspot (requires auth)
+- `DELETE /api/hotspots/:id` - Delete hotspot (requires auth)
+
+### Admin
+- `GET /api/admin/logs` - Get admin activity logs (requires auth)
+
+## 🌐 Deployment
 
 ### Railway (Backend)
 
+1. **Install Railway CLI:**
 ```bash
-# Install Railway CLI
 npm i -g @railway/cli
-
-# Login and initialize
 railway login
-cd server
-railway init
-
-# Deploy
-railway up
-
-# Add PostgreSQL plugin in Railway dashboard if needed
 ```
+
+2. **Connect GitHub repo:**
+- Go to Railway dashboard
+- Create new project from GitHub repo
+- Set **Root Directory** to `server` in Settings → Build
+
+3. **Add PostgreSQL:**
+- Add PostgreSQL plugin in Railway dashboard
+- `DATABASE_URL` is automatically injected
+
+4. **Set environment variables:**
+- `JWT_SECRET` - Your secret key for JWT tokens
+- `PORT` - Will be set automatically by Railway
+
+5. **Deploy:**
+```bash
+cd server
+railway up
+```
+
+6. **Generate domain:**
+- Go to Settings → Networking
+- Click "Generate Domain"
+- Save this URL for frontend configuration
 
 ### Netlify (Frontend)
 
+1. **Install Netlify CLI:**
 ```bash
-# Install Netlify CLI
 npm i -g netlify-cli
-
-# Login and initialize
 netlify login
-cd client
-netlify init
-
-# Set VITE_API_URL in Netlify dashboard to your Railway URL
-# Deploy
-netlify deploy --build --prod
 ```
 
-### CI/CD
-Push to `main` branch triggers automatic deployment via GitHub Actions:
-1. Backend deploys to Railway
-2. Frontend deploys to Netlify
+2. **Initialize site:**
+```bash
+cd client
+netlify init
+```
 
-## 🔗 Links
+3. **Set environment variable:**
+In Netlify dashboard:
+- Go to Site configuration → Environment variables
+- Add `VITE_API_URL` with your Railway backend URL
 
-- **GitHub Repository**: https://github.com/tuesdayconcepts/PING
-- **Backend API**: (Set after Railway deployment)
-- **Frontend**: (Set after Netlify deployment)
+4. **Deploy:**
+```bash
+netlify deploy --prod
+```
 
-## 🛠️ Available Scripts
+### GitHub Actions (Optional)
+
+Add these secrets to your GitHub repo:
+- `RAILWAY_TOKEN` - From `railway whoami --token`
+- `NETLIFY_AUTH_TOKEN` - From `netlify login --print-token`
+- `NETLIFY_SITE_ID` - From `netlify sites:list`
+
+## 🛠️ Development Commands
 
 ### Backend
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm start` - Run production build
-- `npm run lint` - Lint code
-- `npm run format` - Format code with Prettier
+```bash
+npm run dev          # Start dev server with hot reload
+npm run build        # Build for production
+npm start            # Run production build
+npm run prisma:migrate  # Run database migrations
+npm run prisma:seed     # Seed database
+npm run prisma:generate # Generate Prisma client
+```
 
 ### Frontend
-- `npm run dev` - Start Vite dev server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Lint code
-- `npm run format` - Format code with Prettier
+```bash
+npm run dev        # Start Vite dev server
+npm run build      # Build for production
+npm run preview    # Preview production build
+```
 
-## 📝 API Endpoints
+## 🔒 Security Features
 
-- `GET /health` - Health check endpoint
-- `GET /api/v1/items` - Example items endpoint (replace with actual logic)
+- **Password Hashing:** bcrypt with 10 salt rounds
+- **JWT Authentication:** 7-day token expiry
+- **Rate Limiting:** Login limited to 5 attempts per 15 minutes
+- **Input Validation:** Coordinate ranges, date validation
+- **XSS Protection:** HTML escaping on user input
+- **CORS:** Configured for cross-origin requests
 
-## 🗄️ Database
+## 📝 Database Schema
 
-To add PostgreSQL:
-1. Add the PostgreSQL plugin in Railway dashboard
-2. Railway will automatically inject `DATABASE_URL`
-3. Install Prisma or your preferred ORM
-4. Run migrations before deploying
+### Admin
+- `id` - UUID
+- `username` - Unique string
+- `password` - bcrypt hashed
+- `createdAt` - Timestamp
+
+### Hotspot
+- `id` - UUID
+- `title` - String
+- `description` - String
+- `lat` - Float (-90 to 90)
+- `lng` - Float (-180 to 180)
+- `prize` - Optional string
+- `startDate` - DateTime
+- `endDate` - DateTime
+- `active` - Boolean
+- `imageUrl` - Optional string
+- `createdAt` - Timestamp
+- `updatedAt` - Timestamp
+
+### AdminLog
+- `id` - UUID
+- `adminId` - String (references Admin)
+- `action` - String (CREATE, UPDATE, DELETE)
+- `entity` - String (Hotspot)
+- `entityId` - String
+- `details` - Optional string
+- `timestamp` - Timestamp
+
+## 🎯 Roadmap / Stretch Goals
+
+- [ ] User accounts and authentication
+- [ ] "Claim prize" functionality
+- [ ] Hotspot categories and filtering
+- [ ] Search functionality
+- [ ] Real-time updates via WebSockets
+- [ ] Map clustering for many hotspots
+- [ ] Image upload to cloud storage
+- [ ] Gamification (points, leaderboard, badges)
+- [ ] Mobile app (React Native)
+
+## 📄 License
+
+MIT
 
 ## 🤝 Contributing
 
-1. Create a feature branch
-2. Make your changes
-3. Test locally
-4. Push and create a pull request
+Contributions are welcome! Please feel free to submit a Pull Request.
 
+---
+
+Built with ❤️ using React, Express, Prisma, and Leaflet

@@ -10,17 +10,20 @@
     "format": "prettier -w ."
   },
   "dependencies": {
+    "@types/leaflet": "^1.9.21",
+    "leaflet": "^1.9.4",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^7.9.4"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
-    "vite": "^5.4.6",
-    "@vitejs/plugin-react": "^4.3.1",
     "@types/react": "^18.3.7",
     "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
     "eslint": "^9.10.0",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.6"
   }
 }
-
