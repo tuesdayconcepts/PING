@@ -18,11 +18,11 @@
   pointer-events: none;
   background: radial-gradient(
     ellipse at center,
-    transparent 20%,
-    rgb(0 0 0 / 21%) 50%,
-    rgb(0 0 0) 80%,
-    rgb(0 0 0) 95%,
-    rgba(0, 0, 0, 1) 100%
+    transparent 30%,
+    rgb(0 0 0 / 80%) 60%,
+    rgb(0 0 0) 70%,
+    rgb(0 0 0) 100%,
+    rgba(0 0 0) 100%
   );
   z-index: 1;
 }
