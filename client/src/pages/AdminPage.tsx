@@ -33,9 +33,9 @@ const createPulseIcon = () => {
         </svg>
       </div>
     `,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-    popupAnchor: [0, -20],
+    iconSize: [80, 80],
+    iconAnchor: [40, 40],
+    popupAnchor: [0, -40],
   });
 };
 
