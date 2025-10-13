@@ -100,7 +100,7 @@ function MapPage() {
       {/* Navigation Bar */}
       <nav className="map-nav">
         <div className="nav-left">
-          <img src="/logo/logo.svg" alt="Logo" className="nav-logo" />
+          <img src="/logo/ping-logo.svg" alt="PING Logo" className="nav-logo" />
         </div>
         <div className="nav-center">
           <a href="#about" className="nav-link">About Us</a>
