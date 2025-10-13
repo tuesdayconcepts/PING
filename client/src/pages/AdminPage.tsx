@@ -20,13 +20,13 @@ const createPulseIcon = () => {
     html: `
       <div class="pulse-marker">
         <svg class="pulse-marker-ring" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="none" stroke="${color}" stroke-width="8" fill-rule="evenodd" d="${starPath}"/>
+          <path fill="none" stroke="${color}" stroke-width="8" stroke-opacity="0.6" fill-rule="evenodd" d="${starPath}"/>
         </svg>
         <svg class="pulse-marker-ring" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="none" stroke="${color}" stroke-width="8" fill-rule="evenodd" d="${starPath}"/>
+          <path fill="none" stroke="${color}" stroke-width="8" stroke-opacity="0.6" fill-rule="evenodd" d="${starPath}"/>
         </svg>
         <svg class="pulse-marker-ring" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="none" stroke="${color}" stroke-width="8" fill-rule="evenodd" d="${starPath}"/>
+          <path fill="none" stroke="${color}" stroke-width="8" stroke-opacity="0.6" fill-rule="evenodd" d="${starPath}"/>
         </svg>
         <svg class="pulse-marker-star" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
           <path fill="${color}" fill-rule="evenodd" d="${starPath}"/>
