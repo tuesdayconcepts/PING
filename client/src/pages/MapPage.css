@@ -70,12 +70,9 @@
   right: 10px;
 }
 
-.map-container .leaflet-bottom {
-  bottom: 20px;
-}
-
-.map-container .leaflet-right {
-  right: 10px;
+/* Hide attribution */
+.map-container .leaflet-bottom.leaflet-right {
+  display: none;
 }
 
 /* Loading/Error overlay */

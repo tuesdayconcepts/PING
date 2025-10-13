@@ -319,12 +319,9 @@
   right: 10px;
 }
 
-.admin-map .leaflet-bottom {
-  bottom: 20px;
-}
-
-.admin-map .leaflet-right {
-  right: 10px;
+/* Hide attribution in admin map */
+.admin-map .leaflet-bottom.leaflet-right {
+  display: none;
 }
 
 /* Form Section */
