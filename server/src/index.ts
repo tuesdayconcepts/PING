@@ -79,7 +79,12 @@ const logAdminAction = async (
 
 // Health check endpoint
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, service: "scavenger-hunt-server" });
+  res.json({ 
+    ok: true, 
+    service: "scavenger-hunt-server",
+    version: "1.0.0",
+    timestamp: new Date().toISOString()
+  });
 });
 
 // ===== AUTHENTICATION ROUTES =====

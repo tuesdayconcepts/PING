@@ -94,7 +94,7 @@ function MapPage() {
       {/* Header */}
       <div className="map-header">
         <h1>🗺️ Scavenger Hunt Map</h1>
-        <p>{hotspots.length} active hunt{hotspots.length !== 1 ? 's' : ''}</p>
+        <p>{hotspots.length} active hunt{hotspots.length !== 1 ? 's' : ''} available</p>
         <a href="/admin" className="admin-link">Admin Login</a>
       </div>
 
