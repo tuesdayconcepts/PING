@@ -305,6 +305,13 @@
   min-height: 400px;
   border-radius: 6px;
   overflow: hidden;
+  background: #0d47a1;
+}
+
+/* Blue tinted map tiles */
+.blue-tinted-tiles {
+  filter: hue-rotate(200deg) saturate(1.5) brightness(0.85);
+  mix-blend-mode: screen;
 }
 
 /* Form Section */
@@ -393,10 +400,10 @@
   transform: translate(-50%, -50%);
   width: 16px;
   height: 16px;
-  background: #e74c3c;
+  background: #ffd700;
   border-radius: 50%;
   border: 3px solid white;
-  box-shadow: 0 0 8px rgba(231, 76, 60, 0.6);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.9), 0 0 30px rgba(255, 215, 0, 0.5);
   z-index: 10;
 }
 
@@ -407,10 +414,11 @@
   transform: translate(-50%, -50%);
   width: 30px;
   height: 30px;
-  border: 2px solid #e74c3c;
+  border: 2px solid #ffd700;
   border-radius: 50%;
   animation: pulse-ring 2s ease-out infinite;
   opacity: 0;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
 }
 
 .pulse-marker-ring:nth-child(2) {
