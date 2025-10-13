@@ -82,22 +82,48 @@
   font-weight: 500;
 }
 
-/* Map container */
+/* Map container - base layer */
 .map-container {
   width: 100%;
   height: 100%;
   background: #001f3f;
+  position: relative;
+  z-index: 0;
+}
+
+/* Ensure Leaflet map panes stay at base level */
+.map-container .leaflet-pane {
+  z-index: 0;
+}
+
+.map-container .leaflet-tile-pane {
+  z-index: 0;
+}
+
+.map-container .leaflet-overlay-pane {
+  z-index: 0;
+}
+
+/* Markers should be above vignette */
+.map-container .leaflet-marker-pane {
+  z-index: 50 !important;
+}
+
+.map-container .leaflet-popup-pane {
+  z-index: 50 !important;
 }
 
 /* Move Leaflet controls to bottom right */
 .map-container .leaflet-top {
   top: auto;
   bottom: 20px;
+  z-index: 50;
 }
 
 .map-container .leaflet-left {
   left: auto;
   right: 10px;
+  z-index: 50;
 }
 
 /* Hide attribution */
