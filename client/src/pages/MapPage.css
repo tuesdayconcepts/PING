@@ -50,7 +50,6 @@
 .nav-logo {
   height: 40px;
   width: auto;
-  filter: brightness(0) invert(1); /* Makes logo white */
 }
 
 .nav-center {
