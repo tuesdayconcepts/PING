@@ -87,6 +87,82 @@ app.get("/health", (_req, res) => {
   });
 });
 
+// One-time setup endpoint to seed database (call this once after first deploy)
+app.post("/api/setup", async (_req, res) => {
+  try {
+    // Check if admin already exists
+    const existingAdmin = await prisma.admin.findUnique({
+      where: { username: "admin" },
+    });
+
+    if (existingAdmin) {
+      return res.status(400).json({ 
+        error: "Setup already completed. Admin user already exists." 
+      });
+    }
+
+    // Create admin user
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+    await prisma.admin.create({
+      data: {
+        username: "admin",
+        password: hashedPassword,
+      },
+    });
+
+    // Create sample hotspots
+    await prisma.hotspot.createMany({
+      data: [
+        {
+          id: "1",
+          title: "Central Park Treasure",
+          description: "Find the hidden bench near Bethesda Fountain. Look for the brass plaque with a riddle. Solve it to claim your prize!",
+          lat: 40.7711,
+          lng: -73.9747,
+          prize: "Free coffee at Central Perk Cafe",
+          startDate: new Date("2025-01-01T09:00:00Z"),
+          endDate: new Date("2025-12-31T18:00:00Z"),
+          active: true,
+        },
+        {
+          id: "2",
+          title: "Brooklyn Bridge Mystery",
+          description: "Walk to the center of Brooklyn Bridge. Count the number of lampposts on the Manhattan side. The answer is your clue!",
+          lat: 40.7061,
+          lng: -73.9969,
+          prize: "$10 gift card",
+          startDate: new Date("2025-01-15T10:00:00Z"),
+          endDate: new Date("2025-06-30T20:00:00Z"),
+          active: true,
+        },
+        {
+          id: "3",
+          title: "Times Square Challenge",
+          description: "Find the red stairs at Times Square. Take a photo with the costumed characters. Show it at the info booth to win!",
+          lat: 40.758,
+          lng: -73.9855,
+          prize: "Broadway show tickets discount",
+          startDate: new Date("2024-12-01T08:00:00Z"),
+          endDate: new Date("2024-12-31T23:59:59Z"),
+          active: false,
+        },
+      ],
+    });
+
+    res.json({
+      success: true,
+      message: "Database seeded successfully!",
+      credentials: {
+        username: "admin",
+        password: "admin123",
+      },
+    });
+  } catch (error) {
+    console.error("Setup error:", error);
+    res.status(500).json({ error: "Setup failed", details: error });
+  }
+});
+
 // ===== AUTHENTICATION ROUTES =====
 
 // POST /api/auth/login - Admin login
