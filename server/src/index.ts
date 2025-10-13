@@ -48,6 +48,11 @@ const validateCoordinates = (lat: number, lng: number): boolean => {
   return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
 };
 
+// Round coordinates to 6 decimal places (~11cm precision)
+const roundCoordinate = (coord: number): number => {
+  return Math.round(coord * 1000000) / 1000000;
+};
+
 const validateDates = (startDate: string, endDate: string): boolean => {
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -265,7 +270,6 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
       lat,
       lng,
       prize,
-      startDate,
       endDate,
       active,
       imageUrl,
@@ -284,28 +288,34 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
       });
     }
 
-    if (!startDate || !endDate) {
+    // Auto-set startDate to now
+    const startDate = new Date();
+    
+    // Default endDate to 100 years in future if not provided (no expiration)
+    const finalEndDate = endDate 
+      ? new Date(endDate) 
+      : new Date(startDate.getTime() + 100 * 365 * 24 * 60 * 60 * 1000);
+
+    if (endDate && !validateDates(startDate.toISOString(), endDate)) {
       return res.status(400).json({
-        error: "Start date and end date are required",
+        error: "End date must be in the future",
       });
     }
 
-    if (!validateDates(startDate, endDate)) {
-      return res.status(400).json({
-        error: "Start date must be before end date",
-      });
-    }
+    // Round coordinates to 6 decimal places
+    const roundedLat = roundCoordinate(parseFloat(lat));
+    const roundedLng = roundCoordinate(parseFloat(lng));
 
     // Create hotspot
     const hotspot = await prisma.hotspot.create({
       data: {
         title: sanitizeString(title),
         description: sanitizeString(description),
-        lat: parseFloat(lat),
-        lng: parseFloat(lng),
+        lat: roundedLat,
+        lng: roundedLng,
         prize: prize ? sanitizeString(prize) : null,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
+        startDate,
+        endDate: finalEndDate,
         active: active !== undefined ? active : true,
         imageUrl: imageUrl ? sanitizeString(imageUrl) : null,
       },
@@ -366,14 +376,18 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
       }
     }
 
+    // Round coordinates if provided
+    const roundedLat = lat !== undefined ? roundCoordinate(parseFloat(lat)) : undefined;
+    const roundedLng = lng !== undefined ? roundCoordinate(parseFloat(lng)) : undefined;
+
     // Update hotspot
     const hotspot = await prisma.hotspot.update({
       where: { id },
       data: {
         ...(title && { title: sanitizeString(title) }),
         ...(description && { description: sanitizeString(description) }),
-        ...(lat !== undefined && { lat: parseFloat(lat) }),
-        ...(lng !== undefined && { lng: parseFloat(lng) }),
+        ...(roundedLat !== undefined && { lat: roundedLat }),
+        ...(roundedLng !== undefined && { lng: roundedLng }),
         ...(prize !== undefined && { prize: prize ? sanitizeString(prize) : null }),
         ...(startDate && { startDate: new Date(startDate) }),
         ...(endDate && { endDate: new Date(endDate) }),

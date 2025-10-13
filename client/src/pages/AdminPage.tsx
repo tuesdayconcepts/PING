@@ -51,11 +51,12 @@ function AdminPage() {
     lat: 40.7128,
     lng: -74.0060,
     prize: '',
-    startDate: '',
     endDate: '',
     active: true,
     imageUrl: '',
   });
+
+  const [hasExpiration, setHasExpiration] = useState(false);
 
   const [markerPosition, setMarkerPosition] = useState<[number, number]>([40.7128, -74.0060]);
 
@@ -162,14 +163,21 @@ function AdminPage() {
   // Edit hotspot
   const handleEdit = (hotspot: Hotspot) => {
     setSelectedHotspot(hotspot);
+    
+    // Check if endDate is far in future (>50 years = no expiration)
+    const endDate = new Date(hotspot.endDate);
+    const now = new Date();
+    const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
+    const hasExpiry = yearsDiff < 50;
+    
+    setHasExpiration(hasExpiry);
     setFormData({
       title: hotspot.title,
       description: hotspot.description,
       lat: hotspot.lat,
       lng: hotspot.lng,
       prize: hotspot.prize || '',
-      startDate: hotspot.startDate.slice(0, 16), // Format for datetime-local
-      endDate: hotspot.endDate.slice(0, 16),
+      endDate: hasExpiry ? hotspot.endDate.slice(0, 16) : '',
       active: hotspot.active,
       imageUrl: hotspot.imageUrl || '',
     });
@@ -186,17 +194,29 @@ function AdminPage() {
         ? `${API_URL}/api/hotspots/${selectedHotspot.id}`
         : `${API_URL}/api/hotspots`;
 
+      // Prepare payload: exclude endDate if no expiration set
+      const payload: any = {
+        title: formData.title,
+        description: formData.description,
+        lat: parseFloat(formData.lat.toString()),
+        lng: parseFloat(formData.lng.toString()),
+        prize: formData.prize,
+        active: formData.active,
+        imageUrl: formData.imageUrl,
+      };
+
+      // Only include endDate if expiration toggle is enabled
+      if (hasExpiration && formData.endDate) {
+        payload.endDate = formData.endDate;
+      }
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
           ...getAuthHeaders(),
         },
-        body: JSON.stringify({
-          ...formData,
-          lat: parseFloat(formData.lat.toString()),
-          lng: parseFloat(formData.lng.toString()),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -244,13 +264,13 @@ function AdminPage() {
   // Cancel editing
   const handleCancel = () => {
     setSelectedHotspot(null);
+    setHasExpiration(false);
     setFormData({
       title: '',
       description: '',
       lat: 40.7128,
       lng: -74.0060,
       prize: '',
-      startDate: '',
       endDate: '',
       active: true,
       imageUrl: '',
@@ -431,30 +451,30 @@ function AdminPage() {
               />
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="startDate">Start Date *</label>
+            <div className="form-group checkbox">
+              <label>
                 <input
-                  type="datetime-local"
-                  id="startDate"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleInputChange}
-                  required
+                  type="checkbox"
+                  checked={hasExpiration}
+                  onChange={(e) => setHasExpiration(e.target.checked)}
                 />
-              </div>
+                <span>Set expiration date</span>
+              </label>
+            </div>
+
+            {hasExpiration && (
               <div className="form-group">
-                <label htmlFor="endDate">End Date *</label>
+                <label htmlFor="endDate">Expiration Date & Time *</label>
                 <input
                   type="datetime-local"
                   id="endDate"
                   name="endDate"
                   value={formData.endDate}
                   onChange={handleInputChange}
-                  required
+                  required={hasExpiration}
                 />
               </div>
-            </div>
+            )}
 
             <div className="form-group">
               <label htmlFor="imageUrl">Image URL</label>
