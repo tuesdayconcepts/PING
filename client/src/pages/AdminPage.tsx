@@ -250,6 +250,7 @@ function AdminPage() {
       endDate: hasExpiry ? hotspot.endDate.slice(0, 16) : '',
       active: hotspot.active,
       imageUrl: hotspot.imageUrl || '',
+      privateKey: '', // Don't populate private key on edit for security
     });
     setMarkerPosition([hotspot.lat, hotspot.lng]);
   };
@@ -273,6 +274,7 @@ function AdminPage() {
         prize: formData.prize,
         active: formData.active,
         imageUrl: formData.imageUrl,
+        privateKey: formData.privateKey,
       };
 
       // Only include endDate if expiration toggle is enabled
@@ -344,6 +346,7 @@ function AdminPage() {
       endDate: '',
       active: true,
       imageUrl: '',
+      privateKey: '',
     });
     setMarkerPosition([40.7128, -74.0060]);
   };
