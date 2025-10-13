@@ -7,3 +7,9 @@
   command = "npm run dev"
   port = 5173
 
+# Redirect all routes to index.html for client-side routing (React Router)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
