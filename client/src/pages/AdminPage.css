@@ -305,28 +305,7 @@
   min-height: 400px;
   border-radius: 6px;
   overflow: hidden;
-  background: #0d47a1;
-  position: relative;
-}
-
-/* Blue overlay for admin map */
-.admin-map::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #1565c0 0%, #0d47a1 50%, #1a237e 100%);
-  opacity: 0.6;
-  pointer-events: none;
-  z-index: 400;
-  mix-blend-mode: multiply;
-}
-
-/* Blue tinted map tiles */
-.blue-tinted-tiles {
-  filter: saturate(0.3) brightness(1.2) hue-rotate(200deg);
+  background: #001f3f;
 }
 
 /* Form Section */

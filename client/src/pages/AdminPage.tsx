@@ -381,10 +381,17 @@ function AdminPage() {
             zoom={13} 
             className="admin-map"
           >
+            {/* ESRI Ocean Basemap - naturally blue themed */}
             <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              className="blue-tinted-tiles"
+              attribution='Tiles &copy; Esri'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={13}
+            />
+            {/* ESRI Ocean Reference (labels) */}
+            <TileLayer
+              attribution='&copy; Esri'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={13}
             />
             <MapClickHandler onMapClick={handleMapClick} />
             <Marker position={markerPosition} icon={createPulseIcon()} />
