@@ -59,6 +59,25 @@
   background: #001f3f;
 }
 
+/* Move Leaflet controls to bottom right */
+.map-container .leaflet-top {
+  top: auto;
+  bottom: 20px;
+}
+
+.map-container .leaflet-left {
+  left: auto;
+  right: 10px;
+}
+
+.map-container .leaflet-bottom {
+  bottom: 20px;
+}
+
+.map-container .leaflet-right {
+  right: 10px;
+}
+
 /* Loading/Error overlay */
 .map-overlay {
   position: absolute;
