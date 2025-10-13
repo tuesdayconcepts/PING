@@ -10,7 +10,7 @@ import './AdminPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-// Create pulsing marker icon
+// Create pulsing marker icon with custom star SVG
 const createPulseIcon = () => {
   return L.divIcon({
     className: 'custom-pulse-icon',
@@ -19,12 +19,14 @@ const createPulseIcon = () => {
         <div class="pulse-marker-ring"></div>
         <div class="pulse-marker-ring"></div>
         <div class="pulse-marker-ring"></div>
-        <div class="pulse-marker-center"></div>
+        <svg class="pulse-marker-star" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
+          <path fill="gold" fill-rule="evenodd" d="M344.13,6.42l80.5,217.54c3.64,9.83,11.39,17.58,21.22,21.22l217.54,80.5c8.56,3.17,8.56,15.28,0,18.45l-217.54,80.5c-9.83,3.64-17.58,11.39-21.22,21.22l-80.5,217.54c-3.17,8.56-15.28,8.56-18.45,0l-80.5-217.54c-3.64-9.83-11.39-17.58-21.22-21.22L6.42,344.13c-8.56-3.17-8.56-15.28,0-18.45l217.54-80.5c9.83-3.64,17.58-11.39,21.22-21.22L325.68,6.42c3.17-8.56,15.28-8.56,18.45,0Z"/>
+        </svg>
       </div>
     `,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -15],
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -20],
   });
 };
 
