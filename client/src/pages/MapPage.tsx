@@ -1,10 +1,9 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import { Hotspot } from '../types';
 import { getHotspotStatus } from '../utils/time';
-import { truncateText } from '../utils/sanitize';
 import 'leaflet/dist/leaflet.css';
 import './MapPage.css';
 
@@ -45,6 +44,7 @@ function MapPage() {
   const [error, setError] = useState<string | null>(null);
   const [center, setCenter] = useState<[number, number]>([40.7128, -74.0060]); // Default: NYC
   const [zoom, setZoom] = useState(13);
+  const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
 
   useEffect(() => {
     fetchHotspots();
@@ -175,40 +175,10 @@ function MapPage() {
                 key={hotspot.id} 
                 position={[hotspot.lat, hotspot.lng]}
                 icon={createPulseIcon(isActive)}
-              >
-                <Popup className="hotspot-popup" maxWidth={300}>
-                <div className="popup-content">
-                  <h3>{hotspot.title}</h3>
-                  
-                  {hotspot.prize && (
-                    <div className="prize-badge" style={{ 
-                      backgroundColor: getStatusColor(hotspot.startDate, hotspot.endDate) 
-                    }}>
-                      🎁 {hotspot.prize}
-                    </div>
-                  )}
-
-                  <div className="status-line">
-                    ⏱️ {getHotspotStatus(hotspot.startDate, hotspot.endDate)}
-                  </div>
-
-                  <p className="description">
-                    {truncateText(hotspot.description, 100)}
-                  </p>
-
-                  <div className="popup-actions">
-                    <button 
-                      onClick={() => {
-                        alert(`Full description:\n\n${hotspot.description}`);
-                      }}
-                      className="details-btn"
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
+                eventHandlers={{
+                  click: () => setSelectedHotspot(hotspot)
+                }}
+              />
             );
           })}
         </MapContainer>
@@ -219,6 +189,65 @@ function MapPage() {
         <div className="empty-state">
           <p>No active scavenger hunts at the moment.</p>
           <p>Check back later!</p>
+        </div>
+      )}
+
+      {/* Hotspot Modal Popup */}
+      {selectedHotspot && (
+        <div className="modal-overlay" onClick={() => setSelectedHotspot(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            {/* Close button */}
+            <button className="modal-close" onClick={() => setSelectedHotspot(null)}>
+              ✕
+            </button>
+
+            {/* Title section */}
+            <div className="modal-section modal-title">
+              <h2>{selectedHotspot.title}</h2>
+            </div>
+
+            {/* Prize section */}
+            {selectedHotspot.prize && (
+              <div className="modal-section modal-prize">
+                <div className="prize-badge" style={{ 
+                  backgroundColor: getStatusColor(selectedHotspot.startDate, selectedHotspot.endDate) 
+                }}>
+                  <span className="prize-icon">🎁</span>
+                  <span className="prize-text">{selectedHotspot.prize}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Status section */}
+            <div className="modal-section modal-status">
+              <div className="status-info">
+                <span className="status-icon">⏱️</span>
+                <span className="status-text">
+                  {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
+                </span>
+              </div>
+            </div>
+
+            {/* Description section */}
+            <div className="modal-section modal-description">
+              <h3>Details</h3>
+              <p>{selectedHotspot.description}</p>
+            </div>
+
+            {/* Image section (if available) */}
+            {selectedHotspot.imageUrl && (
+              <div className="modal-section modal-image">
+                <img src={selectedHotspot.imageUrl} alt={selectedHotspot.title} />
+              </div>
+            )}
+
+            {/* Action section */}
+            <div className="modal-section modal-actions">
+              <button className="claim-btn">
+                Claim Prize
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
