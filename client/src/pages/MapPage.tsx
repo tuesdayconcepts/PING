@@ -74,12 +74,19 @@ function MapPage() {
 
   const getStatusColor = (startDate: string, endDate: string): string => {
     const now = new Date();
+    const start = new Date(startDate);
     const end = new Date(endDate);
     
+    // Expired
     if (now > end) {
-      return '#999'; // Expired - gray
+      return '#999'; // Gray
     }
-    return '#e74c3c'; // Active - red
+    // Not started yet
+    if (now < start) {
+      return '#f39c12'; // Orange
+    }
+    // Active
+    return '#27ae60'; // Green
   };
 
   return (
