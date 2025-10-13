@@ -422,11 +422,9 @@
   transform: translate(-50%, -50%);
   width: 40px;
   height: 40px;
-  border: 2px solid #ffd700;
-  border-radius: 50%;
   animation: pulse-ring 2s ease-out infinite;
   opacity: 0;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
 }
 
 .pulse-marker-ring:nth-child(2) {
@@ -439,11 +437,11 @@
 
 @keyframes pulse-ring {
   0% {
-    transform: translate(-50%, -50%) scale(0.5);
+    transform: translate(-50%, -50%) scale(0.3);
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, -50%) scale(2.5);
+    transform: translate(-50%, -50%) scale(2);
     opacity: 0;
   }
 }
