@@ -8,9 +8,8 @@
 }
 
 /* Vignette overlay - intense dark fade from all edges */
-.map-page::after {
-  content: '';
-  position: absolute;
+.vignette-overlay {
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -24,7 +23,7 @@
     rgb(0 0 0) 100%,
     rgba(0 0 0) 100%
   );
-  z-index: 1;
+  z-index: 150;
 }
 
 /* Sticky navigation bar */

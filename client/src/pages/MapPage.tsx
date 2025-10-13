@@ -97,6 +97,9 @@ function MapPage() {
 
   return (
     <div className="map-page">
+      {/* Vignette Overlay */}
+      <div className="vignette-overlay"></div>
+      
       {/* Navigation Bar */}
       <nav className="map-nav">
         <div className="nav-left">
