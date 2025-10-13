@@ -19,9 +19,9 @@
   background: radial-gradient(
     ellipse at center,
     transparent 20%,
-    rgba(0, 0, 0, 0.3) 50%,
-    rgba(0, 0, 0, 0.7) 80%,
-    rgba(0, 0, 0, 0.95) 95%,
+    rgb(0 0 0 / 21%) 50%,
+    rgb(0 0 0) 80%,
+    rgb(0 0 0) 95%,
     rgba(0, 0, 0, 1) 100%
   );
   z-index: 1;
