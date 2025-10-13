@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "tsx src/index.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "prisma migrate deploy && tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "lint": "eslint .",
     "format": "prettier -w .",
