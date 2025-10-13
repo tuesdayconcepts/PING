@@ -17,27 +17,44 @@ app.use(express.json());
 // JWT Secret from environment
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production";
 
-// Encryption key for Solana private keys (32 bytes)
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "00000000000000000000000000000000"; // Must be 32 bytes
+// Encryption key for Solana private keys (32 bytes = 64 hex characters)
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "0000000000000000000000000000000000000000000000000000000000000000"; // 64 hex chars = 32 bytes
 const algorithm = 'aes-256-cbc';
+
+// Validate encryption key length
+if (Buffer.from(ENCRYPTION_KEY, 'hex').length !== 32) {
+  console.error('⚠️  WARNING: ENCRYPTION_KEY must be 64 hexadecimal characters (32 bytes)');
+  console.error(`Current length: ${Buffer.from(ENCRYPTION_KEY, 'hex').length} bytes`);
+  console.error('Generate a secure key with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+}
 
 // Encryption utilities
 const encrypt = (text: string): string => {
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv(algorithm, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return iv.toString('hex') + ':' + encrypted;
+  try {
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(algorithm, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return iv.toString('hex') + ':' + encrypted;
+  } catch (error) {
+    console.error('Encryption error:', error);
+    throw new Error('Failed to encrypt data. Check ENCRYPTION_KEY configuration.');
+  }
 };
 
 const decrypt = (text: string): string => {
-  const parts = text.split(':');
-  const iv = Buffer.from(parts[0], 'hex');
-  const encryptedText = Buffer.from(parts[1], 'hex');
-  const decipher = crypto.createDecipheriv(algorithm, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
-  let decrypted = decipher.update(encryptedText);
-  decrypted = Buffer.concat([decrypted, decipher.final()]);
-  return decrypted.toString('utf8');
+  try {
+    const parts = text.split(':');
+    const iv = Buffer.from(parts[0], 'hex');
+    const encryptedText = Buffer.from(parts[1], 'hex');
+    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString('utf8');
+  } catch (error) {
+    console.error('Decryption error:', error);
+    throw new Error('Failed to decrypt data. Check ENCRYPTION_KEY configuration.');
+  }
 };
 
 // Rate limiter for login endpoint (5 attempts per 15 minutes)
