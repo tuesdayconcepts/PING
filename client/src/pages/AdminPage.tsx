@@ -80,7 +80,7 @@ function AdminPage() {
   const [hasExpiration, setHasExpiration] = useState(false);
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
   const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access'>('active');
-  const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'editor'>('admin');
+  const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'editor'>('editor'); // Default to editor, will be updated by API
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
