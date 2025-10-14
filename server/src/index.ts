@@ -66,10 +66,10 @@ const decrypt = (text: string): string => {
   }
 };
 
-// Rate limiter for login endpoint (5 attempts per 15 minutes)
+// Rate limiter for login endpoint (10 attempts per 5 minutes)
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per window
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10, // 10 requests per window
   message: { error: "Too many login attempts, please try again later" },
   standardHeaders: true,
   legacyHeaders: false,
