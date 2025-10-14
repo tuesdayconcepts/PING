@@ -318,7 +318,15 @@ app.get("/api/hotspots/:id", async (req, res) => {
       return res.status(404).json({ error: "Hotspot not found" });
     }
 
-    res.json(hotspot);
+    // Decrypt private key if hotspot is claimed
+    const response = {
+      ...hotspot,
+      privateKey: hotspot.claimStatus === 'claimed' && hotspot.privateKey
+        ? decrypt(hotspot.privateKey)
+        : null
+    };
+
+    res.json(response);
   } catch (error) {
     console.error("Get hotspot error:", error);
     res.status(500).json({ error: "Internal server error" });

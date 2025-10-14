@@ -447,22 +447,84 @@ function AdminPage() {
           </div>
         )}
 
-        {/* Hotspots list */}
+        {/* Active/Queued Hotspots list */}
         <div className="hotspots-sidebar">
-          <h3>Hotspots ({hotspots.length})</h3>
+          <h3>Active & Queued Hotspots</h3>
           <div className="hotspot-list">
-            {hotspots.map((hotspot) => (
-              <div key={hotspot.id} className="hotspot-item">
-                <div className="hotspot-info">
-                  <span className={`status-dot ${hotspot.active ? 'active' : 'inactive'}`}></span>
-                  <strong>{hotspot.title}</strong>
+            {hotspots
+              .filter(h => h.claimStatus !== 'claimed')
+              .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0))
+              .map((hotspot) => {
+                const nfcUrl = `${window.location.origin}/ping/${hotspot.id}`;
+                const isActive = hotspot.queuePosition === 0;
+                return (
+                  <div key={hotspot.id} className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'}`}>
+                    <div className="hotspot-info">
+                      <div className="hotspot-header">
+                        <span className={`status-badge ${isActive ? 'badge-active' : 'badge-queued'}`}>
+                          {isActive ? '🟢 ACTIVE' : `🟡 Queue #${hotspot.queuePosition}`}
+                        </span>
+                        <strong>{hotspot.title}</strong>
+                      </div>
+                      <div className="nfc-url-section">
+                        <label>NFC URL:</label>
+                        <div className="url-copy-group">
+                          <input 
+                            type="text" 
+                            value={nfcUrl} 
+                            readOnly 
+                            className="nfc-url-input"
+                            onClick={(e) => e.currentTarget.select()}
+                          />
+                          <button 
+                            className="copy-url-btn"
+                            onClick={() => {
+                              navigator.clipboard.writeText(nfcUrl);
+                              alert('URL copied! Link this to your NFC card.');
+                            }}
+                          >
+                            📋
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="hotspot-actions">
+                      <button onClick={() => handleEdit(hotspot)} className="edit-btn">Edit</button>
+                      <button onClick={() => handleDelete(hotspot.id)} className="delete-btn">Delete</button>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+
+        {/* History: Claimed Hotspots */}
+        <div className="history-sidebar">
+          <h3>📜 Claimed Hotspots History</h3>
+          <div className="hotspot-list">
+            {hotspots
+              .filter(h => h.claimStatus === 'claimed')
+              .map((hotspot) => (
+                <div key={hotspot.id} className="hotspot-item claimed-hotspot">
+                  <div className="hotspot-info">
+                    <div className="hotspot-header">
+                      <span className="status-badge badge-claimed">✅ CLAIMED</span>
+                      <strong>{hotspot.title}</strong>
+                    </div>
+                    <div className="claim-details">
+                      <p><strong>Prize:</strong> {hotspot.prize}</p>
+                      <p><strong>Claimed by:</strong> {hotspot.claimedBy || 'Unknown'}</p>
+                      <p><strong>Claimed at:</strong> {hotspot.claimedAt ? formatDate(hotspot.claimedAt) : 'N/A'}</p>
+                      {hotspot.tweetUrl && (
+                        <p><strong>Tweet:</strong> <a href={hotspot.tweetUrl} target="_blank" rel="noopener noreferrer">View</a></p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="hotspot-actions">
-                  <button onClick={() => handleEdit(hotspot)} className="edit-btn">Edit</button>
-                  <button onClick={() => handleDelete(hotspot.id)} className="delete-btn">Delete</button>
-                </div>
-              </div>
-            ))}
+              ))}
+            {hotspots.filter(h => h.claimStatus === 'claimed').length === 0 && (
+              <p className="empty-message">No claimed hotspots yet.</p>
+            )}
           </div>
         </div>
 
