@@ -115,6 +115,18 @@ function MapPage() {
       setSelectedHotspot(hotspot);
       setCenter([hotspot.lat, hotspot.lng]);
       setZoom(16);
+      
+      // Set claim status based on hotspot state
+      if (hotspot.claimStatus === 'claimed' && hotspot.privateKey) {
+        setClaimStatus('claimed');
+        setPrivateKey(hotspot.privateKey);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
+      } else if (hotspot.claimStatus === 'pending') {
+        setClaimStatus('pending');
+      } else {
+        setClaimStatus('unclaimed');
+      }
     } catch (err) {
       console.error('Error fetching hotspot:', err);
     }
