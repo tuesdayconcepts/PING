@@ -130,25 +130,78 @@
   color: #a0a0a0;
 }
 
+/* Full Viewport Map */
+.admin-map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
+
+.admin-map-container .admin-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* Floating Panel */
+.admin-floating-panel {
+  position: fixed;
+  left: 30px;
+  top: 100px;
+  width: 400px;
+  max-height: calc(100vh - 140px);
+  background: rgba(26, 26, 26, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+/* Drag Handle (mobile only, hidden on desktop) */
+.drag-handle {
+  display: none;
+  padding: 12px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.handle-bar {
+  width: 40px;
+  height: 4px;
+  background: #666;
+  border-radius: 2px;
+  margin: 0 auto;
+}
+
 /* Tabs */
 .admin-tabs {
-  background: #1a1a1a;
-  padding: 0 30px;
   display: flex;
-  gap: 5px;
+  gap: 0;
   border-bottom: 1px solid #2a2a2a;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0 16px;
 }
 
 .tab-btn {
-  padding: 15px 30px;
+  flex: 1;
+  padding: 12px 16px;
   background: transparent;
   border: none;
   color: #808080;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   border-bottom: 3px solid transparent;
   transition: all 0.3s;
+  white-space: nowrap;
 }
 
 .tab-btn:hover {
@@ -159,6 +212,13 @@
 .tab-btn.active {
   color: #ffd700;
   border-bottom-color: #ffd700;
+}
+
+/* Panel Content */
+.panel-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
 }
 
 .logout-btn {
@@ -233,43 +293,47 @@
   text-align: right;
 }
 
-/* Admin Content Grid */
-.admin-content {
-  display: grid;
-  grid-template-columns: 300px 1fr 400px 300px;
-  gap: 20px;
-  padding: 20px 30px;
-  height: calc(100vh - 300px);
-}
-
-/* Hotspots Sidebar */
-.hotspots-sidebar {
-  background: #1a1a1a;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  border: 1px solid #2a2a2a;
-  overflow-y: auto;
-}
-
-.hotspots-sidebar h3 {
-  margin: 0 0 15px 0;
-  color: #ffd700;
-}
-
-.hotspot-list {
+/* Active PINGs Content */
+.active-pings-content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
+/* History Content */
+.history-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-content h3 {
+  color: #ffd700;
+  margin: 0 0 12px 0;
+}
+
+/* Activity Content */
+.activity-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-content h3 {
+  color: #ffd700;
+  margin: 0 0 12px 0;
+}
+
+/* Hotspot Item (in floating panel) */
 .hotspot-item {
-  padding: 12px;
+  padding: 14px;
   border: 1px solid #2a2a2a;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
   transition: all 0.2s;
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .hotspot-item:hover {
@@ -391,20 +455,82 @@
   text-decoration: underline;
 }
 
-/* History Sidebar */
-.history-sidebar {
-  background: #1a1a1a;
-  border-radius: 12px;
-  padding: 20px;
-  overflow-y: auto;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  border: 1px solid #2a2a2a;
+/* Hotspot Prize */
+.hotspot-prize {
+  color: #a0a0a0;
+  font-size: 0.85rem;
+  margin: 0;
 }
 
-.history-sidebar h3 {
-  margin-top: 0;
+/* Add PING Card */
+.add-ping-card {
+  padding: 24px;
+  border: 2px dashed #2a2a2a;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 100px;
+}
+
+.add-ping-card:hover {
+  background: rgba(255, 215, 0, 0.05);
+  border-color: #ffd700;
+}
+
+.add-ping-card .plus-icon {
+  font-size: 3rem;
+  color: #ffd700;
+  line-height: 1;
+  font-weight: 200;
+}
+
+.add-ping-card span {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Inline Form Container */
+.inline-form-container {
+  padding: 20px;
+  border: 2px solid #ffd700;
+  border-radius: 8px;
+  background: rgba(255, 215, 0, 0.05);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.inline-form-container h4 {
+  margin: 0 0 16px 0;
   color: #ffd700;
   font-size: 1.1rem;
+}
+
+.form-hint-map {
+  text-align: center;
+  color: #a0a0a0;
+  font-size: 0.85rem;
+  font-style: italic;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  margin-bottom: 12px;
 }
 
 .empty-message {
@@ -698,31 +824,30 @@
 
 /* Pending Claims Section */
 .pending-claims-section {
-  grid-column: 1 / -1;
   background: rgba(255, 193, 7, 0.1);
   border: 2px solid #ffc107;
   border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 16px;
+  margin-bottom: 12px;
 }
 
 .pending-claims-section h3 {
-  margin: 0 0 15px 0;
+  margin: 0 0 12px 0;
   color: #ffc107;
-  font-size: 1.2rem;
-}
-
-.pending-claims-list {
-  display: grid;
-  gap: 15px;
+  font-size: 1.1rem;
 }
 
 .claim-card {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid #f0ad4e;
   border-radius: 8px;
-  padding: 15px;
+  padding: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+}
+
+.claim-card:last-child {
+  margin-bottom: 0;
 }
 
 .claim-header {
@@ -788,32 +913,72 @@
 }
 
 /* Responsive */
-@media (max-width: 1200px) {
-  .admin-content {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
-
-  .admin-map {
-    min-height: 300px;
-  }
-}
-
 @media (max-width: 768px) {
   .admin-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    padding: 15px 20px;
   }
 
-  .activity-feed,
-  .admin-content {
-    margin: 10px;
-    padding: 15px;
+  .admin-logo {
+    height: 40px;
+  }
+
+  /* Bottom drawer for mobile */
+  .admin-floating-panel {
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    top: auto;
+    width: auto;
+    max-height: 150px; /* Collapsed height */
+    border-radius: 20px 20px 0 0;
+    transition: max-height 0.3s ease;
+  }
+
+  .admin-floating-panel.expanded {
+    max-height: 70vh; /* Expanded height */
+  }
+
+  /* Show drag handle on mobile */
+  .drag-handle {
+    display: block;
+  }
+
+  .admin-tabs {
+    padding: 0 12px;
+  }
+
+  .tab-btn {
+    padding: 10px 8px;
+    font-size: 0.8rem;
+  }
+
+  .panel-content {
+    padding: 12px;
   }
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .hotspot-item {
+    padding: 12px;
+  }
+
+  .nfc-url-input {
+    font-size: 0.7rem;
+  }
+
+  .add-ping-card {
+    min-height: 80px;
+    padding: 16px;
+  }
+
+  .add-ping-card .plus-icon {
+    font-size: 2rem;
+  }
+
+  .inline-form-container {
+    padding: 16px;
   }
 }
 

@@ -79,8 +79,11 @@ function AdminPage() {
 
   const [hasExpiration, setHasExpiration] = useState(false);
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
-  const [activeTab, setActiveTab] = useState<'pings' | 'activity'>('pings');
+  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity'>('active');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [drawerExpanded, setDrawerExpanded] = useState(false);
 
   const [markerPosition, setMarkerPosition] = useState<[number, number]>([40.7128, -74.0060]);
 
@@ -206,11 +209,8 @@ function AdminPage() {
     }
   };
 
-  // Handle map click to set coordinates
-  const handleMapClick = (lat: number, lng: number) => {
-    setMarkerPosition([lat, lng]);
-    setFormData({ ...formData, lat, lng });
-  };
+  // Legacy handler - keeping for backward compatibility but using new one
+  const handleMapClick = handleMapClickOpen;
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -256,9 +256,46 @@ function AdminPage() {
     }
   };
 
+  // Handle opening the form (from + card)
+  const handleOpenForm = () => {
+    setFormMode('create');
+    setFormOpen(true);
+    setSelectedHotspot(null);
+    // Reset form when opening new create form
+    setFormData({
+      title: '',
+      description: '',
+      lat: markerPosition[0],
+      lng: markerPosition[1],
+      prize: '',
+      endDate: '',
+      active: true,
+      imageUrl: '',
+      privateKey: '',
+    });
+    setImagePreview(null);
+    setHasExpiration(false);
+  };
+
+  // Handle map click to set location and open form
+  const handleMapClickOpen = (lat: number, lng: number) => {
+    setMarkerPosition([lat, lng]);
+    setFormData({ ...formData, lat, lng });
+    
+    // If form is not open, open it in create mode
+    if (!formOpen) {
+      setFormMode('create');
+      setFormOpen(true);
+      setSelectedHotspot(null);
+    }
+  };
+
   // Edit hotspot
   const handleEdit = (hotspot: Hotspot) => {
     setSelectedHotspot(hotspot);
+    setFormMode('edit');
+    setFormOpen(true);
+    setActiveTab('active'); // Switch to active tab to show form
     
     // Check if endDate is far in future (>50 years = no expiration)
     const endDate = new Date(hotspot.endDate);
@@ -363,6 +400,8 @@ function AdminPage() {
   // Cancel editing
   const handleCancel = () => {
     setSelectedHotspot(null);
+    setFormOpen(false);
+    setFormMode('create');
     setHasExpiration(false);
     setImagePreview(null);
     setFormData({
@@ -432,92 +471,108 @@ function AdminPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="admin-tabs">
-        <button 
-          className={`tab-btn ${activeTab === 'pings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pings')}
+      {/* Full viewport map */}
+      <div className="admin-map-container">
+        <MapContainer 
+          center={markerPosition} 
+          zoom={13} 
+          className="admin-map"
         >
-          PINGs Management
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
-          onClick={() => setActiveTab('activity')}
-        >
-          Recent Activity
-        </button>
+          {/* ESRI Dark Gray Canvas Basemap */}
+          <TileLayer
+            attribution='Tiles &copy; Esri'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={16}
+          />
+          <TileLayer
+            attribution='&copy; Esri'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={16}
+          />
+          <MapClickHandler onMapClick={handleMapClick} />
+          <Marker position={markerPosition} icon={createPulseIcon()} />
+        </MapContainer>
       </div>
 
-      {/* Activity Tab Content */}
-      {activeTab === 'activity' && (
-        <div className="activity-tab">
-          <div className="activity-feed">
-            <h3>Recent Activity</h3>
-            <div className="log-list">
-              {logs.map((log) => (
-                <div key={log.id} className="log-item">
-                  <span className="log-action">{log.action}</span>
-                  <span className="log-details">{log.details || `${log.entity} ${log.entityId}`}</span>
-                  <span className="log-time">{formatDate(log.timestamp)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Floating Panel */}
+      <div className={`admin-floating-panel ${drawerExpanded ? 'expanded' : ''}`}>
+        {/* Mobile drag handle */}
+        <div className="drag-handle" onClick={() => setDrawerExpanded(!drawerExpanded)}>
+          <div className="handle-bar"></div>
         </div>
-      )}
 
-      {/* PINGs Tab Content */}
-      {activeTab === 'pings' && (
-      <div className="admin-content">
-        {/* Pending claims section */}
-        {pendingClaims.length > 0 && (
-          <div className="pending-claims-section">
-            <h3>🔔 Pending Claims ({pendingClaims.length})</h3>
-            <div className="pending-claims-list">
-              {pendingClaims.map((claim) => (
-                <div key={claim.id} className="claim-card">
-                  <div className="claim-header">
-                    <h4>{claim.title}</h4>
-                    <span className="claim-time">{formatDate(claim.claimedAt || '')}</span>
-                  </div>
-                  <div className="claim-details">
-                    <p><strong>Claimed by:</strong> {claim.claimedBy || 'Unknown'}</p>
-                    <p><strong>Location:</strong> {claim.lat.toFixed(6)}, {claim.lng.toFixed(6)}</p>
-                    {claim.tweetUrl && <p><strong>Tweet:</strong> Posted</p>}
-                  </div>
-                  <div className="claim-actions">
-                    <button 
-                      onClick={() => handleApprove(claim.id)} 
-                      className="approve-btn"
-                    >
-                      ✅ Approve Claim
-                    </button>
-                  </div>
+        {/* Tabs */}
+        <div className="admin-tabs">
+          <button 
+            className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
+            onClick={() => setActiveTab('active')}
+          >
+            Active PINGs
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+            onClick={() => setActiveTab('history')}
+          >
+            Claimed History
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
+            onClick={() => setActiveTab('activity')}
+          >
+            Recent Activity
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        <div className="panel-content">
+          {/* Active PINGs Tab */}
+          {activeTab === 'active' && (
+            <div className="active-pings-content">
+              {/* Pending Claims */}
+              {pendingClaims.length > 0 && (
+                <div className="pending-claims-section">
+                  <h3>🔔 Pending Claims ({pendingClaims.length})</h3>
+                  {pendingClaims.map((claim) => (
+                    <div key={claim.id} className="claim-card">
+                      <div className="claim-header">
+                        <h4>{claim.title}</h4>
+                        <span className="claim-time">{formatDate(claim.claimedAt || '')}</span>
+                      </div>
+                      <div className="claim-details">
+                        <p><strong>Claimed by:</strong> {claim.claimedBy || 'Unknown'}</p>
+                        <p><strong>Location:</strong> {claim.lat.toFixed(6)}, {claim.lng.toFixed(6)}</p>
+                        {claim.tweetUrl && <p><strong>Tweet:</strong> Posted</p>}
+                      </div>
+                      <button 
+                        onClick={() => handleApprove(claim.id)} 
+                        className="approve-btn"
+                      >
+                        ✅ Approve Claim
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              )}
 
-        {/* Active/Queued PINGs list */}
-        <div className="hotspots-sidebar">
-          <h3>Active & Queued PINGs</h3>
-          <div className="hotspot-list">
-            {hotspots
-              .filter(h => h.claimStatus !== 'claimed')
-              .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0))
-              .map((hotspot) => {
-                const nfcUrl = `${window.location.origin}/ping/${hotspot.id}`;
-                const isActive = hotspot.queuePosition === 0;
-                return (
-                  <div key={hotspot.id} className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'}`}>
-                    <div className="hotspot-info">
+              {/* Active/Queued PINGs List */}
+              {hotspots
+                .filter(h => h.claimStatus !== 'claimed')
+                .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0))
+                .map((hotspot) => {
+                  const nfcUrl = `${window.location.origin}/ping/${hotspot.id}`;
+                  const isActive = hotspot.queuePosition === 0;
+                  return (
+                    <div 
+                      key={hotspot.id} 
+                      className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'}`}
+                    >
                       <div className="hotspot-header">
                         <span className={`status-badge ${isActive ? 'badge-active' : 'badge-queued'}`}>
                           {isActive ? '🟢 ACTIVE' : `🟡 Queue #${hotspot.queuePosition}`}
                         </span>
                         <strong>{hotspot.title}</strong>
                       </div>
+                      <p className="hotspot-prize">Prize: {hotspot.prize || 'N/A'}</p>
                       <div className="nfc-url-section">
                         <label>NFC URL:</label>
                         <div className="url-copy-group">
@@ -539,26 +594,194 @@ function AdminPage() {
                           </button>
                         </div>
                       </div>
+                      <div className="hotspot-actions">
+                        <button onClick={() => handleEdit(hotspot)} className="edit-btn">Edit</button>
+                        <button onClick={() => handleDelete(hotspot.id)} className="delete-btn">Delete</button>
+                      </div>
                     </div>
-                    <div className="hotspot-actions">
-                      <button onClick={() => handleEdit(hotspot)} className="edit-btn">Edit</button>
-                      <button onClick={() => handleDelete(hotspot.id)} className="delete-btn">Delete</button>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
+                  );
+                })}
 
-        {/* History: Claimed PINGs */}
-        <div className="history-sidebar">
-          <h3>📜 Claimed PINGs History</h3>
-          <div className="hotspot-list">
-            {hotspots
-              .filter(h => h.claimStatus === 'claimed')
-              .map((hotspot) => (
-                <div key={hotspot.id} className="hotspot-item claimed-hotspot">
-                  <div className="hotspot-info">
+              {/* Add New PING Card */}
+              <div className="add-ping-card" onClick={handleOpenForm}>
+                <div className="plus-icon">+</div>
+                <span>Add New PING</span>
+              </div>
+
+              {/* Inline Expandable Form */}
+              {formOpen && (
+                <div className="inline-form-container">
+                  <h4>{formMode === 'edit' ? 'Edit PING' : 'Create New PING'}</h4>
+                  <form onSubmit={handleSave}>
+                    <div className="form-group">
+                      <label htmlFor="title">Title *</label>
+                      <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="description">Description *</label>
+                      <textarea
+                        id="description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        rows={3}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="lat">Latitude *</label>
+                        <input
+                          type="number"
+                          id="lat"
+                          name="lat"
+                          value={formData.lat}
+                          onChange={handleInputChange}
+                          step="0.000001"
+                          min="-90"
+                          max="90"
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="lng">Longitude *</label>
+                        <input
+                          type="number"
+                          id="lng"
+                          name="lng"
+                          value={formData.lng}
+                          onChange={handleInputChange}
+                          step="0.000001"
+                          min="-180"
+                          max="180"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="form-hint-map">
+                      💡 or click on the map to select location
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="prize">Prize</label>
+                      <input
+                        type="text"
+                        id="prize"
+                        name="prize"
+                        value={formData.prize}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="privateKey">Solana Private Key</label>
+                      <input
+                        type="password"
+                        id="privateKey"
+                        name="privateKey"
+                        value={formData.privateKey}
+                        onChange={handleInputChange}
+                        placeholder="Enter private key (encrypted in database)"
+                      />
+                      <small className="form-hint">⚠️ This will be encrypted and revealed only when claim is approved</small>
+                    </div>
+
+                    <div className="form-group checkbox">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={hasExpiration}
+                          onChange={(e) => setHasExpiration(e.target.checked)}
+                        />
+                        <span>Set expiration date</span>
+                      </label>
+                    </div>
+
+                    {hasExpiration && (
+                      <div className="form-group">
+                        <label htmlFor="endDate">Expiration Date & Time *</label>
+                        <input
+                          type="datetime-local"
+                          id="endDate"
+                          name="endDate"
+                          value={formData.endDate}
+                          onChange={handleInputChange}
+                          required={hasExpiration}
+                        />
+                      </div>
+                    )}
+
+                    <div className="form-group">
+                      <label htmlFor="image">PING Image</label>
+                      <input
+                        type="file"
+                        id="image"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="file-input"
+                      />
+                      {imagePreview && (
+                        <div className="image-preview">
+                          <img src={imagePreview} alt="Preview" />
+                          <button 
+                            type="button" 
+                            onClick={() => {
+                              setImagePreview(null);
+                              setFormData({ ...formData, imageUrl: '' });
+                            }}
+                            className="remove-image-btn"
+                          >
+                            ✕ Remove
+                          </button>
+                        </div>
+                      )}
+                      <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
+                    </div>
+
+                    <div className="form-group checkbox">
+                      <label>
+                        <input
+                          type="checkbox"
+                          name="active"
+                          checked={formData.active}
+                          onChange={handleInputChange}
+                        />
+                        <span>Active</span>
+                      </label>
+                    </div>
+
+                    <div className="form-actions">
+                      <button type="submit" className="save-btn">
+                        {formMode === 'edit' ? 'Update' : 'Create'} PING
+                      </button>
+                      <button type="button" onClick={handleCancel} className="cancel-btn">
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Claimed History Tab */}
+          {activeTab === 'history' && (
+            <div className="history-content">
+              <h3>📜 Claimed PINGs History</h3>
+              {hotspots
+                .filter(h => h.claimStatus === 'claimed')
+                .map((hotspot) => (
+                  <div key={hotspot.id} className="hotspot-item claimed-hotspot">
                     <div className="hotspot-header">
                       <span className="status-badge badge-claimed">✅ CLAIMED</span>
                       <strong>{hotspot.title}</strong>
@@ -573,200 +796,31 @@ function AdminPage() {
                       )}
                     </div>
                   </div>
+                ))}
+              {hotspots.filter(h => h.claimStatus === 'claimed').length === 0 && (
+                <p className="empty-message">No claimed PINGs yet.</p>
+              )}
+            </div>
+          )}
+
+          {/* Recent Activity Tab */}
+          {activeTab === 'activity' && (
+            <div className="activity-content">
+              <h3>Recent Activity</h3>
+              {logs.map((log) => (
+                <div key={log.id} className="log-item">
+                  <span className="log-action">{log.action}</span>
+                  <span className="log-details">{log.details || `${log.entity} ${log.entityId}`}</span>
+                  <span className="log-time">{formatDate(log.timestamp)}</span>
                 </div>
               ))}
-            {hotspots.filter(h => h.claimStatus === 'claimed').length === 0 && (
-              <p className="empty-message">No claimed PINGs yet.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Map for selecting coordinates */}
-        <div className="map-section">
-          <h3>Select Location</h3>
-          <p className="map-hint">Click on the map to set PING coordinates</p>
-          <MapContainer 
-            center={markerPosition} 
-            zoom={13} 
-            className="admin-map"
-          >
-            {/* ESRI Dark Gray Canvas Basemap */}
-            <TileLayer
-              attribution='Tiles &copy; Esri'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-              maxZoom={16}
-            />
-            <TileLayer
-              attribution='&copy; Esri'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
-              maxZoom={16}
-            />
-            <MapClickHandler onMapClick={handleMapClick} />
-            <Marker position={markerPosition} icon={createPulseIcon()} />
-          </MapContainer>
-        </div>
-
-        {/* Form */}
-        <div className="form-section">
-          <h3>{selectedHotspot ? 'Edit PING' : 'Create PING'}</h3>
-          <form onSubmit={handleSave}>
-            <div className="form-group">
-              <label htmlFor="title">Title *</label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="description">Description *</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={4}
-                required
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="lat">Latitude *</label>
-                <input
-                  type="number"
-                  id="lat"
-                  name="lat"
-                  value={formData.lat}
-                  onChange={handleInputChange}
-                  step="0.000001"
-                  min="-90"
-                  max="90"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="lng">Longitude *</label>
-                <input
-                  type="number"
-                  id="lng"
-                  name="lng"
-                  value={formData.lng}
-                  onChange={handleInputChange}
-                  step="0.000001"
-                  min="-180"
-                  max="180"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="prize">Prize</label>
-              <input
-                type="text"
-                id="prize"
-                name="prize"
-                value={formData.prize}
-                onChange={handleInputChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="privateKey">Solana Private Key</label>
-              <input
-                type="password"
-                id="privateKey"
-                name="privateKey"
-                value={formData.privateKey}
-                onChange={handleInputChange}
-                placeholder="Enter private key (encrypted in database)"
-              />
-              <small className="form-hint">⚠️ This will be encrypted and revealed only when claim is approved</small>
-            </div>
-
-            <div className="form-group checkbox">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={hasExpiration}
-                  onChange={(e) => setHasExpiration(e.target.checked)}
-                />
-                <span>Set expiration date</span>
-              </label>
-            </div>
-
-            {hasExpiration && (
-              <div className="form-group">
-                <label htmlFor="endDate">Expiration Date & Time *</label>
-                <input
-                  type="datetime-local"
-                  id="endDate"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleInputChange}
-                  required={hasExpiration}
-                />
-              </div>
-            )}
-
-            <div className="form-group">
-              <label htmlFor="image">PING Image</label>
-              <input
-                type="file"
-                id="image"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="file-input"
-              />
-              {imagePreview && (
-                <div className="image-preview">
-                  <img src={imagePreview} alt="Preview" />
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setImagePreview(null);
-                      setFormData({ ...formData, imageUrl: '' });
-                    }}
-                    className="remove-image-btn"
-                  >
-                    ✕ Remove
-                  </button>
-                </div>
-              )}
-              <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
-            </div>
-
-            <div className="form-group checkbox">
-              <label>
-                <input
-                  type="checkbox"
-                  name="active"
-                  checked={formData.active}
-                  onChange={handleInputChange}
-                />
-                <span>Active</span>
-              </label>
-            </div>
-
-            <div className="form-actions">
-              <button type="submit" className="save-btn">
-                {selectedHotspot ? 'Update' : 'Create'} Hotspot
-              </button>
-              {selectedHotspot && (
-                <button type="button" onClick={handleCancel} className="cancel-btn">
-                  Cancel
-                </button>
+              {logs.length === 0 && (
+                <p className="empty-message">No activity yet.</p>
               )}
             </div>
-          </form>
+          )}
         </div>
       </div>
-      )}
     </div>
   );
 }
