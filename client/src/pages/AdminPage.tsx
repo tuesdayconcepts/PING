@@ -457,11 +457,34 @@ function AdminPage() {
   // Admin dashboard view
   return (
     <div className="admin-page">
-      {/* Top bar */}
+      {/* Top bar with tabs */}
       <div className="admin-header">
         <div className="header-left">
           <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
         </div>
+        
+        {/* Tabs in header */}
+        <div className="admin-tabs">
+          <button 
+            className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
+            onClick={() => setActiveTab('active')}
+          >
+            Active PINGs
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+            onClick={() => setActiveTab('history')}
+          >
+            Claimed History
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
+            onClick={() => setActiveTab('activity')}
+          >
+            Recent Activity
+          </button>
+        </div>
+
         <div className="user-info">
           <span>Welcome, {getUsername()}</span>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
@@ -498,29 +521,7 @@ function AdminPage() {
           <div className="handle-bar"></div>
         </div>
 
-        {/* Tabs */}
-        <div className="admin-tabs">
-          <button 
-            className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
-            onClick={() => setActiveTab('active')}
-          >
-            Active PINGs
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
-            onClick={() => setActiveTab('history')}
-          >
-            Claimed History
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
-            onClick={() => setActiveTab('activity')}
-          >
-            Recent Activity
-          </button>
-        </div>
-
-        {/* Tab Content */}
+        {/* Panel Content */}
         <div className="panel-content">
           {/* Active PINGs Tab */}
           {activeTab === 'active' && (
