@@ -366,8 +366,11 @@ function MapPage() {
                 {claimError && (
                   <p className="claim-error">{claimError}</p>
                 )}
-                <button className="claim-btn" onClick={handleClaim}>
-                  Claim Prize
+                <button 
+                  className={claimError ? "view-active-btn" : "claim-btn"} 
+                  onClick={claimError ? () => window.location.href = '/' : handleClaim}
+                >
+                  {claimError ? 'View Active PING' : 'Claim Prize'}
                 </button>
               </div>
             )}
