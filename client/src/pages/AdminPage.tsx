@@ -457,38 +457,10 @@ function AdminPage() {
   // Admin dashboard view
   return (
     <div className="admin-page">
-      {/* Top bar with tabs */}
-      <div className="admin-header">
-        <div className="header-left">
-          <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
-        </div>
-        
-        {/* Tabs in header */}
-        <div className="admin-tabs">
-          <button 
-            className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
-            onClick={() => setActiveTab('active')}
-          >
-            Active PINGs
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
-            onClick={() => setActiveTab('history')}
-          >
-            Claimed History
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
-            onClick={() => setActiveTab('activity')}
-          >
-            Recent Activity
-          </button>
-        </div>
-
-        <div className="user-info">
-          <span>Welcome, {getUsername()}</span>
-          <button onClick={handleLogout} className="logout-btn">Logout</button>
-        </div>
+      {/* Mobile Top Bar (logo + logout) */}
+      <div className="mobile-top-bar">
+        <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
+        <button onClick={handleLogout} className="logout-btn">Logout</button>
       </div>
 
       {/* Full viewport map */}
@@ -514,15 +486,51 @@ function AdminPage() {
         </MapContainer>
       </div>
 
-      {/* Floating Panel */}
-      <div className={`admin-floating-panel ${drawerExpanded ? 'expanded' : ''}`}>
+      {/* Left Sidebar (Desktop) / Bottom Drawer (Mobile) */}
+      <div className={`admin-sidebar ${drawerExpanded ? 'expanded' : ''}`}>
+        {/* Desktop: Logo at top */}
+        <div className="sidebar-header">
+          <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
+        </div>
+
+        {/* Tabs */}
+        <div className="admin-tabs">
+          <button 
+            className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('active');
+              setDrawerExpanded(true); // Expand on mobile when tab clicked
+            }}
+          >
+            Active PINGs
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('history');
+              setDrawerExpanded(true);
+            }}
+          >
+            Claimed History
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('activity');
+              setDrawerExpanded(true);
+            }}
+          >
+            Recent Activity
+          </button>
+        </div>
+
         {/* Mobile drag handle */}
         <div className="drag-handle" onClick={() => setDrawerExpanded(!drawerExpanded)}>
           <div className="handle-bar"></div>
         </div>
 
-        {/* Panel Content */}
-        <div className="panel-content">
+        {/* Tab Content */}
+        <div className="sidebar-content">
           {/* Active PINGs Tab */}
           {activeTab === 'active' && (
             <div className="active-pings-content">
@@ -817,6 +825,13 @@ function AdminPage() {
               )}
             </div>
           )}
+        </div>
+
+        {/* Desktop: Logout at bottom */}
+        <div className="sidebar-footer">
+          <button onClick={handleLogout} className="logout-btn">
+            Logout
+          </button>
         </div>
       </div>
     </div>
