@@ -10,22 +10,6 @@ import './MapPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-// Distance calculation using Haversine formula (returns meters)
-const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371e3; // Earth radius in meters
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lng2 - lng1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-};
-
 // Create pulsing marker icon with custom star SVG
 const createPulseIcon = (isActive: boolean = true) => {
   const color = isActive ? 'gold' : '#95a5a6';
@@ -142,55 +126,30 @@ function MapPage() {
 
     setClaimError(null);
 
-    // Get user's current location
-    if (!navigator.geolocation) {
-      setClaimError('Geolocation is not supported by your browser');
-      return;
+    // Open Twitter Web Intent
+    const tweetText = `Just found a PING! 🎉 @YourPingAccount #PINGGame`;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+    window.open(tweetUrl, '_blank');
+
+    // Submit claim to backend
+    try {
+      const response = await fetch(`${API_URL}/api/hotspots/${selectedHotspot.id}/claim`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tweetUrl: 'user-tweeted' }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setClaimError(errorData.error || 'Failed to submit claim');
+        return;
+      }
+
+      // Show "Waiting for approval" state
+      setClaimStatus('pending');
+    } catch (err) {
+      setClaimError('Failed to submit claim. Please try again.');
     }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const userLat = position.coords.latitude;
-        const userLng = position.coords.longitude;
-
-        // Check distance (50m radius)
-        const distance = calculateDistance(userLat, userLng, selectedHotspot.lat, selectedHotspot.lng);
-
-        if (distance > 50) {
-          setClaimError(`You must be within 50 meters of the location! You are ${Math.round(distance)}m away.`);
-          return;
-        }
-
-        // Open Twitter Web Intent
-        const tweetText = `Just found a PING! 🎉 @YourPingAccount #PINGGame`;
-        const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
-        window.open(tweetUrl, '_blank');
-
-        // Submit claim to backend
-        try {
-          const response = await fetch(`${API_URL}/api/hotspots/${selectedHotspot.id}/claim`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ lat: userLat, lng: userLng, tweetUrl: 'user-tweeted' }),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            setClaimError(errorData.error || 'Failed to submit claim');
-            return;
-          }
-
-          // Show "Waiting for approval" state
-          setClaimStatus('pending');
-        } catch (err) {
-          setClaimError('Failed to submit claim. Please try again.');
-        }
-      },
-      (err) => {
-        setClaimError(`Geolocation error: ${err.message}`);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
   };
 
   // Poll for approval status

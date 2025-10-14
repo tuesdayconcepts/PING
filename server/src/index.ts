@@ -104,22 +104,6 @@ const sanitizeString = (input: string): string => {
   return input.trim();
 };
 
-// Distance calculation using Haversine formula (returns meters)
-const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371e3; // Earth radius in meters
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lng2 - lng1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-};
-
 // Promote next hotspot in queue
 const promoteNextHotspot = async () => {
   const nextHotspot = await prisma.hotspot.findFirst({
@@ -542,14 +526,7 @@ app.delete("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
 app.post("/api/hotspots/:id/claim", async (req, res) => {
   try {
     const { id } = req.params;
-    const { lat, lng, tweetUrl } = req.body;
-
-    // Validation
-    if (lat === undefined || lng === undefined) {
-      return res.status(400).json({
-        error: "Latitude and longitude are required",
-      });
-    }
+    const { tweetUrl } = req.body;
 
     // Get hotspot
     const hotspot = await prisma.hotspot.findUnique({ where: { id } });
@@ -561,15 +538,6 @@ app.post("/api/hotspots/:id/claim", async (req, res) => {
     if (hotspot.claimStatus !== "unclaimed") {
       return res.status(400).json({
         error: `This hotspot is already ${hotspot.claimStatus}`,
-      });
-    }
-
-    // Verify geofence (50m radius)
-    const distance = calculateDistance(lat, lng, hotspot.lat, hotspot.lng);
-    if (distance > 50) {
-      return res.status(403).json({
-        error: "You must be within 50 meters of the location to claim",
-        distance: Math.round(distance),
       });
     }
 
