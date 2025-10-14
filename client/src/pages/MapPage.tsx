@@ -117,11 +117,11 @@ function MapPage() {
       setZoom(16);
       
       // Set claim status based on hotspot state
-      if (hotspot.claimStatus === 'claimed' && hotspot.privateKey) {
-        setClaimStatus('claimed');
-        setPrivateKey(hotspot.privateKey);
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 5000);
+      // IMPORTANT: Don't show private key here - it should only come from the polling response
+      // after user successfully claims and admin approves
+      if (hotspot.claimStatus === 'claimed') {
+        // Show error for already claimed PINGs
+        setClaimError('This PING has already been claimed by someone else.');
       } else if (hotspot.claimStatus === 'pending') {
         setClaimStatus('pending');
       } else {
