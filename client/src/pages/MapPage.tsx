@@ -298,54 +298,66 @@ function MapPage() {
               ✕
             </button>
 
-            {/* Show all sections except when claimed */}
-            {claimStatus !== 'claimed' && (
+            {/* Check if hotspot is queued (not active yet) */}
+            {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 0 ? (
+              <div className="modal-section modal-queued">
+                <div className="queued-icon">🟡</div>
+                <h3>This PING is Not Active Yet</h3>
+                <p>This PING is currently in queue position <strong>#{selectedHotspot.queuePosition}</strong>.</p>
+                <p>It will become active once the current PING is claimed. Check back soon!</p>
+              </div>
+            ) : (
               <>
-                {/* Title section */}
-                <div className="modal-section modal-title">
-                  <h2>{selectedHotspot.title}</h2>
-                </div>
-
-                {/* Prize section */}
-                {selectedHotspot.prize && (
-                  <div className="modal-section modal-prize">
-                    <div className="prize-badge" style={{ 
-                      backgroundColor: getStatusColor(selectedHotspot.startDate, selectedHotspot.endDate) 
-                    }}>
-                      <span className="prize-icon">🎁</span>
-                      <span className="prize-text">{selectedHotspot.prize}</span>
+                {/* Show all sections except when claimed */}
+                {claimStatus !== 'claimed' && (
+                  <>
+                    {/* Title section */}
+                    <div className="modal-section modal-title">
+                      <h2>{selectedHotspot.title}</h2>
                     </div>
-                  </div>
-                )}
 
-                {/* Status section */}
-                <div className="modal-section modal-status">
-                  <div className="status-info">
-                    <span className="status-icon">⏱️</span>
-                    <span className="status-text">
-                      {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
-                    </span>
-                  </div>
-                </div>
+                    {/* Prize section */}
+                    {selectedHotspot.prize && (
+                      <div className="modal-section modal-prize">
+                        <div className="prize-badge" style={{ 
+                          backgroundColor: getStatusColor(selectedHotspot.startDate, selectedHotspot.endDate) 
+                        }}>
+                          <span className="prize-icon">🎁</span>
+                          <span className="prize-text">{selectedHotspot.prize}</span>
+                        </div>
+                      </div>
+                    )}
 
-                {/* Description section */}
-                <div className="modal-section modal-description">
-                  <h3>Details</h3>
-                  <p>{selectedHotspot.description}</p>
-                </div>
+                    {/* Status section */}
+                    <div className="modal-section modal-status">
+                      <div className="status-info">
+                        <span className="status-icon">⏱️</span>
+                        <span className="status-text">
+                          {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
+                        </span>
+                      </div>
+                    </div>
 
-                {/* Image section (if available) */}
-                {selectedHotspot.imageUrl && (
-                  <div className="modal-section modal-image">
-                    <img src={selectedHotspot.imageUrl} alt={selectedHotspot.title} />
-                  </div>
+                    {/* Description section */}
+                    <div className="modal-section modal-description">
+                      <h3>Details</h3>
+                      <p>{selectedHotspot.description}</p>
+                    </div>
+
+                    {/* Image section (if available) */}
+                    {selectedHotspot.imageUrl && (
+                      <div className="modal-section modal-image">
+                        <img src={selectedHotspot.imageUrl} alt={selectedHotspot.title} />
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}
 
             {/* Action section - Different states */}
-            {/* Only show claim button for NFC URLs (when accessed via /ping/:id) */}
-            {claimStatus === 'unclaimed' && id && (
+            {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not queued */}
+            {claimStatus === 'unclaimed' && id && (!selectedHotspot.queuePosition || selectedHotspot.queuePosition === 0) && (
               <div className="modal-section modal-actions">
                 {claimError && (
                   <p className="claim-error">{claimError}</p>

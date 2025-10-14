@@ -545,6 +545,48 @@
   text-align: center;
 }
 
+/* Queued State */
+.modal-queued {
+  background: linear-gradient(135deg, rgba(241, 196, 15, 0.08) 0%, rgba(243, 156, 18, 0.08) 100%);
+  text-align: center;
+  padding: 40px 25px !important;
+}
+
+.queued-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: pulse-queued 2s ease-in-out infinite;
+}
+
+@keyframes pulse-queued {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.modal-queued h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  color: #f39c12;
+}
+
+.modal-queued p {
+  margin: 12px 0;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.modal-queued strong {
+  color: #f1c40f;
+  font-weight: 600;
+}
+
 /* Pending State */
 .modal-pending {
   background: rgba(255, 255, 255, 0.05);
