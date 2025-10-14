@@ -43,8 +43,9 @@ model Hotspot {
 model AdminLog {
   id        String   @id @default(uuid())
   adminId   String
-  action    String   // CREATE, UPDATE, DELETE
-  entity    String   // Hotspot
+  username  String?  // Admin username for display
+  action    String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT
+  entity    String   // Hotspot, Admin, Auth
   entityId  String
   details   String?  // Optional details about the action
   timestamp DateTime @default(now())

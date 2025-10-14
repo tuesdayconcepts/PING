@@ -29,6 +29,7 @@ export interface LoginResponse {
 export interface AdminLog {
   id: string;
   adminId: string;
+  username?: string | null;
   action: string;
   entity: string;
   entityId: string;
