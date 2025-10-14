@@ -112,9 +112,9 @@
   top: 0;
   bottom: 0;
   width: 400px;
-  background: rgba(26, 26, 26, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #232227ab;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-right: 1px solid rgba(42, 42, 42, 0.6);
   display: flex;
   flex-direction: column;
@@ -136,11 +136,10 @@
 
 /* Tabs in Sidebar */
 .admin-tabs {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   gap: 0;
   border-bottom: 1px solid rgba(42, 42, 42, 0.6);
-  background: rgba(0, 0, 0, 0.3);
 }
 
 .tab-btn {
@@ -184,7 +183,6 @@
 .sidebar-footer {
   padding: 20px 24px;
   border-top: 1px solid rgba(42, 42, 42, 0.6);
-  background: rgba(0, 0, 0, 0.4);
 }
 
 .sidebar-footer .logout-btn {
