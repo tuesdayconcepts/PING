@@ -132,6 +132,7 @@ function AdminPage() {
       const data = await response.json();
       setToken(data.token);
       setUsername(data.username);
+      setCurrentUserRole(data.role || 'editor'); // Set role from login response
       setIsAuthenticated(true);
       fetchHotspots();
       fetchLogs();
@@ -144,6 +145,7 @@ function AdminPage() {
   const handleLogout = () => {
     removeToken();
     setIsAuthenticated(false);
+    setCurrentUserRole('editor'); // Reset role to default on logout
     setHotspots([]);
     setLogs([]);
   };

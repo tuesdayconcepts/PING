@@ -266,6 +266,7 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
 
     res.json({
       token,
+      role: admin.role || 'editor', // Include role in login response
       username: admin.username,
     });
   } catch (error) {
