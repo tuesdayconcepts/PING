@@ -134,23 +134,11 @@ const logAdminAction = async (
   action: string,
   entity: string,
   entityId: string,
-  details?: string,
-  username?: string
+  details?: string
 ) => {
-  // Fetch username if not provided
-  let logUsername = username;
-  if (!logUsername) {
-    const admin = await prisma.admin.findUnique({
-      where: { id: adminId },
-      select: { username: true },
-    });
-    logUsername = admin?.username;
-  }
-
   await prisma.adminLog.create({
     data: {
       adminId,
-      username: logUsername,
       action,
       entity,
       entityId,
@@ -276,18 +264,6 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
       expiresIn: "7d",
     });
 
-    // Log the login action
-    await prisma.adminLog.create({
-      data: {
-        adminId: admin.id,
-        username: admin.username,
-        action: "LOGIN",
-        entity: "Auth",
-        entityId: admin.id,
-        details: `User logged in`,
-      },
-    });
-
     res.json({
       token,
       role: admin.role || 'editor', // Include role in login response
@@ -295,36 +271,6 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// POST /api/auth/logout - Log logout action
-app.post("/api/auth/logout", authenticateAdmin, async (req, res) => {
-  try {
-    // Get admin info for logging
-    const admin = await prisma.admin.findUnique({
-      where: { id: req.adminId },
-      select: { username: true },
-    });
-
-    if (admin) {
-      // Log the logout action
-      await prisma.adminLog.create({
-        data: {
-          adminId: req.adminId!,
-          username: admin.username,
-          action: "LOGOUT",
-          entity: "Auth",
-          entityId: req.adminId!,
-          details: `User logged out`,
-        },
-      });
-    }
-
-    res.json({ message: "Logged out successfully" });
-  } catch (error) {
-    console.error("Logout error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -834,13 +780,15 @@ app.post("/api/admin/users", authenticateAdmin, requireAdmin, async (req, res) =
     });
 
     // Log the action
-    await logAdminAction(
-      req.adminId!,
-      "CREATE",
-      "Admin",
-      newUser.id,
-      `Created ${role} user: ${username}`
-    );
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.adminId!, // Non-null assertion: authenticateAdmin middleware guarantees this is set
+        action: "CREATE",
+        entity: "Admin",
+        entityId: newUser.id,
+        details: `Created ${role} user: ${username}`,
+      },
+    });
 
     res.json(newUser);
   } catch (error) {
@@ -876,13 +824,15 @@ app.put("/api/admin/users/:id/role", authenticateAdmin, requireAdmin, async (req
     });
 
     // Log the action
-    await logAdminAction(
-      req.adminId!,
-      "UPDATE",
-      "Admin",
-      id,
-      `Changed role to ${role} for user: ${user.username}`
-    );
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.adminId!, // Non-null assertion: authenticateAdmin middleware guarantees this is set
+        action: "UPDATE",
+        entity: "Admin",
+        entityId: id,
+        details: `Changed role to ${role} for user: ${user.username}`,
+      },
+    });
 
     res.json(user);
   } catch (error) {
@@ -915,13 +865,15 @@ app.delete("/api/admin/users/:id", authenticateAdmin, requireAdmin, async (req, 
     });
 
     // Log the action
-    await logAdminAction(
-      req.adminId!,
-      "DELETE",
-      "Admin",
-      id,
-      `Deleted user: ${user.username}`
-    );
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.adminId!, // Non-null assertion: authenticateAdmin middleware guarantees this is set
+        action: "DELETE",
+        entity: "Admin",
+        entityId: id,
+        details: `Deleted user: ${user.username}`,
+      },
+    });
 
     res.json({ message: "User deleted successfully" });
   } catch (error) {

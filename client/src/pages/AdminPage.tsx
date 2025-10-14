@@ -142,23 +142,12 @@ function AdminPage() {
   };
 
   // Logout handler
-  const handleLogout = async () => {
-    try {
-      // Log the logout action on the server
-      await fetch(`${API_URL}/api/auth/logout`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-      });
-    } catch (err) {
-      console.error('Logout logging failed:', err);
-    } finally {
-      // Always clear client-side state
-      removeToken();
-      setIsAuthenticated(false);
-      setCurrentUserRole('editor'); // Reset role to default on logout
-      setHotspots([]);
-      setLogs([]);
-    }
+  const handleLogout = () => {
+    removeToken();
+    setIsAuthenticated(false);
+    setCurrentUserRole('editor'); // Reset role to default on logout
+    setHotspots([]);
+    setLogs([]);
   };
 
   // Fetch hotspots (all, including inactive)
@@ -924,7 +913,6 @@ function AdminPage() {
               {logs.map((log) => (
                 <div key={log.id} className="log-item">
                   <span className="log-action">{log.action}</span>
-                  {log.username && <span className="log-user">by {log.username}</span>}
                   <span className="log-details">{log.details || `${log.entity} ${log.entityId}`}</span>
                   <span className="log-time">{formatDate(log.timestamp)}</span>
                 </div>
