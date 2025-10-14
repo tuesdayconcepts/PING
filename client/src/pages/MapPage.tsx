@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import Confetti from 'react-confetti';
 import L from 'leaflet';
@@ -40,6 +41,7 @@ const createPulseIcon = (isActive: boolean = true) => {
 };
 
 function MapPage() {
+  const { id } = useParams<{ id: string }>(); // Get hotspot ID from URL params
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,14 +53,12 @@ function MapPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
 
-  // Check URL for NFC routing (e.g., /ping/:hotspotId)
+  // Check URL for NFC routing (e.g., /ping/:id)
   useEffect(() => {
-    const pathParts = window.location.pathname.split('/ping/');
-    if (pathParts.length > 1 && pathParts[1]) {
-      const hotspotId = pathParts[1];
-      fetchHotspotById(hotspotId);
+    if (id) {
+      fetchHotspotById(id);
     }
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     fetchHotspots();

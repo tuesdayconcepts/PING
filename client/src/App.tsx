@@ -9,6 +9,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<MapPage />} />
+        <Route path="/ping/:id" element={<MapPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </Router>
