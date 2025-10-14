@@ -40,10 +40,6 @@ const getClaimSession = (hotspotId: string) => {
   return null;
 };
 
-// Clear claim session (optional, for cleanup)
-const clearClaimSession = () => {
-  localStorage.removeItem(CLAIM_SESSION_KEY);
-};
 
 // Create pulsing marker icon with custom star SVG
 const createPulseIcon = (isActive: boolean = true) => {
