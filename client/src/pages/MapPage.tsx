@@ -4,8 +4,10 @@ import { useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import Confetti from 'react-confetti';
 import L from 'leaflet';
+import html2canvas from 'html2canvas';
 import { Hotspot } from '../types';
 import { getHotspotStatus } from '../utils/time';
+import { GoldenTicket } from '../components/GoldenTicket';
 import 'leaflet/dist/leaflet.css';
 import './MapPage.css';
 
@@ -83,6 +85,51 @@ function MapPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showCertificate, setShowCertificate] = useState(false);
+  const [twitterHandle, setTwitterHandle] = useState<string>('');
+  const [claimedAt, setClaimedAt] = useState<string>('');
+
+  // Extract Twitter handle from tweet URL
+  const extractTwitterHandle = (tweetUrl: string): string => {
+    try {
+      const match = tweetUrl.match(/twitter\.com\/([^\/]+)/);
+      return match ? `@${match[1]}` : '';
+    } catch (e) {
+      return '';
+    }
+  };
+
+  // Download certificate as PNG
+  const downloadCertificate = async () => {
+    const element = document.getElementById('golden-ticket-canvas');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        backgroundColor: null,
+        scale: 2, // Higher quality
+      });
+      
+      const link = document.createElement('a');
+      link.download = `ping-certificate-${selectedHotspot?.id}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+    }
+  };
+
+  // Share on Twitter with certificate
+  const shareOnTwitter = async () => {
+    // First download the certificate
+    await downloadCertificate();
+    
+    // Open Twitter with pre-filled tweet
+    const tweetText = encodeURIComponent('Just claimed my $PING reward! Here is proof! 🎉');
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&hashtags=PING`;
+    
+    window.open(twitterUrl, '_blank', 'width=550,height=420');
+  };
 
   // Check URL for NFC routing (e.g., /ping/:id)
   useEffect(() => {
@@ -155,6 +202,11 @@ function MapPage() {
         setClaimStatus('claimed');
         setPrivateKey(claimSession.privateKey);
         setShowConfetti(true);
+        setShowCertificate(true);
+        setClaimedAt(new Date().toISOString());
+        if (hotspot.tweetUrl) {
+          setTwitterHandle(extractTwitterHandle(hotspot.tweetUrl));
+        }
       } else if (hotspot.claimStatus === 'claimed') {
         // Different user or no session - show error
         setClaimError('This PING has already been claimed by someone else.');
@@ -214,6 +266,13 @@ function MapPage() {
             
             // Store claim session so user can refresh
             storeClaimSession(selectedHotspot.id, data.privateKey);
+            
+            // Set certificate data
+            setShowCertificate(true);
+            setClaimedAt(new Date().toISOString());
+            if (data.tweetUrl) {
+              setTwitterHandle(extractTwitterHandle(data.tweetUrl));
+            }
             
             clearInterval(interval);
             // Stop confetti after 6 seconds
@@ -446,6 +505,19 @@ function MapPage() {
               <div className="modal-section modal-reveal">
                 <h3 className="congrats-title">🎉 Congratulations! 🎉</h3>
                 <p className="congrats-text">You've successfully claimed this PING!</p>
+                
+                {showCertificate && selectedHotspot && (
+                  <div className="certificate-container">
+                    <GoldenTicket
+                      claimedAt={claimedAt}
+                      prize={selectedHotspot.prize}
+                      location={selectedHotspot.title}
+                      claimId={selectedHotspot.id}
+                      twitterHandle={twitterHandle}
+                    />
+                  </div>
+                )}
+                
                 <div className="private-key-box">
                   <label>Solana Private Key:</label>
                   <code 
@@ -463,8 +535,17 @@ function MapPage() {
                   </code>
                 </div>
                 <p className="warning-text">
-                  ⚠️ Save this private key securely! You won't be able to see it again.
+                  ⚠️ Save this private key securely! Import it into your Solana wallet to access your prize.
                 </p>
+                
+                <div className="modal-actions">
+                  <button onClick={shareOnTwitter} className="tweet-btn">
+                    🐦 Tweet My Win
+                  </button>
+                  <button onClick={downloadCertificate} className="download-btn">
+                    💾 Download Certificate
+                  </button>
+                </div>
               </div>
             )}
           </div>

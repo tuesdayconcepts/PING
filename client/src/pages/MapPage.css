@@ -805,3 +805,69 @@
   }
 }
 
+/* Certificate Container */
+.certificate-container {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Scale down certificate on mobile */
+@media (max-width: 768px) {
+  .certificate-container {
+    transform: scale(0.7);
+    transform-origin: top center;
+  }
+}
+
+/* Modal Actions - Tweet and Download Buttons */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tweet-btn {
+  background: #1DA1F2;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 180px;
+}
+
+.tweet-btn:hover {
+  background: #1a8cd8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(29, 161, 242, 0.4);
+}
+
+.download-btn {
+  background: transparent;
+  color: #ffd700;
+  border: 2px solid #ffd700;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 180px;
+}
+
+.download-btn:hover {
+  background: rgba(255, 215, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
