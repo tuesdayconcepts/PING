@@ -534,32 +534,6 @@ function AdminPage() {
           {/* Active PINGs Tab */}
           {activeTab === 'active' && (
             <div className="active-pings-content">
-              {/* Pending Claims */}
-              {pendingClaims.length > 0 && (
-                <div className="pending-claims-section">
-                  <h3>🔔 Pending Claims ({pendingClaims.length})</h3>
-                  {pendingClaims.map((claim) => (
-                    <div key={claim.id} className="claim-card">
-                      <div className="claim-header">
-                        <h4>{claim.title}</h4>
-                        <span className="claim-time">{formatDate(claim.claimedAt || '')}</span>
-                      </div>
-                      <div className="claim-details">
-                        <p><strong>Claimed by:</strong> {claim.claimedBy || 'Unknown'}</p>
-                        <p><strong>Location:</strong> {claim.lat.toFixed(6)}, {claim.lng.toFixed(6)}</p>
-                        {claim.tweetUrl && <p><strong>Tweet:</strong> Posted</p>}
-                      </div>
-                      <button 
-                        onClick={() => handleApprove(claim.id)} 
-                        className="approve-btn"
-                      >
-                        ✅ Approve Claim
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
               {/* Active/Queued PINGs List */}
               {hotspots
                 .filter(h => h.claimStatus !== 'claimed')
@@ -567,14 +541,17 @@ function AdminPage() {
                 .map((hotspot) => {
                   const nfcUrl = `${window.location.origin}/ping/${hotspot.id}`;
                   const isActive = hotspot.queuePosition === 0;
+                  const pendingClaim = pendingClaims.find(claim => claim.id === hotspot.id);
+                  const hasPendingClaim = !!pendingClaim;
+                  
                   return (
                     <div 
                       key={hotspot.id} 
-                      className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'}`}
+                      className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''}`}
                     >
                       <div className="hotspot-header">
-                        <span className={`status-badge ${isActive ? 'badge-active' : 'badge-queued'}`}>
-                          {isActive ? '🟢 ACTIVE' : `🟡 Queue #${hotspot.queuePosition}`}
+                        <span className={`status-badge ${hasPendingClaim ? 'badge-pending' : (isActive ? 'badge-active' : 'badge-queued')}`}>
+                          {hasPendingClaim ? '🔔 PENDING CLAIM' : (isActive ? '🟢 ACTIVE' : `🟡 Queue #${hotspot.queuePosition}`)}
                         </span>
                         <strong>{hotspot.title}</strong>
                       </div>
@@ -604,6 +581,21 @@ function AdminPage() {
                         <button onClick={() => handleEdit(hotspot)} className="edit-btn">Edit</button>
                         <button onClick={() => handleDelete(hotspot.id)} className="delete-btn">Delete</button>
                       </div>
+                      
+                      {/* Inline Pending Claim Details */}
+                      {hasPendingClaim && pendingClaim && (
+                        <div className="inline-claim-details">
+                          <p><strong>Claimed by:</strong> {pendingClaim.claimedBy || 'Unknown'}</p>
+                          <p><strong>Claimed at:</strong> {formatDate(pendingClaim.claimedAt || '')}</p>
+                          {pendingClaim.tweetUrl && <p><strong>Tweet:</strong> Posted</p>}
+                          <button 
+                            onClick={() => handleApprove(pendingClaim.id)} 
+                            className="approve-btn"
+                          >
+                            ✅ Approve Claim
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

@@ -339,6 +339,11 @@
   opacity: 0.7;
 }
 
+.hotspot-item.pending-claim {
+  border: 2px solid #ffc107;
+  background: rgba(255, 193, 7, 0.1);
+}
+
 .hotspot-info {
   display: flex;
   flex-direction: column;
@@ -375,6 +380,21 @@
 .badge-claimed {
   background: #95a5a6;
   color: white;
+}
+
+.badge-pending {
+  background: #ffc107;
+  color: #000;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .nfc-url-section {
@@ -435,6 +455,30 @@
 
 .claim-details a:hover {
   text-decoration: underline;
+}
+
+/* Inline Claim Details */
+.inline-claim-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 193, 7, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inline-claim-details p {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.inline-claim-details strong {
+  color: #ffc107;
+}
+
+.inline-claim-details .approve-btn {
+  margin-top: 8px;
 }
 
 /* Hotspot Prize */
