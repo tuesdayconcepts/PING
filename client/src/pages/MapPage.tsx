@@ -510,7 +510,7 @@ function MapPage() {
                   <div className="certificate-container">
                     <GoldenTicket
                       claimedAt={claimedAt}
-                      prize={selectedHotspot.prize}
+                      prize={selectedHotspot.prize || 'Mystery Prize'}
                       location={selectedHotspot.title}
                       claimId={selectedHotspot.id}
                       twitterHandle={twitterHandle}
