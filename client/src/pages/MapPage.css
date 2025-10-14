@@ -7,7 +7,7 @@
   overflow: hidden;
 }
 
-/* Vignette overlay - intense dark fade from all edges */
+/* Vignette overlay - intense dark fade from all edges on desktop, top only on mobile */
 .vignette-overlay {
   position: fixed;
   top: 0;
@@ -24,6 +24,19 @@
     rgba(0 0 0) 100%
   );
   z-index: 150;
+}
+
+/* Mobile: only top gradient with nav bar */
+@media (max-width: 768px) {
+  .vignette-overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(0, 0, 0, 0.8) 80px,
+      rgba(0, 0, 0, 0.4) 120px,
+      transparent 160px
+    );
+  }
 }
 
 /* Sticky navigation bar */
