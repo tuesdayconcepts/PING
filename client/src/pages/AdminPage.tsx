@@ -209,9 +209,6 @@ function AdminPage() {
     }
   };
 
-  // Legacy handler - keeping for backward compatibility but using new one
-  const handleMapClick = handleMapClickOpen;
-
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -489,7 +486,7 @@ function AdminPage() {
             url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
             maxZoom={16}
           />
-          <MapClickHandler onMapClick={handleMapClick} />
+          <MapClickHandler onMapClick={handleMapClickOpen} />
           <Marker position={markerPosition} icon={createPulseIcon()} />
         </MapContainer>
       </div>
