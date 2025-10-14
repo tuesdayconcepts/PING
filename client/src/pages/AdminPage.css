@@ -309,9 +309,9 @@
 /* Hotspot Item (in floating panel) */
 .hotspot-item {
   padding: 14px;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
+  border: none;
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.4);
   transition: all 0.2s;
   display: flex;
   flex-direction: column;
@@ -319,29 +319,24 @@
 }
 
 .hotspot-item:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: #ffd700;
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .hotspot-item.active-hotspot {
-  border: 2px solid #27ae60;
-  background: rgba(39, 174, 96, 0.1);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .hotspot-item.queued-hotspot {
-  border: 2px solid #f39c12;
-  background: rgba(243, 156, 18, 0.1);
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .hotspot-item.claimed-hotspot {
-  border: 2px solid #95a5a6;
-  background: rgba(149, 165, 166, 0.1);
+  background: rgba(0, 0, 0, 0.3);
   opacity: 0.7;
 }
 
 .hotspot-item.pending-claim {
-  border: 2px solid #ffc107;
-  background: rgba(255, 193, 7, 0.1);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .hotspot-info {
@@ -356,20 +351,24 @@
 .hotspot-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
 .status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: bold;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 600;
   white-space: nowrap;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .badge-active {
   background: #27ae60;
   color: white;
+  animation: pulse-badge 2s ease-in-out infinite;
 }
 
 .badge-queued {
@@ -390,10 +389,12 @@
 
 @keyframes pulse-badge {
   0%, 100% {
+    transform: scale(1);
     opacity: 1;
   }
   50% {
-    opacity: 0.7;
+    transform: scale(1.05);
+    opacity: 0.8;
   }
 }
 

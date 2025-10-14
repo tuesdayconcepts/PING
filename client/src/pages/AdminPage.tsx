@@ -550,10 +550,10 @@ function AdminPage() {
                       className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''}`}
                     >
                       <div className="hotspot-header">
-                        <span className={`status-badge ${hasPendingClaim ? 'badge-pending' : (isActive ? 'badge-active' : 'badge-queued')}`}>
-                          {hasPendingClaim ? '🔔 PENDING CLAIM' : (isActive ? '🟢 ACTIVE' : `🟡 Queue #${hotspot.queuePosition}`)}
-                        </span>
                         <strong>{hotspot.title}</strong>
+                        <span className={`status-badge ${hasPendingClaim ? 'badge-pending' : (isActive ? 'badge-active' : 'badge-queued')}`}>
+                          {hasPendingClaim ? 'Pending Claim' : (isActive ? 'Active' : `Queue #${hotspot.queuePosition}`)}
+                        </span>
                       </div>
                       <p className="hotspot-prize">Prize: {hotspot.prize || 'N/A'}</p>
                       <div className="nfc-url-section">
