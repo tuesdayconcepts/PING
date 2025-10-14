@@ -79,12 +79,18 @@ function AdminPage() {
 
   const [hasExpiration, setHasExpiration] = useState(false);
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
-  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access'>('active');
+  const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'editor'>('admin');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [drawerExpanded, setDrawerExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  
+  // Access Control state
+  const [adminUsers, setAdminUsers] = useState<Array<{id: string, username: string, role: 'admin' | 'editor', createdAt: string}>>([]);
+  const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'editor' as 'admin' | 'editor' });
+  const [showNewUserForm, setShowNewUserForm] = useState(false);
 
   const [markerPosition, setMarkerPosition] = useState<[number, number]>([40.7128, -74.0060]);
 
@@ -94,6 +100,7 @@ function AdminPage() {
       fetchHotspots();
       fetchLogs();
       fetchPendingClaims();
+      fetchAdminUsers();
     }
   }, []);
 
@@ -423,6 +430,95 @@ function AdminPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // Fetch admin users
+  const fetchAdminUsers = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users`, {
+        headers: getAuthHeaders(),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAdminUsers(data.users);
+        setCurrentUserRole(data.currentUserRole);
+      }
+    } catch (err) {
+      console.error('Failed to fetch admin users:', err);
+    }
+  };
+
+  // Create new admin user
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(newUserForm),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create user');
+      }
+
+      alert('User created successfully!');
+      setNewUserForm({ username: '', password: '', role: 'editor' });
+      setShowNewUserForm(false);
+      fetchAdminUsers();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to create user');
+    }
+  };
+
+  // Update user role
+  const handleUpdateRole = async (userId: string, newRole: 'admin' | 'editor') => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}/role`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update role');
+      }
+
+      alert('Role updated successfully!');
+      fetchAdminUsers();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update role');
+    }
+  };
+
+  // Delete admin user
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
+
+      alert('User deleted successfully!');
+      fetchAdminUsers();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete user');
+    }
+  };
+
   // Login view
   if (!isAuthenticated) {
     return (
@@ -530,6 +626,17 @@ function AdminPage() {
           >
             Recent Activity
           </button>
+          {currentUserRole === 'admin' && (
+            <button 
+              className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('access');
+                setDrawerExpanded(true);
+              }}
+            >
+              Access Control
+            </button>
+          )}
         </div>
 
         {/* Mobile drag handle */}
@@ -811,6 +918,112 @@ function AdminPage() {
               {logs.length === 0 && (
                 <p className="empty-message">No activity yet.</p>
               )}
+            </div>
+          )}
+
+          {/* Access Control Tab */}
+          {activeTab === 'access' && currentUserRole === 'admin' && (
+            <div className="access-control-content">
+              <h3>Access Control</h3>
+              
+              {/* Add New User Button */}
+              {!showNewUserForm && (
+                <div className="add-user-card" onClick={() => setShowNewUserForm(true)}>
+                  <div className="plus-icon">+</div>
+                  <span>Add New Admin User</span>
+                </div>
+              )}
+
+              {/* New User Form */}
+              {showNewUserForm && (
+                <div className="new-user-form">
+                  <h4>Create New Admin User</h4>
+                  <form onSubmit={handleCreateUser}>
+                    <div className="form-group">
+                      <label htmlFor="new-username">Username *</label>
+                      <input
+                        type="text"
+                        id="new-username"
+                        value={newUserForm.username}
+                        onChange={(e) => setNewUserForm({...newUserForm, username: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="new-password">Password *</label>
+                      <input
+                        type="password"
+                        id="new-password"
+                        value={newUserForm.password}
+                        onChange={(e) => setNewUserForm({...newUserForm, password: e.target.value})}
+                        required
+                        minLength={6}
+                      />
+                      <small className="form-hint">Minimum 6 characters</small>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="new-role">Role *</label>
+                      <select
+                        id="new-role"
+                        value={newUserForm.role}
+                        onChange={(e) => setNewUserForm({...newUserForm, role: e.target.value as 'admin' | 'editor'})}
+                      >
+                        <option value="editor">Editor</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                      <small className="form-hint">
+                        <strong>Editor:</strong> Can manage PINGs only<br/>
+                        <strong>Admin:</strong> Full access including user management
+                      </small>
+                    </div>
+                    <div className="form-actions">
+                      <button type="submit" className="save-btn">Create User</button>
+                      <button type="button" onClick={() => setShowNewUserForm(false)} className="cancel-btn">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Admin Users List */}
+              <div className="admin-users-list">
+                <h4>Admin Users</h4>
+                {adminUsers.map((user) => (
+                  <div key={user.id} className="user-item">
+                    <div className="user-info">
+                      <strong>{user.username}</strong>
+                      <span className={`role-badge role-${user.role}`}>
+                        {user.role === 'admin' ? 'Admin' : 'Editor'}
+                      </span>
+                    </div>
+                    <div className="user-actions">
+                      {user.role === 'editor' ? (
+                        <button 
+                          onClick={() => handleUpdateRole(user.id, 'admin')} 
+                          className="action-btn promote-btn"
+                        >
+                          Promote to Admin
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => handleUpdateRole(user.id, 'editor')} 
+                          className="action-btn demote-btn"
+                        >
+                          Demote to Editor
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => handleDeleteUser(user.id)} 
+                        className="action-btn delete-btn"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {adminUsers.length === 0 && (
+                  <p className="empty-message">No users found.</p>
+                )}
+              </div>
             </div>
           )}
         </div>

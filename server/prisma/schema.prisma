@@ -13,6 +13,7 @@ model Admin {
   id        String   @id @default(uuid())
   username  String   @unique
   password  String   // bcrypt hashed
+  role      String   @default("editor") // admin or editor
   createdAt DateTime @default(now())
 }
 

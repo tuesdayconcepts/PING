@@ -306,6 +306,167 @@
   margin: 0 0 12px 0;
 }
 
+/* Access Control Content */
+.access-control-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.access-control-content h3 {
+  color: #ffd700;
+  margin: 0 0 16px 0;
+}
+
+.access-control-content h4 {
+  color: #e0e0e0;
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+}
+
+/* Add User Card */
+.add-user-card {
+  padding: 24px;
+  border: 2px dashed #2a2a2a;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 80px;
+  animation: fadeIn 0.3s ease;
+}
+
+.add-user-card:hover {
+  background: rgba(255, 215, 0, 0.05);
+  border-color: #ffd700;
+}
+
+.add-user-card .plus-icon {
+  font-size: 2.5rem;
+  color: #ffd700;
+  line-height: 1;
+  font-weight: 200;
+  transition: transform 0.3s ease;
+}
+
+.add-user-card:hover .plus-icon {
+  transform: rotate(90deg);
+}
+
+.add-user-card span {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* New User Form */
+.new-user-form {
+  padding: 20px;
+  border: 2px solid #ffd700;
+  border-radius: 8px;
+  background: rgba(255, 215, 0, 0.05);
+  animation: expandIn 0.3s ease;
+}
+
+.new-user-form h4 {
+  color: #ffd700;
+  margin-bottom: 16px;
+}
+
+.new-user-form select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
+  transition: all 0.3s;
+}
+
+.new-user-form select:focus {
+  outline: none;
+  border-color: #ffd700;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Admin Users List */
+.admin-users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-item {
+  padding: 16px;
+  border: none;
+  border-radius: 15px;
+  background: #00000063;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+}
+
+.user-item:hover {
+  background: #00000090;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info strong {
+  color: #e0e0e0;
+  font-size: 1rem;
+}
+
+.role-badge {
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-admin {
+  background: #ffd700;
+  color: #000;
+}
+
+.role-editor {
+  background: #3498db;
+  color: white;
+}
+
+.user-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.promote-btn,
+.demote-btn {
+  border-color: rgba(52, 152, 219, 0.3);
+  color: #3498db;
+}
+
+.promote-btn:hover,
+.demote-btn:hover {
+  background: rgba(52, 152, 219, 0.15);
+  border-color: rgba(52, 152, 219, 0.5);
+}
+
 /* Hotspot Item (in floating panel) */
 .hotspot-item {
   padding: 20px;
