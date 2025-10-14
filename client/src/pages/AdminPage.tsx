@@ -142,12 +142,23 @@ function AdminPage() {
   };
 
   // Logout handler
-  const handleLogout = () => {
-    removeToken();
-    setIsAuthenticated(false);
-    setCurrentUserRole('editor'); // Reset role to default on logout
-    setHotspots([]);
-    setLogs([]);
+  const handleLogout = async () => {
+    try {
+      // Log the logout action on the server
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      });
+    } catch (err) {
+      console.error('Logout logging failed:', err);
+    } finally {
+      // Always clear client-side state
+      removeToken();
+      setIsAuthenticated(false);
+      setCurrentUserRole('editor'); // Reset role to default on logout
+      setHotspots([]);
+      setLogs([]);
+    }
   };
 
   // Fetch hotspots (all, including inactive)

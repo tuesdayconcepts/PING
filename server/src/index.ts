@@ -264,6 +264,15 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
       expiresIn: "7d",
     });
 
+    // Log the login action (without username column)
+    await logAdminAction(
+      admin.id,
+      "LOGIN",
+      "Auth",
+      admin.id,
+      `User logged in: ${admin.username}`
+    );
+
     res.json({
       token,
       role: admin.role || 'editor', // Include role in login response
@@ -271,6 +280,33 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/auth/logout - Log logout action
+app.post("/api/auth/logout", authenticateAdmin, async (req, res) => {
+  try {
+    // Get admin info for logging
+    const admin = await prisma.admin.findUnique({
+      where: { id: req.adminId },
+      select: { username: true },
+    });
+
+    if (admin) {
+      // Log the logout action (without username column)
+      await logAdminAction(
+        req.adminId!,
+        "LOGOUT",
+        "Auth",
+        req.adminId!,
+        `User logged out: ${admin.username}`
+      );
+    }
+
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
