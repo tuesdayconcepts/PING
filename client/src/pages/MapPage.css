@@ -552,23 +552,6 @@
   padding: 40px 25px !important;
 }
 
-.queued-icon {
-  font-size: 4rem;
-  margin-bottom: 20px;
-  animation: pulse-queued 2s ease-in-out infinite;
-}
-
-@keyframes pulse-queued {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.05);
-  }
-}
-
 .modal-queued h3 {
   margin: 0 0 20px 0;
   font-size: 1.5rem;
@@ -576,15 +559,29 @@
 }
 
 .modal-queued p {
-  margin: 12px 0;
+  margin: 0 0 25px 0;
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.7;
   font-size: 1rem;
 }
 
-.modal-queued strong {
-  color: #f1c40f;
+.view-active-btn {
+  padding: 14px 30px;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.view-active-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+  background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
 }
 
 /* Pending State */
