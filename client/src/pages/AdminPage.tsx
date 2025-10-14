@@ -79,6 +79,8 @@ function AdminPage() {
 
   const [hasExpiration, setHasExpiration] = useState(false);
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
+  const [activeTab, setActiveTab] = useState<'pings' | 'activity'>('pings');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [markerPosition, setMarkerPosition] = useState<[number, number]>([40.7128, -74.0060]);
 
@@ -230,6 +232,30 @@ function AdminPage() {
     }
   };
 
+  // Handle image file selection
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (limit to 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Image size must be less than 2MB');
+        return;
+      }
+
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setFormData({
+          ...formData,
+          imageUrl: base64String,
+        });
+        setImagePreview(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Edit hotspot
   const handleEdit = (hotspot: Hotspot) => {
     setSelectedHotspot(hotspot);
@@ -252,6 +278,7 @@ function AdminPage() {
       imageUrl: hotspot.imageUrl || '',
       privateKey: '', // Don't populate private key on edit for security
     });
+    setImagePreview(hotspot.imageUrl || null);
     setMarkerPosition([hotspot.lat, hotspot.lng]);
   };
 
@@ -337,6 +364,7 @@ function AdminPage() {
   const handleCancel = () => {
     setSelectedHotspot(null);
     setHasExpiration(false);
+    setImagePreview(null);
     setFormData({
       title: '',
       description: '',
@@ -395,27 +423,51 @@ function AdminPage() {
     <div className="admin-page">
       {/* Top bar */}
       <div className="admin-header">
-        <h2>🗺️ Admin Dashboard</h2>
+        <div className="header-left">
+          <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
+        </div>
         <div className="user-info">
           <span>Welcome, {getUsername()}</span>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
       </div>
 
-      {/* Activity feed */}
-      <div className="activity-feed">
-        <h3>Recent Activity</h3>
-        <div className="log-list">
-          {logs.slice(0, 10).map((log) => (
-            <div key={log.id} className="log-item">
-              <span className="log-action">{log.action}</span>
-              <span className="log-details">{log.details || `${log.entity} ${log.entityId}`}</span>
-              <span className="log-time">{formatDate(log.timestamp)}</span>
-            </div>
-          ))}
-        </div>
+      {/* Tabs */}
+      <div className="admin-tabs">
+        <button 
+          className={`tab-btn ${activeTab === 'pings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('pings')}
+        >
+          PINGs Management
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
+          onClick={() => setActiveTab('activity')}
+        >
+          Recent Activity
+        </button>
       </div>
 
+      {/* Activity Tab Content */}
+      {activeTab === 'activity' && (
+        <div className="activity-tab">
+          <div className="activity-feed">
+            <h3>Recent Activity</h3>
+            <div className="log-list">
+              {logs.map((log) => (
+                <div key={log.id} className="log-item">
+                  <span className="log-action">{log.action}</span>
+                  <span className="log-details">{log.details || `${log.entity} ${log.entityId}`}</span>
+                  <span className="log-time">{formatDate(log.timestamp)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PINGs Tab Content */}
+      {activeTab === 'pings' && (
       <div className="admin-content">
         {/* Pending claims section */}
         {pendingClaims.length > 0 && (
@@ -447,9 +499,9 @@ function AdminPage() {
           </div>
         )}
 
-        {/* Active/Queued Hotspots list */}
+        {/* Active/Queued PINGs list */}
         <div className="hotspots-sidebar">
-          <h3>Active & Queued Hotspots</h3>
+          <h3>Active & Queued PINGs</h3>
           <div className="hotspot-list">
             {hotspots
               .filter(h => h.claimStatus !== 'claimed')
@@ -498,9 +550,9 @@ function AdminPage() {
           </div>
         </div>
 
-        {/* History: Claimed Hotspots */}
+        {/* History: Claimed PINGs */}
         <div className="history-sidebar">
-          <h3>📜 Claimed Hotspots History</h3>
+          <h3>📜 Claimed PINGs History</h3>
           <div className="hotspot-list">
             {hotspots
               .filter(h => h.claimStatus === 'claimed')
@@ -515,6 +567,7 @@ function AdminPage() {
                       <p><strong>Prize:</strong> {hotspot.prize}</p>
                       <p><strong>Claimed by:</strong> {hotspot.claimedBy || 'Unknown'}</p>
                       <p><strong>Claimed at:</strong> {hotspot.claimedAt ? formatDate(hotspot.claimedAt) : 'N/A'}</p>
+                      <p><strong>PING URL:</strong> <a href={`${window.location.origin}/ping/${hotspot.id}`} target="_blank" rel="noopener noreferrer">{`${window.location.origin}/ping/${hotspot.id}`}</a></p>
                       {hotspot.tweetUrl && (
                         <p><strong>Tweet:</strong> <a href={hotspot.tweetUrl} target="_blank" rel="noopener noreferrer">View</a></p>
                       )}
@@ -523,7 +576,7 @@ function AdminPage() {
                 </div>
               ))}
             {hotspots.filter(h => h.claimStatus === 'claimed').length === 0 && (
-              <p className="empty-message">No claimed hotspots yet.</p>
+              <p className="empty-message">No claimed PINGs yet.</p>
             )}
           </div>
         </div>
@@ -531,7 +584,7 @@ function AdminPage() {
         {/* Map for selecting coordinates */}
         <div className="map-section">
           <h3>Select Location</h3>
-          <p className="map-hint">Click on the map to set hotspot coordinates</p>
+          <p className="map-hint">Click on the map to set PING coordinates</p>
           <MapContainer 
             center={markerPosition} 
             zoom={13} 
@@ -555,7 +608,7 @@ function AdminPage() {
 
         {/* Form */}
         <div className="form-section">
-          <h3>{selectedHotspot ? 'Edit Hotspot' : 'Create Hotspot'}</h3>
+          <h3>{selectedHotspot ? 'Edit PING' : 'Create PING'}</h3>
           <form onSubmit={handleSave}>
             <div className="form-group">
               <label htmlFor="title">Title *</label>
@@ -662,14 +715,30 @@ function AdminPage() {
             )}
 
             <div className="form-group">
-              <label htmlFor="imageUrl">Image URL</label>
+              <label htmlFor="image">PING Image</label>
               <input
-                type="url"
-                id="imageUrl"
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleInputChange}
+                type="file"
+                id="image"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="file-input"
               />
+              {imagePreview && (
+                <div className="image-preview">
+                  <img src={imagePreview} alt="Preview" />
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setImagePreview(null);
+                      setFormData({ ...formData, imageUrl: '' });
+                    }}
+                    className="remove-image-btn"
+                  >
+                    ✕ Remove
+                  </button>
+                </div>
+              )}
+              <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
             </div>
 
             <div className="form-group checkbox">
@@ -697,6 +766,7 @@ function AdminPage() {
           </form>
         </div>
       </div>
+      )}
     </div>
   );
 }
