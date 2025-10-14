@@ -84,6 +84,7 @@ function AdminPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [drawerExpanded, setDrawerExpanded] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [markerPosition, setMarkerPosition] = useState<[number, number]>([40.7128, -74.0060]);
 
@@ -415,6 +416,13 @@ function AdminPage() {
     setMarkerPosition([40.7128, -74.0060]);
   };
 
+  // Copy PING URL to clipboard
+  const handleCopyUrl = (id: string, url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   // Login view
   if (!isAuthenticated) {
     return (
@@ -556,30 +564,19 @@ function AdminPage() {
                         </span>
                       </div>
                       <p className="hotspot-prize">Prize: {hotspot.prize || 'N/A'}</p>
-                      <div className="nfc-url-section">
-                        <label>NFC URL:</label>
-                        <div className="url-copy-group">
-                          <input 
-                            type="text" 
-                            value={nfcUrl} 
-                            readOnly 
-                            className="nfc-url-input"
-                            onClick={(e) => e.currentTarget.select()}
-                          />
-                          <button 
-                            className="copy-url-btn"
-                            onClick={() => {
-                              navigator.clipboard.writeText(nfcUrl);
-                              alert('URL copied! Link this to your NFC card.');
-                            }}
-                          >
-                            📋
-                          </button>
-                        </div>
-                      </div>
                       <div className="hotspot-actions">
-                        <button onClick={() => handleEdit(hotspot)} className="edit-btn">Edit</button>
-                        <button onClick={() => handleDelete(hotspot.id)} className="delete-btn">Delete</button>
+                        <button onClick={() => handleEdit(hotspot)} className="action-btn edit-btn">
+                          Edit PING
+                        </button>
+                        <button 
+                          onClick={() => handleCopyUrl(hotspot.id, nfcUrl)} 
+                          className="action-btn copy-btn"
+                        >
+                          {copiedId === hotspot.id ? 'Copied!' : 'Copy PING URL'}
+                        </button>
+                        <button onClick={() => handleDelete(hotspot.id)} className="action-btn delete-btn">
+                          Delete PING
+                        </button>
                       </div>
                       
                       {/* Inline Pending Claim Details */}

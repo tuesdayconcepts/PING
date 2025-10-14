@@ -398,47 +398,6 @@
   }
 }
 
-.nfc-url-section {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.85rem;
-}
-
-.nfc-url-section label {
-  font-size: 0.75rem;
-  color: #a0a0a0;
-  font-weight: 600;
-}
-
-.url-copy-group {
-  display: flex;
-  gap: 4px;
-}
-
-.nfc-url-input {
-  flex: 1;
-  padding: 6px 8px;
-  border: 1px solid #d0d0d0;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-family: monospace;
-  background: #fafafa;
-}
-
-.copy-url-btn {
-  padding: 6px 10px;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.copy-url-btn:hover {
-  background: #2980b9;
-}
 
 .claim-details {
   font-size: 0.85rem;
@@ -602,35 +561,62 @@
 
 .hotspot-actions {
   display: flex;
-  gap: 5px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.edit-btn,
-.delete-btn {
-  padding: 4px 12px;
-  border: none;
-  border-radius: 4px;
+.action-btn {
+  flex: 1;
+  min-width: fit-content;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.action-btn:active {
+  transform: translateY(0);
 }
 
 .edit-btn {
-  background: #3498db;
-  color: white;
+  border-color: rgba(52, 152, 219, 0.3);
+  color: #3498db;
 }
 
 .edit-btn:hover {
-  background: #2980b9;
+  background: rgba(52, 152, 219, 0.15);
+  border-color: rgba(52, 152, 219, 0.5);
+}
+
+.copy-btn {
+  border-color: rgba(255, 215, 0, 0.3);
+  color: #ffd700;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.5);
 }
 
 .delete-btn {
-  background: #e74c3c;
-  color: white;
+  border-color: rgba(231, 76, 60, 0.3);
+  color: #e74c3c;
 }
 
 .delete-btn:hover {
-  background: #c0392b;
+  background: rgba(231, 76, 60, 0.15);
+  border-color: rgba(231, 76, 60, 0.5);
 }
 
 /* Map Section */
@@ -1067,10 +1053,6 @@
 
   .hotspot-item {
     padding: 12px;
-  }
-
-  .nfc-url-input {
-    font-size: 0.7rem;
   }
 
   .add-ping-card {
