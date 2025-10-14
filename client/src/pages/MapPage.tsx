@@ -11,6 +11,40 @@ import './MapPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+// Session storage keys
+const CLAIM_SESSION_KEY = 'ping_claim_session';
+
+// Store claim session when user successfully claims
+const storeClaimSession = (hotspotId: string, privateKey: string) => {
+  const session = {
+    hotspotId,
+    privateKey,
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(CLAIM_SESSION_KEY, JSON.stringify(session));
+};
+
+// Check if current user has a claim session for this hotspot
+const getClaimSession = (hotspotId: string) => {
+  const stored = localStorage.getItem(CLAIM_SESSION_KEY);
+  if (!stored) return null;
+  
+  try {
+    const session = JSON.parse(stored);
+    if (session.hotspotId === hotspotId) {
+      return session;
+    }
+  } catch (e) {
+    console.error('Failed to parse claim session:', e);
+  }
+  return null;
+};
+
+// Clear claim session (optional, for cleanup)
+const clearClaimSession = () => {
+  localStorage.removeItem(CLAIM_SESSION_KEY);
+};
+
 // Create pulsing marker icon with custom star SVG
 const createPulseIcon = (isActive: boolean = true) => {
   const color = isActive ? 'gold' : '#95a5a6';
@@ -117,11 +151,16 @@ function MapPage() {
       setCenter([hotspot.lat, hotspot.lng]);
       setZoom(16);
       
-      // Set claim status based on hotspot state
-      // IMPORTANT: Don't show private key here - it should only come from the polling response
-      // after user successfully claims and admin approves
-      if (hotspot.claimStatus === 'claimed') {
-        // Show error for already claimed PINGs
+      // Check if this user has a claim session for this hotspot
+      const claimSession = getClaimSession(hotspotId);
+      
+      if (claimSession && claimSession.privateKey) {
+        // Original claimer returning - show success modal
+        setClaimStatus('claimed');
+        setPrivateKey(claimSession.privateKey);
+        setShowConfetti(true);
+      } else if (hotspot.claimStatus === 'claimed') {
+        // Different user or no session - show error
         setClaimError('This PING has already been claimed by someone else.');
       } else if (hotspot.claimStatus === 'pending') {
         setClaimStatus('pending');
@@ -176,6 +215,10 @@ function MapPage() {
             setClaimStatus('claimed');
             setPrivateKey(data.privateKey);
             setShowConfetti(true);
+            
+            // Store claim session so user can refresh
+            storeClaimSession(selectedHotspot.id, data.privateKey);
+            
             clearInterval(interval);
             // Stop confetti after 6 seconds
             setTimeout(() => setShowConfetti(false), 6000);
