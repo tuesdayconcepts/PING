@@ -1,11 +1,20 @@
 import "dotenv/config";
-import express from "express";
+import express, { Request } from "express";
 import cors from "cors";
 import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
+
+// Extend Express Request type to include adminId
+declare global {
+  namespace Express {
+    interface Request {
+      adminId?: string;
+    }
+  }
+}
 
 const app = express();
 const prisma = new PrismaClient();
