@@ -658,6 +658,220 @@ app.get("/api/admin/logs", authenticateAdmin, async (req, res) => {
   }
 });
 
+// ===== USER MANAGEMENT ROUTES (ADMIN ONLY) =====
+
+// Middleware to check if user is admin role
+const requireAdmin = async (req: any, res: any, next: any) => {
+  try {
+    const admin = await prisma.admin.findUnique({
+      where: { id: req.adminId },
+      select: { role: true },
+    });
+
+    if (!admin || admin.role !== 'admin') {
+      return res.status(403).json({ error: "Forbidden: Admin role required" });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Role check error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// GET /api/admin/users - List all admin users (admin only)
+app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
+  try {
+    // Get current user's role
+    const currentAdmin = await prisma.admin.findUnique({
+      where: { id: req.adminId },
+      select: { role: true },
+    });
+
+    // Get all users (only if current user is admin)
+    if (currentAdmin?.role === 'admin') {
+      const users = await prisma.admin.findMany({
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      res.json({
+        users,
+        currentUserRole: currentAdmin.role,
+      });
+    } else {
+      // Editors can only see their own info
+      const currentUser = await prisma.admin.findUnique({
+        where: { id: req.adminId },
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      res.json({
+        users: currentUser ? [currentUser] : [],
+        currentUserRole: currentAdmin?.role || 'editor',
+      });
+    }
+  } catch (error) {
+    console.error("Get users error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/admin/users - Create new admin user (admin only)
+app.post("/api/admin/users", authenticateAdmin, requireAdmin, async (req, res) => {
+  try {
+    const { username, password, role } = req.body;
+
+    if (!username || !password || !role) {
+      return res.status(400).json({ error: "Username, password, and role required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
+    if (role !== 'admin' && role !== 'editor') {
+      return res.status(400).json({ error: "Role must be 'admin' or 'editor'" });
+    }
+
+    // Check if username already exists
+    const existing = await prisma.admin.findUnique({
+      where: { username: sanitizeString(username) },
+    });
+
+    if (existing) {
+      return res.status(400).json({ error: "Username already exists" });
+    }
+
+    // Hash password and create user
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await prisma.admin.create({
+      data: {
+        username: sanitizeString(username),
+        password: hashedPassword,
+        role,
+      },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.adminId,
+        action: "CREATE",
+        entity: "Admin",
+        entityId: newUser.id,
+        details: `Created ${role} user: ${username}`,
+      },
+    });
+
+    res.json(newUser);
+  } catch (error) {
+    console.error("Create user error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PUT /api/admin/users/:id/role - Update user role (admin only)
+app.put("/api/admin/users/:id/role", authenticateAdmin, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (role !== 'admin' && role !== 'editor') {
+      return res.status(400).json({ error: "Role must be 'admin' or 'editor'" });
+    }
+
+    // Can't change your own role
+    if (id === req.adminId) {
+      return res.status(400).json({ error: "Cannot change your own role" });
+    }
+
+    const user = await prisma.admin.update({
+      where: { id },
+      data: { role },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.adminId,
+        action: "UPDATE",
+        entity: "Admin",
+        entityId: id,
+        details: `Changed role to ${role} for user: ${user.username}`,
+      },
+    });
+
+    res.json(user);
+  } catch (error) {
+    console.error("Update role error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// DELETE /api/admin/users/:id - Delete admin user (admin only)
+app.delete("/api/admin/users/:id", authenticateAdmin, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Can't delete yourself
+    if (id === req.adminId) {
+      return res.status(400).json({ error: "Cannot delete your own account" });
+    }
+
+    const user = await prisma.admin.findUnique({
+      where: { id },
+      select: { username: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await prisma.admin.delete({
+      where: { id },
+    });
+
+    // Log the action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.adminId,
+        action: "DELETE",
+        entity: "Admin",
+        entityId: id,
+        details: `Deleted user: ${user.username}`,
+      },
+    });
+
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // Start server
 const port = process.env.PORT ? Number(process.env.PORT) : 8080;
 app.listen(port, () => {
