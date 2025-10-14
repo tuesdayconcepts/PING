@@ -52,6 +52,7 @@ function MapPage() {
   const [privateKey, setPrivateKey] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Check URL for NFC routing (e.g., /ping/:id)
   useEffect(() => {
@@ -176,8 +177,8 @@ function MapPage() {
             setPrivateKey(data.privateKey);
             setShowConfetti(true);
             clearInterval(interval);
-            // Stop confetti after 5 seconds
-            setTimeout(() => setShowConfetti(false), 5000);
+            // Stop confetti after 6 seconds
+            setTimeout(() => setShowConfetti(false), 6000);
           }
         } catch (err) {
           console.error('Error polling claim status:', err);
@@ -212,12 +213,14 @@ function MapPage() {
       
       {/* Confetti - Full screen on successful claim */}
       {showConfetti && (
-        <Confetti
-          width={window.innerWidth}
-          height={window.innerHeight}
-          recycle={false}
-          numberOfPieces={200}
-        />
+        <div className="confetti-wrapper">
+          <Confetti
+            width={window.innerWidth}
+            height={window.innerHeight}
+            recycle={false}
+            numberOfPieces={200}
+          />
+        </div>
       )}
       
       {/* Navigation Bar */}
@@ -225,17 +228,21 @@ function MapPage() {
         <div className="nav-left">
           <img src="/logo/ping-logo.svg" alt="PING Logo" className="nav-logo" />
         </div>
-        <div className="nav-center">
+        <div className={`nav-center ${mobileMenuOpen ? 'mobile-menu-open' : ''}`}>
           <a href="#about" className="nav-link">About Us</a>
           <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="nav-link">
             <span>𝕏</span>
           </a>
         </div>
-        <div className="nav-right">
-          <span className="active-pings">
-            {hotspots.length} Active {hotspots.length !== 1 ? 'Pings' : 'Ping'}
-          </span>
-        </div>
+        <button 
+          className="hamburger-menu"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </nav>
 
       {/* Loading/Error States */}
@@ -402,16 +409,19 @@ function MapPage() {
                 <p className="congrats-text">You've successfully claimed this PING!</p>
                 <div className="private-key-box">
                   <label>Solana Private Key:</label>
-                  <code>{privateKey}</code>
-                  <button 
-                    className="copy-btn"
+                  <code 
+                    className="clickable-key"
                     onClick={() => {
                       navigator.clipboard.writeText(privateKey);
                       alert('Private key copied to clipboard!');
                     }}
                   >
-                    📋 Copy to Clipboard
-                  </button>
+                    {privateKey}
+                    <svg className="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
+                      <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  </code>
                 </div>
                 <p className="warning-text">
                   ⚠️ Save this private key securely! You won't be able to see it again.
