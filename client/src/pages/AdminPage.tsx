@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { Hotspot, AdminLog } from '../types';
-import { getToken, setToken, removeToken, setUsername, getUsername, getAuthHeaders } from '../utils/auth';
+import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
 import 'leaflet/dist/leaflet.css';
 import './AdminPage.css';
