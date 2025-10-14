@@ -600,14 +600,13 @@ function AdminPage() {
                   );
                 })}
 
-              {/* Add New PING Card */}
-              <div className="add-ping-card" onClick={handleOpenForm}>
-                <div className="plus-icon">+</div>
-                <span>Add New PING</span>
-              </div>
-
-              {/* Inline Expandable Form */}
-              {formOpen && (
+              {/* Add New PING Card / Inline Form */}
+              {!formOpen ? (
+                <div className="add-ping-card" onClick={handleOpenForm}>
+                  <div className="plus-icon">+</div>
+                  <span>Add New PING</span>
+                </div>
+              ) : (
                 <div className="inline-form-container">
                   <h4>{formMode === 'edit' ? 'Edit PING' : 'Create New PING'}</h4>
                   <form onSubmit={handleSave}>
