@@ -781,7 +781,7 @@ app.post("/api/admin/users", authenticateAdmin, requireAdmin, async (req, res) =
     // Log the action
     await prisma.adminLog.create({
       data: {
-        adminId: req.adminId,
+        adminId: req.adminId!, // Non-null assertion: authenticateAdmin middleware guarantees this is set
         action: "CREATE",
         entity: "Admin",
         entityId: newUser.id,
@@ -825,7 +825,7 @@ app.put("/api/admin/users/:id/role", authenticateAdmin, requireAdmin, async (req
     // Log the action
     await prisma.adminLog.create({
       data: {
-        adminId: req.adminId,
+        adminId: req.adminId!, // Non-null assertion: authenticateAdmin middleware guarantees this is set
         action: "UPDATE",
         entity: "Admin",
         entityId: id,
@@ -866,7 +866,7 @@ app.delete("/api/admin/users/:id", authenticateAdmin, requireAdmin, async (req, 
     // Log the action
     await prisma.adminLog.create({
       data: {
-        adminId: req.adminId,
+        adminId: req.adminId!, // Non-null assertion: authenticateAdmin middleware guarantees this is set
         action: "DELETE",
         entity: "Admin",
         entityId: id,
