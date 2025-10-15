@@ -403,11 +403,12 @@ function MapPage() {
       {/* Hotspot Modal Popup */}
       {selectedHotspot && (
         <div className="modal-overlay" onClick={() => setSelectedHotspot(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            {/* Close button */}
-            <button className="modal-close" onClick={() => setSelectedHotspot(null)}>
-              ✕
-            </button>
+          <div className="modal-wrapper">
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              {/* Close button */}
+              <button className="modal-close" onClick={() => setSelectedHotspot(null)}>
+                ✕
+              </button>
 
             {/* Check if hotspot is queued (not active yet) */}
             {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 0 ? (
@@ -496,52 +497,51 @@ function MapPage() {
             )}
 
             {claimStatus === 'claimed' && privateKey && (
-              <>
-                <div className="modal-section modal-reveal">
-                  <h3 className="congrats-title">Congratulations!</h3>
-                  <p className="congrats-text">You've successfully claimed this PING!</p>
-                  
-                  <div className="private-key-box">
-                    <label>Solana Private Key:</label>
-                    <code 
-                      className="clickable-key"
-                      onClick={() => {
-                        navigator.clipboard.writeText(privateKey);
-                        alert('Private key copied to clipboard!');
-                      }}
-                    >
-                      {privateKey}
-                      <svg className="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
-                        <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" strokeWidth="2"/>
-                      </svg>
-                    </code>
-                  </div>
-                  <p className="warning-text">
-                    WARNING: Save this private key securely! Import it into your Solana wallet to access your prize.
-                  </p>
-                  
-                  <div className="modal-actions">
-                    <button onClick={shareOnTwitter} className="tweet-btn">
-                      Tweet My Win
-                    </button>
-                    <button onClick={downloadCertificate} className="download-btn">
-                      Download Certificate
-                    </button>
-                  </div>
-                </div>
+              <div className="modal-section modal-reveal">
+                <h3 className="congrats-title">Congratulations!</h3>
+                <p className="congrats-text">You've successfully claimed this PING!</p>
                 
-                {/* Certificate Container - Below modal-reveal with margin-top */}
-                {showCertificate && selectedHotspot && (
-                  <div className="certificate-container">
-                    <GoldenTicket
-                      claimedAt={claimedAt}
-                      location={selectedHotspot.title}
-                      twitterHandle={twitterHandle}
-                    />
-                  </div>
-                )}
-              </>
+                <div className="private-key-box">
+                  <label>Solana Private Key:</label>
+                  <code 
+                    className="clickable-key"
+                    onClick={() => {
+                      navigator.clipboard.writeText(privateKey);
+                      alert('Private key copied to clipboard!');
+                    }}
+                  >
+                    {privateKey}
+                    <svg className="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
+                      <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  </code>
+                </div>
+                <p className="warning-text">
+                  WARNING: Save this private key securely! Import it into your Solana wallet to access your prize.
+                </p>
+                
+                <div className="modal-actions">
+                  <button onClick={shareOnTwitter} className="tweet-btn">
+                    Tweet My Win
+                  </button>
+                  <button onClick={downloadCertificate} className="download-btn">
+                    Download Certificate
+                  </button>
+                </div>
+              </div>
+            )}
+            </div>
+            
+            {/* Certificate Container - Outside and below modal-content */}
+            {claimStatus === 'claimed' && privateKey && showCertificate && selectedHotspot && (
+              <div className="certificate-container" onClick={(e) => e.stopPropagation()}>
+                <GoldenTicket
+                  claimedAt={claimedAt}
+                  location={selectedHotspot.title}
+                  twitterHandle={twitterHandle}
+                />
+              </div>
             )}
           </div>
         </div>

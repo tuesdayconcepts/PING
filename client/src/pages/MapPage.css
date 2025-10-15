@@ -361,6 +361,17 @@
   }
 }
 
+/* Modal Wrapper - Contains modal-content and certificate */
+.modal-wrapper {
+  position: relative;
+  max-width: 900px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
 /* Modal Content (Frosted Glass) */
 .modal-content {
   position: relative;
@@ -797,9 +808,8 @@
   }
 }
 
-/* Certificate Container - Below modal-reveal with margin-top */
+/* Certificate Container - Outside and below modal-content */
 .certificate-container {
-  margin-top: 30px;
   display: flex;
   justify-content: center;
   max-width: 100%;
