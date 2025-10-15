@@ -54,7 +54,8 @@
 
 /* Enhanced glow on hover */
 .certificate-holo-card:hover {
-  /* Box-shadow removed for cleaner hover effect */
+  /* Remove transform transition for instant mouse response */
+  transition: box-shadow 0.2s ease, opacity 0.5s ease;
 }
 
 /* Holographic gradient overlay (::before) */
@@ -138,7 +139,7 @@
   filter: brightness(0.66) contrast(1.33);
 }
 
-/* Disable transitions when actively interacting */
+/* Disable transitions when actively interacting for instant response */
 .certificate-holo-card:hover:before,
 .certificate-holo-card:hover:after {
   transition: none;
