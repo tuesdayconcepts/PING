@@ -85,6 +85,7 @@ function MapPage() {
   const [claimError, setClaimError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
+  const [certificateVisible, setCertificateVisible] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
 
@@ -135,6 +136,20 @@ function MapPage() {
   useEffect(() => {
     fetchHotspots();
   }, []);
+
+  // Animate certificate container sliding in
+  useEffect(() => {
+    if (showCertificate) {
+      // Small delay to let modal-content settle first
+      const timer = setTimeout(() => {
+        setCertificateVisible(true);
+      }, 400); // 400ms delay gives modal time to appear
+      
+      return () => clearTimeout(timer);
+    } else {
+      setCertificateVisible(false);
+    }
+  }, [showCertificate]);
 
   const fetchHotspots = async () => {
     try {
@@ -522,7 +537,7 @@ function MapPage() {
             {/* Certificate Container - Outside and below modal-content */}
             {claimStatus === 'claimed' && privateKey && showCertificate && selectedHotspot && (
               <div 
-                className="certificate-container" 
+                className={`certificate-container ${certificateVisible ? 'show' : ''}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   shareOnTwitter();

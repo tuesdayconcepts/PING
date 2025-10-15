@@ -801,8 +801,18 @@
   overflow: visible; /* Changed from overflow-x: auto to allow 3D transforms */
   position: relative;
   cursor: pointer;
-  transition: transform 0.3s ease;
   transform-style: preserve-3d; /* Preserve 3D transforms for holographic effect */
+  
+  /* Start hidden and positioned behind/above modal-content */
+  opacity: 0;
+  transform: translateY(-30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* Animate certificate sliding down and fading in */
+.certificate-container.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .certificate-container:hover {
