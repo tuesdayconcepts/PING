@@ -403,6 +403,17 @@ function MapPage() {
       {/* Hotspot Modal Popup */}
       {selectedHotspot && (
         <div className="modal-overlay" onClick={() => setSelectedHotspot(null)}>
+          {/* Certificate Container - Outside modal-content to avoid scrolling */}
+          {claimStatus === 'claimed' && privateKey && showCertificate && selectedHotspot && (
+            <div className="certificate-container" onClick={(e) => e.stopPropagation()}>
+              <GoldenTicket
+                claimedAt={claimedAt}
+                location={selectedHotspot.title}
+                twitterHandle={twitterHandle}
+              />
+            </div>
+          )}
+          
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             {/* Close button */}
             <button className="modal-close" onClick={() => setSelectedHotspot(null)}>
@@ -499,16 +510,6 @@ function MapPage() {
               <div className="modal-section modal-reveal">
                 <h3 className="congrats-title">Congratulations!</h3>
                 <p className="congrats-text">You've successfully claimed this PING!</p>
-                
-                {showCertificate && selectedHotspot && (
-                  <div className="certificate-container">
-                    <GoldenTicket
-                      claimedAt={claimedAt}
-                      location={selectedHotspot.title}
-                      twitterHandle={twitterHandle}
-                    />
-                  </div>
-                )}
                 
                 <div className="private-key-box">
                   <label>Solana Private Key:</label>
