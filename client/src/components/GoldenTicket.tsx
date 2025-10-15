@@ -33,13 +33,18 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
     const img = new Image();
     img.src = '/certificate-template.png';
     
+    console.log('Loading certificate template from:', img.src);
+    
     img.onload = () => {
+      console.log('Certificate template loaded successfully:', img.width, 'x', img.height);
+      
       // Set canvas size to match image
       canvas.width = img.width;
       canvas.height = img.height;
 
       // Draw template image
       ctx.drawImage(img, 0, 0);
+      console.log('Template image drawn to canvas');
 
       // Configure text styling
       ctx.fillStyle = '#ffffff';
@@ -84,8 +89,9 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
       ctx.fillText(displayLocation, valueX, 190);
     };
 
-    img.onerror = () => {
-      console.error('Failed to load certificate template image');
+    img.onerror = (error) => {
+      console.error('Failed to load certificate template image:', error);
+      console.error('Image src:', img.src);
     };
   }, [claimedAt, location, twitterHandle]);
 
