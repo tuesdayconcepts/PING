@@ -797,24 +797,22 @@
   }
 }
 
-/* Certificate Container - Positioned above modal */
+/* Certificate Container - Below modal-reveal with margin-top */
 .certificate-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1001;
+  margin-top: 30px;
   display: flex;
   justify-content: center;
-  max-width: 90vw;
-  pointer-events: auto;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 /* Scale down certificate on mobile */
 @media (max-width: 768px) {
   .certificate-container {
-    transform: translate(-50%, -50%) scale(0.6);
-    max-width: 95vw;
+    transform: scale(0.6);
+    transform-origin: top center;
+    overflow-x: auto;
+    padding: 20px 0;
   }
   
   .golden-ticket {
