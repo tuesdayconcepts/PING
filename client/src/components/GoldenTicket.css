@@ -35,13 +35,7 @@
 
 /* Enhanced glow on hover */
 .certificate-holo-card:hover {
-  box-shadow: 
-    -20px -20px 30px -25px var(--holo-gold), 
-    20px 20px 30px -25px var(--holo-bronze), 
-    -7px -7px 10px -5px var(--holo-gold), 
-    7px 7px 10px -5px var(--holo-bronze), 
-    0 0 13px 4px rgba(212, 175, 55, 0.3),
-    0 25px 35px -20px rgba(0, 0, 0, 0.5);
+  /* Box-shadow removed for cleaner hover effect */
 }
 
 /* Holographic gradient overlay (::before) */
