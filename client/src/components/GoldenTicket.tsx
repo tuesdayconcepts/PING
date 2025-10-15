@@ -18,13 +18,13 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
   const [transform, setTransform] = useState('');
   const animationTimeoutRef = useRef<number>();
   
-  // Text position adjustment tool (temporary)
-  const [textX1, setTextX1] = useState(412);
-  const [textY1, setTextY1] = useState(405);
-  const [textX2, setTextX2] = useState(351);
-  const [textY2, setTextY2] = useState(449);
-  const [textX3, setTextX3] = useState(409);
-  const [textY3, setTextY3] = useState(491);
+  // Final optimized positions for new certificate (817×529px)
+  const textX1 = 378; // Claimant X
+  const textX2 = 314; // Date X  
+  const textX3 = 372; // Location X
+  const textY1 = 371; // Claimant Y
+  const textY2 = 414; // Date Y
+  const textY3 = 457; // Location Y
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -82,7 +82,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
     img.onerror = () => {
       console.error('Failed to load certificate template image');
     };
-  }, [claimedAt, location, twitterHandle, textX1, textY1, textX2, textY2, textX3, textY3]);
+  }, [claimedAt, location, twitterHandle]);
 
   // Mouse/touch tracking for 3D effect
   const handleMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
@@ -191,114 +191,6 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
           id="golden-ticket-canvas"
           className="golden-ticket-canvas"
         />
-      </div>
-      
-      {/* Text Position Adjustment Tool - Temporary */}
-      <div style={{
-        position: 'fixed',
-        top: '20px',
-        right: '20px',
-        background: 'rgba(0, 0, 0, 0.9)',
-        padding: '20px',
-        borderRadius: '10px',
-        color: 'white',
-        zIndex: 9999,
-        fontFamily: 'monospace',
-        border: '2px solid #d4af37',
-        maxHeight: '80vh',
-        overflowY: 'auto'
-      }}>
-        <div style={{ marginBottom: '15px', fontWeight: 'bold', color: '#d4af37' }}>
-          Text Position Adjuster
-        </div>
-        <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '15px' }}>
-          New image: 817px × 529px
-        </div>
-        
-        {/* Claimant (Line 1) */}
-        <div style={{ marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #444' }}>
-          <div style={{ marginBottom: '5px', color: '#ffd700' }}>Claimant:</div>
-          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
-            X1: {textX1}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="817"
-            value={textX1}
-            onChange={(e) => setTextX1(Number(e.target.value))}
-            style={{ width: '100%', marginBottom: '8px' }}
-          />
-          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
-            Y1: {textY1}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="529"
-            value={textY1}
-            onChange={(e) => setTextY1(Number(e.target.value))}
-            style={{ width: '100%' }}
-          />
-        </div>
-        
-        {/* Date (Line 2) */}
-        <div style={{ marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #444' }}>
-          <div style={{ marginBottom: '5px', color: '#ffd700' }}>Date:</div>
-          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
-            X2: {textX2}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="817"
-            value={textX2}
-            onChange={(e) => setTextX2(Number(e.target.value))}
-            style={{ width: '100%', marginBottom: '8px' }}
-          />
-          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
-            Y2: {textY2}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="529"
-            value={textY2}
-            onChange={(e) => setTextY2(Number(e.target.value))}
-            style={{ width: '100%' }}
-          />
-        </div>
-        
-        {/* Location (Line 3) */}
-        <div style={{ marginBottom: '15px' }}>
-          <div style={{ marginBottom: '5px', color: '#ffd700' }}>Location:</div>
-          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
-            X3: {textX3}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="817"
-            value={textX3}
-            onChange={(e) => setTextX3(Number(e.target.value))}
-            style={{ width: '100%', marginBottom: '8px' }}
-          />
-          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
-            Y3: {textY3}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="529"
-            value={textY3}
-            onChange={(e) => setTextY3(Number(e.target.value))}
-            style={{ width: '100%' }}
-          />
-        </div>
-        
-        <div style={{ fontSize: '11px', color: '#aaa', marginTop: '10px' }}>
-          Adjust positions to align with certificate
-        </div>
       </div>
     </div>
   );
