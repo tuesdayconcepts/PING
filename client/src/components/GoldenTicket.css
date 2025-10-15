@@ -20,10 +20,21 @@
   overflow: hidden;
   touch-action: none;
   isolation: isolate;
-  border-radius: 10px;
   transform-origin: center;
   transition: transform 0.5s ease, box-shadow 0.2s ease;
   will-change: transform, filter;
+  
+  /* Beveled/chamfered corners using clip-path */
+  clip-path: polygon(
+    var(--bevel-size, 20px) 0,
+    calc(100% - var(--bevel-size, 20px)) 0,
+    100% var(--bevel-size, 20px),
+    100% calc(100% - var(--bevel-size, 20px)),
+    calc(100% - var(--bevel-size, 20px)) 100%,
+    var(--bevel-size, 20px) 100%,
+    0 calc(100% - var(--bevel-size, 20px)),
+    0 var(--bevel-size, 20px)
+  );
   
   /* Gold/bronze glow shadow */
   box-shadow: 
@@ -226,9 +237,20 @@
   max-width: 100%;
   height: auto;
   display: block;
-  border-radius: 10px;
   position: relative;
   z-index: 0;
+  
+  /* Match beveled corners of certificate image */
+  clip-path: polygon(
+    var(--bevel-size, 20px) 0,
+    calc(100% - var(--bevel-size, 20px)) 0,
+    100% var(--bevel-size, 20px),
+    100% calc(100% - var(--bevel-size, 20px)),
+    calc(100% - var(--bevel-size, 20px)) 100%,
+    var(--bevel-size, 20px) 100%,
+    0 calc(100% - var(--bevel-size, 20px)),
+    0 var(--bevel-size, 20px)
+  );
 }
 
 /* Mobile optimizations */

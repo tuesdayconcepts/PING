@@ -18,6 +18,9 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
   const [transform, setTransform] = useState('');
   const animationTimeoutRef = useRef<number>();
   
+  // Bevel size adjustment tool (temporary)
+  const [bevelSize, setBevelSize] = useState(20);
+  
   // Final optimized positions for certificate (886×598px)
   const textX1 = 412; // Claimant X
   const textX2 = 351; // Date X  
@@ -177,7 +180,10 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
       <div 
         ref={cardRef}
         className={`certificate-holo-card ${isAnimated ? 'animated' : ''}`}
-        style={{ transform }}
+        style={{ 
+          transform,
+          '--bevel-size': `${bevelSize}px`
+        } as React.CSSProperties & { '--bevel-size': string }}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
         onTouchMove={handleMove}
@@ -188,6 +194,40 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
           id="golden-ticket-canvas"
           className="golden-ticket-canvas"
         />
+      </div>
+      
+      {/* Bevel Size Adjustment Tool - Temporary */}
+      <div style={{
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        background: 'rgba(0, 0, 0, 0.9)',
+        padding: '20px',
+        borderRadius: '10px',
+        color: 'white',
+        zIndex: 9999,
+        fontFamily: 'monospace',
+        border: '2px solid #d4af37'
+      }}>
+        <div style={{ marginBottom: '10px', fontWeight: 'bold', color: '#d4af37' }}>
+          Bevel Corner Adjuster
+        </div>
+        <div style={{ marginBottom: '10px' }}>
+          <label style={{ display: 'block', marginBottom: '5px' }}>
+            Bevel Size: {bevelSize}px
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="60"
+            value={bevelSize}
+            onChange={(e) => setBevelSize(Number(e.target.value))}
+            style={{ width: '200px' }}
+          />
+        </div>
+        <div style={{ fontSize: '12px', color: '#aaa', marginTop: '10px' }}>
+          Adjust until corners match certificate
+        </div>
       </div>
     </div>
   );

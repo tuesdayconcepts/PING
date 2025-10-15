@@ -826,7 +826,7 @@
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: 10;
-  border-radius: 10px;
+  /* border-radius removed - using beveled corners with clip-path */
 }
 
 .certificate-container:hover .certificate-overlay {
