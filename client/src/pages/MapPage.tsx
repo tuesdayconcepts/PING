@@ -87,6 +87,7 @@ function MapPage() {
   const [showCertificate, setShowCertificate] = useState(false);
   const [certificateExpanded, setCertificateExpanded] = useState(false);
   const [shareTextReady, setShareTextReady] = useState(false);
+  const [keyCopied, setKeyCopied] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
 
@@ -97,6 +98,19 @@ function MapPage() {
       return match ? `@${match[1]}` : '';
     } catch (e) {
       return '';
+    }
+  };
+
+  // Copy private key and show inline confirmation
+  const handleCopyKey = () => {
+    if (privateKey) {
+      navigator.clipboard.writeText(privateKey);
+      setKeyCopied(true);
+      
+      // Reset after 2 seconds
+      setTimeout(() => {
+        setKeyCopied(false);
+      }, 2000);
     }
   };
 
@@ -528,12 +542,9 @@ function MapPage() {
                   <label>Solana Private Key:</label>
                   <code 
                     className="clickable-key"
-                    onClick={() => {
-                      navigator.clipboard.writeText(privateKey);
-                      alert('Private key copied to clipboard!');
-                    }}
+                    onClick={handleCopyKey}
                   >
-                    {privateKey}
+                    {keyCopied ? 'Private key copied to clipboard!' : privateKey}
                   </code>
                 </div>
               </div>
