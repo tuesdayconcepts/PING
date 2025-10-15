@@ -798,14 +798,16 @@
   display: flex;
   justify-content: center;
   max-width: 535px;
-  overflow-x: auto;
+  overflow: visible; /* Changed from overflow-x: auto to allow 3D transforms */
   position: relative;
   cursor: pointer;
   transition: transform 0.3s ease;
+  transform-style: preserve-3d; /* Preserve 3D transforms for holographic effect */
 }
 
 .certificate-container:hover {
-  transform: scale(1.02);
+  /* Removed scale to avoid conflicting with holographic effect */
+  /* transform: scale(1.02); */
 }
 
 /* Certificate Overlay - Shows on hover */
@@ -859,12 +861,14 @@
   .certificate-container {
     /* transform: scale(.6); */
     transform-origin: top center;
-    overflow-x: auto;
+    overflow: visible; /* Keep overflow visible for 3D effects */
     padding: 20px 0;
+    transform-style: preserve-3d; /* Maintain 3D transforms on mobile */
   }
   
   .certificate-container:hover {
-    transform: scale(1.02);
+    /* Removed scale to avoid conflicting with holographic effect */
+    /* transform: scale(1.02); */
   }
   
   .certificate-cta {

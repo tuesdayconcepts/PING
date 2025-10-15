@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './GoldenTicket.css';
 
 interface GoldenTicketProps {
@@ -13,6 +13,10 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
   twitterHandle
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isAnimated, setIsAnimated] = useState(true);
+  const [transform, setTransform] = useState('');
+  const animationTimeoutRef = useRef<NodeJS.Timeout>();
   
   // Final optimized positions for certificate (886×598px)
   const textX1 = 412; // Claimant X
@@ -30,6 +34,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
     });
   };
 
+  // Draw certificate on canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -79,12 +84,112 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
     };
   }, [claimedAt, location, twitterHandle]);
 
+  // Mouse/touch tracking for 3D effect
+  const handleMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    // Clear any pending animation restart
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current);
+    }
+
+    // Disable animation class when interacting
+    setIsAnimated(false);
+
+    // Get position from mouse or touch
+    let clientX: number;
+    let clientY: number;
+
+    if ('touches' in e) {
+      // Touch event
+      if (e.touches.length === 0) return;
+      const touch = e.touches[0];
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    } else {
+      // Mouse event
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    // Get card dimensions and position
+    const rect = card.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    
+    // Calculate position relative to card (0-100)
+    const l = clientX - rect.left;
+    const t = clientY - rect.top;
+    const px = Math.abs(Math.floor(100 / w * l) - 100);
+    const py = Math.abs(Math.floor(100 / h * t) - 100);
+    
+    // Calculate gradient positions (opposite to mouse for parallax effect)
+    const lp = 50 + (px - 50) / 1.5;
+    const tp = 50 + (py - 50) / 1.5;
+    
+    // Calculate sparkle positions (slower movement)
+    const px_spark = 50 + (px - 50) / 7;
+    const py_spark = 50 + (py - 50) / 7;
+    
+    // Calculate 3D rotation
+    const ty = ((tp - 50) / 2) * -1;
+    const tx = ((lp - 50) / 1.5) * 0.5;
+    
+    // Apply transform
+    setTransform(`rotateX(${ty}deg) rotateY(${tx}deg)`);
+    
+    // Update CSS custom properties for gradient/sparkle positions
+    card.style.setProperty('--grad-x', `${lp}%`);
+    card.style.setProperty('--grad-y', `${tp}%`);
+    card.style.setProperty('--spark-x', `${px_spark}%`);
+    card.style.setProperty('--spark-y', `${py_spark}%`);
+  };
+
+  // Reset on mouse leave
+  const handleLeave = () => {
+    setTransform('');
+    const card = cardRef.current;
+    if (card) {
+      card.style.removeProperty('--grad-x');
+      card.style.removeProperty('--grad-y');
+      card.style.removeProperty('--spark-x');
+      card.style.removeProperty('--spark-y');
+    }
+    
+    // Restart animation after a delay
+    animationTimeoutRef.current = setTimeout(() => {
+      setIsAnimated(true);
+    }, 2500);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <canvas 
-      ref={canvasRef} 
-      id="golden-ticket-canvas"
-      className="golden-ticket-canvas"
-    />
+    <div className="certificate-holo-wrapper">
+      <div 
+        ref={cardRef}
+        className={`certificate-holo-card ${isAnimated ? 'animated' : ''}`}
+        style={{ transform }}
+        onMouseMove={handleMove}
+        onMouseLeave={handleLeave}
+        onTouchMove={handleMove}
+        onTouchEnd={handleLeave}
+      >
+        <canvas 
+          ref={canvasRef} 
+          id="golden-ticket-canvas"
+          className="golden-ticket-canvas"
+        />
+      </div>
+    </div>
   );
 };
 
