@@ -520,22 +520,22 @@ function MapPage() {
                 <p className="warning-text">
                   WARNING: Save this private key securely! Import it into your Solana wallet to access your prize.
                 </p>
-                
-                <div className="modal-actions">
-                  <button onClick={shareOnTwitter} className="tweet-btn">
-                    Tweet My Win
-                  </button>
-                  <button onClick={downloadCertificate} className="download-btn">
-                    Download Certificate
-                  </button>
-                </div>
               </div>
             )}
             </div>
             
             {/* Certificate Container - Outside and below modal-content */}
             {claimStatus === 'claimed' && privateKey && showCertificate && selectedHotspot && (
-              <div className="certificate-container" onClick={(e) => e.stopPropagation()}>
+              <div 
+                className="certificate-container" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  shareOnTwitter();
+                }}
+              >
+                <div className="certificate-overlay">
+                  <div className="certificate-cta">Share Proof of Claim</div>
+                </div>
                 <GoldenTicket
                   claimedAt={claimedAt}
                   location={selectedHotspot.title}
