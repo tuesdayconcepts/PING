@@ -119,7 +119,7 @@ function MapPage() {
     await downloadCertificate();
     
     // Open Twitter with pre-filled tweet
-    const tweetText = encodeURIComponent('Just claimed my $PING reward! Here is proof! 🎉');
+    const tweetText = encodeURIComponent('Just claimed my $PING reward! Here is proof!');
     const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&hashtags=PING`;
     
     window.open(twitterUrl, '_blank', 'width=550,height=420');
@@ -221,7 +221,7 @@ function MapPage() {
     setClaimError(null);
 
     // Open Twitter Web Intent
-    const tweetText = `Just found a PING! 🎉 @YourPingAccount #PINGGame`;
+    const tweetText = `Just found a PING! @YourPingAccount #PINGGame`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     window.open(tweetUrl, '_blank');
 
@@ -446,7 +446,7 @@ function MapPage() {
                     {/* Status section */}
                     <div className="modal-section modal-status">
                       <div className="status-info">
-                        <span className="status-icon">⏱️</span>
+                        <span className="status-icon">TIME</span>
                         <span className="status-text">
                           {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
                         </span>
@@ -497,7 +497,7 @@ function MapPage() {
 
             {claimStatus === 'claimed' && privateKey && (
               <div className="modal-section modal-reveal">
-                <h3 className="congrats-title">🎉 Congratulations! 🎉</h3>
+                <h3 className="congrats-title">Congratulations!</h3>
                 <p className="congrats-text">You've successfully claimed this PING!</p>
                 
                 {showCertificate && selectedHotspot && (
@@ -527,15 +527,15 @@ function MapPage() {
                   </code>
                 </div>
                 <p className="warning-text">
-                  ⚠️ Save this private key securely! Import it into your Solana wallet to access your prize.
+                  WARNING: Save this private key securely! Import it into your Solana wallet to access your prize.
                 </p>
                 
                 <div className="modal-actions">
                   <button onClick={shareOnTwitter} className="tweet-btn">
-                    🐦 Tweet My Win
+                    Tweet My Win
                   </button>
                   <button onClick={downloadCertificate} className="download-btn">
-                    💾 Download Certificate
+                    Download Certificate
                   </button>
                 </div>
               </div>

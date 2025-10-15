@@ -694,11 +694,11 @@ function AdminPage() {
                           <p><strong>Claimed by:</strong> {pendingClaim.claimedBy || 'Unknown'}</p>
                           <p><strong>Claimed at:</strong> {formatDate(pendingClaim.claimedAt || '')}</p>
                           {pendingClaim.tweetUrl && <p><strong>Tweet:</strong> Posted</p>}
-                          <button 
-                            onClick={() => handleApprove(pendingClaim.id)} 
+                          <button
+                            onClick={() => handleApprove(pendingClaim.id)}
                             className="approve-btn"
                           >
-                            ✅ Approve Claim
+                            Approve Claim
                           </button>
                         </div>
                       )}
@@ -772,7 +772,7 @@ function AdminPage() {
                     </div>
                     
                     <div className="form-hint-map">
-                      💡 or click on the map to select location
+                      Tip: Click on the map to select location
                     </div>
 
                     <div className="form-group">
@@ -796,7 +796,7 @@ function AdminPage() {
                         onChange={handleInputChange}
                         placeholder="Enter private key (encrypted in database)"
                       />
-                      <small className="form-hint">⚠️ This will be encrypted and revealed only when claim is approved</small>
+                      <small className="form-hint">Note: This will be encrypted and revealed only when claim is approved</small>
                     </div>
 
                     <div className="form-group checkbox">
@@ -886,7 +886,7 @@ function AdminPage() {
                 .map((hotspot) => (
                   <div key={hotspot.id} className="hotspot-item claimed-hotspot">
                     <div className="hotspot-header">
-                      <span className="status-badge badge-claimed">✅ CLAIMED</span>
+                      <span className="status-badge badge-claimed">CLAIMED</span>
                       <strong>{hotspot.title}</strong>
                     </div>
                     <div className="claim-details">
