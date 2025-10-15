@@ -26,14 +26,14 @@
   
   /* Beveled/chamfered corners using clip-path */
   clip-path: polygon(
-    var(--bevel-size, 20px) 0,
-    calc(100% - var(--bevel-size, 20px)) 0,
-    100% var(--bevel-size, 20px),
-    100% calc(100% - var(--bevel-size, 20px)),
-    calc(100% - var(--bevel-size, 20px)) 100%,
-    var(--bevel-size, 20px) 100%,
-    0 calc(100% - var(--bevel-size, 20px)),
-    0 var(--bevel-size, 20px)
+    var(--bevel-size, 35px) 0,
+    calc(100% - var(--bevel-size, 35px)) 0,
+    100% var(--bevel-size, 35px),
+    100% calc(100% - var(--bevel-size, 35px)),
+    calc(100% - var(--bevel-size, 35px)) 100%,
+    var(--bevel-size, 35px) 100%,
+    0 calc(100% - var(--bevel-size, 35px)),
+    0 var(--bevel-size, 35px)
   );
   
   /* Gold/bronze glow shadow */
@@ -242,14 +242,14 @@
   
   /* Match beveled corners of certificate image */
   clip-path: polygon(
-    var(--bevel-size, 20px) 0,
-    calc(100% - var(--bevel-size, 20px)) 0,
-    100% var(--bevel-size, 20px),
-    100% calc(100% - var(--bevel-size, 20px)),
-    calc(100% - var(--bevel-size, 20px)) 100%,
-    var(--bevel-size, 20px) 100%,
-    0 calc(100% - var(--bevel-size, 20px)),
-    0 var(--bevel-size, 20px)
+    var(--bevel-size, 35px) 0,
+    calc(100% - var(--bevel-size, 35px)) 0,
+    100% var(--bevel-size, 35px),
+    100% calc(100% - var(--bevel-size, 35px)),
+    calc(100% - var(--bevel-size, 35px)) 100%,
+    var(--bevel-size, 35px) 100%,
+    0 calc(100% - var(--bevel-size, 35px)),
+    0 var(--bevel-size, 35px)
   );
 }
 

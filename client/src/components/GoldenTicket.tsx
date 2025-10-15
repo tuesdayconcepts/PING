@@ -18,16 +18,13 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
   const [transform, setTransform] = useState('');
   const animationTimeoutRef = useRef<number>();
   
-  // Bevel size adjustment tool (temporary)
-  const [bevelSize, setBevelSize] = useState(20);
-  
-  // Final optimized positions for certificate (886×598px)
-  const textX1 = 412; // Claimant X
-  const textX2 = 351; // Date X  
-  const textX3 = 409; // Location X
-  const textY1 = 405; // Claimant Y
-  const textY2 = 449; // Date Y
-  const textY3 = 491; // Location Y
+  // Text position adjustment tool (temporary)
+  const [textX1, setTextX1] = useState(412);
+  const [textY1, setTextY1] = useState(405);
+  const [textX2, setTextX2] = useState(351);
+  const [textY2, setTextY2] = useState(449);
+  const [textX3, setTextX3] = useState(409);
+  const [textY3, setTextY3] = useState(491);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -85,7 +82,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
     img.onerror = () => {
       console.error('Failed to load certificate template image');
     };
-  }, [claimedAt, location, twitterHandle]);
+  }, [claimedAt, location, twitterHandle, textX1, textY1, textX2, textY2, textX3, textY3]);
 
   // Mouse/touch tracking for 3D effect
   const handleMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
@@ -182,7 +179,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
         className={`certificate-holo-card ${isAnimated ? 'animated' : ''}`}
         style={{ 
           transform,
-          '--bevel-size': `${bevelSize}px`
+          '--bevel-size': '35px'
         } as React.CSSProperties & { '--bevel-size': string }}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
@@ -196,7 +193,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
         />
       </div>
       
-      {/* Bevel Size Adjustment Tool - Temporary */}
+      {/* Text Position Adjustment Tool - Temporary */}
       <div style={{
         position: 'fixed',
         top: '20px',
@@ -207,26 +204,100 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
         color: 'white',
         zIndex: 9999,
         fontFamily: 'monospace',
-        border: '2px solid #d4af37'
+        border: '2px solid #d4af37',
+        maxHeight: '80vh',
+        overflowY: 'auto'
       }}>
-        <div style={{ marginBottom: '10px', fontWeight: 'bold', color: '#d4af37' }}>
-          Bevel Corner Adjuster
+        <div style={{ marginBottom: '15px', fontWeight: 'bold', color: '#d4af37' }}>
+          Text Position Adjuster
         </div>
-        <div style={{ marginBottom: '10px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>
-            Bevel Size: {bevelSize}px
+        <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '15px' }}>
+          New image: 817px × 529px
+        </div>
+        
+        {/* Claimant (Line 1) */}
+        <div style={{ marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #444' }}>
+          <div style={{ marginBottom: '5px', color: '#ffd700' }}>Claimant:</div>
+          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
+            X1: {textX1}
           </label>
           <input
             type="range"
             min="0"
-            max="60"
-            value={bevelSize}
-            onChange={(e) => setBevelSize(Number(e.target.value))}
-            style={{ width: '200px' }}
+            max="817"
+            value={textX1}
+            onChange={(e) => setTextX1(Number(e.target.value))}
+            style={{ width: '100%', marginBottom: '8px' }}
+          />
+          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
+            Y1: {textY1}
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="529"
+            value={textY1}
+            onChange={(e) => setTextY1(Number(e.target.value))}
+            style={{ width: '100%' }}
           />
         </div>
-        <div style={{ fontSize: '12px', color: '#aaa', marginTop: '10px' }}>
-          Adjust until corners match certificate
+        
+        {/* Date (Line 2) */}
+        <div style={{ marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #444' }}>
+          <div style={{ marginBottom: '5px', color: '#ffd700' }}>Date:</div>
+          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
+            X2: {textX2}
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="817"
+            value={textX2}
+            onChange={(e) => setTextX2(Number(e.target.value))}
+            style={{ width: '100%', marginBottom: '8px' }}
+          />
+          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
+            Y2: {textY2}
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="529"
+            value={textY2}
+            onChange={(e) => setTextY2(Number(e.target.value))}
+            style={{ width: '100%' }}
+          />
+        </div>
+        
+        {/* Location (Line 3) */}
+        <div style={{ marginBottom: '15px' }}>
+          <div style={{ marginBottom: '5px', color: '#ffd700' }}>Location:</div>
+          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
+            X3: {textX3}
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="817"
+            value={textX3}
+            onChange={(e) => setTextX3(Number(e.target.value))}
+            style={{ width: '100%', marginBottom: '8px' }}
+          />
+          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
+            Y3: {textY3}
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="529"
+            value={textY3}
+            onChange={(e) => setTextY3(Number(e.target.value))}
+            style={{ width: '100%' }}
+          />
+        </div>
+        
+        <div style={{ fontSize: '11px', color: '#aaa', marginTop: '10px' }}>
+          Adjust positions to align with certificate
         </div>
       </div>
     </div>
