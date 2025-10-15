@@ -26,14 +26,14 @@
   
   /* Beveled/chamfered corners using clip-path */
   clip-path: polygon(
-    var(--bevel-size, 35px) 0,
-    calc(100% - var(--bevel-size, 35px)) 0,
-    100% var(--bevel-size, 35px),
-    100% calc(100% - var(--bevel-size, 35px)),
-    calc(100% - var(--bevel-size, 35px)) 100%,
-    var(--bevel-size, 35px) 100%,
-    0 calc(100% - var(--bevel-size, 35px)),
-    0 var(--bevel-size, 35px)
+    var(--bevel-size, 32px) 0,
+    calc(100% - var(--bevel-size, 32px)) 0,
+    100% var(--bevel-size, 32px),
+    100% calc(100% - var(--bevel-size, 32px)),
+    calc(100% - var(--bevel-size, 32px)) 100%,
+    var(--bevel-size, 32px) 100%,
+    0 calc(100% - var(--bevel-size, 32px)),
+    0 var(--bevel-size, 32px)
   );
   
   /* Gold/bronze glow shadow */
@@ -242,14 +242,14 @@
   
   /* Match beveled corners of certificate image */
   clip-path: polygon(
-    var(--bevel-size, 35px) 0,
-    calc(100% - var(--bevel-size, 35px)) 0,
-    100% var(--bevel-size, 35px),
-    100% calc(100% - var(--bevel-size, 35px)),
-    calc(100% - var(--bevel-size, 35px)) 100%,
-    var(--bevel-size, 35px) 100%,
-    0 calc(100% - var(--bevel-size, 35px)),
-    0 var(--bevel-size, 35px)
+    var(--bevel-size, 32px) 0,
+    calc(100% - var(--bevel-size, 32px)) 0,
+    100% var(--bevel-size, 32px),
+    100% calc(100% - var(--bevel-size, 32px)),
+    calc(100% - var(--bevel-size, 32px)) 100%,
+    var(--bevel-size, 32px) 100%,
+    0 calc(100% - var(--bevel-size, 32px)),
+    0 var(--bevel-size, 32px)
   );
 }
 
@@ -264,28 +264,28 @@
     
     /* Mobile-specific bevel size */
     clip-path: polygon(
-      var(--mobile-bevel-size, 35px) 0,
-      calc(100% - var(--mobile-bevel-size, 35px)) 0,
-      100% var(--mobile-bevel-size, 35px),
-      100% calc(100% - var(--mobile-bevel-size, 35px)),
-      calc(100% - var(--mobile-bevel-size, 35px)) 100%,
-      var(--mobile-bevel-size, 35px) 100%,
-      0 calc(100% - var(--mobile-bevel-size, 35px)),
-      0 var(--mobile-bevel-size, 35px)
+      var(--mobile-bevel-size, 22px) 0,
+      calc(100% - var(--mobile-bevel-size, 22px)) 0,
+      100% var(--mobile-bevel-size, 22px),
+      100% calc(100% - var(--mobile-bevel-size, 22px)),
+      calc(100% - var(--mobile-bevel-size, 22px)) 100%,
+      var(--mobile-bevel-size, 22px) 100%,
+      0 calc(100% - var(--mobile-bevel-size, 22px)),
+      0 var(--mobile-bevel-size, 22px)
     );
   }
   
   .golden-ticket-canvas {
     /* Mobile-specific bevel size for canvas */
     clip-path: polygon(
-      var(--mobile-bevel-size, 35px) 0,
-      calc(100% - var(--mobile-bevel-size, 35px)) 0,
-      100% var(--mobile-bevel-size, 35px),
-      100% calc(100% - var(--mobile-bevel-size, 35px)),
-      calc(100% - var(--mobile-bevel-size, 35px)) 100%,
-      var(--mobile-bevel-size, 35px) 100%,
-      0 calc(100% - var(--mobile-bevel-size, 35px)),
-      0 var(--mobile-bevel-size, 35px)
+      var(--mobile-bevel-size, 22px) 0,
+      calc(100% - var(--mobile-bevel-size, 22px)) 0,
+      100% var(--mobile-bevel-size, 22px),
+      100% calc(100% - var(--mobile-bevel-size, 22px)),
+      calc(100% - var(--mobile-bevel-size, 22px)) 100%,
+      var(--mobile-bevel-size, 22px) 100%,
+      0 calc(100% - var(--mobile-bevel-size, 22px)),
+      0 var(--mobile-bevel-size, 22px)
     );
   }
   
