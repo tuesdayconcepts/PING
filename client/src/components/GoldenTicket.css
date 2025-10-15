@@ -138,15 +138,15 @@
 
 /* Auto-play animations */
 .certificate-holo-card.animated {
-  animation: holoCard 8s ease 0s 1;
+  animation: holoCard 12s ease-in-out 0s 1;
 }
 
 .certificate-holo-card.animated:before {
-  animation: holoGradient 8s ease 0s 1;
+  animation: holoGradient 12s ease-in-out 0s 1;
 }
 
 .certificate-holo-card.animated:after {
-  animation: holoSparkle 8s ease 0s 1;
+  animation: holoSparkle 12s ease-in-out 0s 1;
 }
 
 /* Keyframe Animations */
@@ -157,16 +157,16 @@
     transform: rotateZ(0deg) rotateX(0deg) rotateY(0deg);
   }
   5%, 8% {
-    transform: rotateZ(0deg) rotateX(6deg) rotateY(-20deg);
+    transform: rotateZ(0deg) rotateX(3deg) rotateY(-10deg);
   }
   13%, 16% {
-    transform: rotateZ(0deg) rotateX(-9deg) rotateY(32deg);
+    transform: rotateZ(0deg) rotateX(-5deg) rotateY(15deg);
   }
   35%, 38% {
-    transform: rotateZ(3deg) rotateX(12deg) rotateY(20deg);
+    transform: rotateZ(1deg) rotateX(6deg) rotateY(12deg);
   }
   55% {
-    transform: rotateZ(-3deg) rotateX(-12deg) rotateY(-27deg);
+    transform: rotateZ(-1deg) rotateX(-6deg) rotateY(-15deg);
   }
 }
 
