@@ -86,6 +86,7 @@ function MapPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
   const [certificateExpanded, setCertificateExpanded] = useState(false);
+  const [shareTextReady, setShareTextReady] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
 
@@ -141,14 +142,17 @@ function MapPage() {
   useEffect(() => {
     if (showCertificate) {
       setCertificateExpanded(false);
+      setShareTextReady(false);
       
       const timer = setTimeout(() => {
         setCertificateExpanded(true);
+        setShareTextReady(true);
       }, 3000);
       
       return () => clearTimeout(timer);
     } else {
       setCertificateExpanded(false);
+      setShareTextReady(false);
     }
   }, [showCertificate]);
 
@@ -556,13 +560,26 @@ function MapPage() {
             {/* Share Link */}
             {claimStatus === 'claimed' && privateKey && showCertificate && (
               <div 
-                className="share-link"
+                className={`share-text ${shareTextReady ? 'clickable' : ''}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  shareOnTwitter();
+                  if (shareTextReady) {
+                    shareOnTwitter();
+                  }
                 }}
               >
-                Share proof on X
+                {!shareTextReady ? (
+                  <>
+                    printing proof of claim
+                    <span className="printing-dots-inline">
+                      <span>.</span>
+                      <span>.</span>
+                      <span>.</span>
+                    </span>
+                  </>
+                ) : (
+                  'Share proof on X'
+                )}
               </div>
             )}
           </div>

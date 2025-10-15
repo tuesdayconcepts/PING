@@ -806,7 +806,7 @@
   /* Start collapsed */
   opacity: 0;
   max-height: 0;
-  transition: opacity 0.8s ease, max-height 0.8s ease;
+  transition: opacity 1.5s ease, max-height 1.5s ease;
   pointer-events: none;
 }
 
@@ -818,31 +818,55 @@
   pointer-events: auto;
 }
 
-/* Share Link - Clickable text below certificate */
-.share-link {
-  display: inline-block;
-  padding: 12px 30px;
-  margin-top: 20px;
-  font-weight: 600;
-  font-size: 1.1rem;
+/* Share Text - Regular text that becomes clickable */
+.share-text {
   text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 10px;
-  background: rgba(212, 175, 55, 0.1);
-  border: 2px solid rgba(212, 175, 55, 0.3);
+  margin-top: 20px;
+  padding: 10px;
+  font-size: 1.1rem;
   color: #d4af37;
+  transition: all 0.5s ease;
 }
 
-.share-link:hover {
-  background: rgba(212, 175, 55, 0.2);
-  border-color: rgba(212, 175, 55, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+/* Clickable state - subtle underline on hover */
+.share-text.clickable {
+  cursor: pointer;
 }
 
-.share-link:active {
-  transform: translateY(0);
+.share-text.clickable:hover {
+  text-decoration: underline;
+  color: #ffd700;
+}
+
+/* Animated dots for printing text */
+.printing-dots-inline {
+  margin-left: 2px;
+}
+
+.printing-dots-inline span {
+  animation: dotPulse 1.4s infinite;
+  opacity: 0;
+}
+
+.printing-dots-inline span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.printing-dots-inline span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.printing-dots-inline span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 60%, 100% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
 }
 
 /* Scale down certificate on mobile */
@@ -855,9 +879,8 @@
     max-width: 95%;
   }
   
-  .share-link {
+  .share-text {
     font-size: 1rem;
-    padding: 10px 25px;
     margin-top: 15px;
   }
 }
