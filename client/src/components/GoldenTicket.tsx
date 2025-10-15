@@ -3,17 +3,13 @@ import './GoldenTicket.css';
 
 interface GoldenTicketProps {
   claimedAt: string;
-  prize: string;
   location: string;
-  claimId: string;
   twitterHandle?: string;
 }
 
 export const GoldenTicket: React.FC<GoldenTicketProps> = ({
   claimedAt,
-  prize,
   location,
-  claimId,
   twitterHandle
 }) => {
   const formatDate = (dateString: string) => {
