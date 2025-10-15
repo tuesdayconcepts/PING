@@ -33,18 +33,13 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
     const img = new Image();
     img.src = '/certificate-template.png';
     
-    console.log('Loading certificate template from:', img.src);
-    
     img.onload = () => {
-      console.log('Certificate template loaded successfully:', img.width, 'x', img.height);
-      
       // Set canvas size to match image
       canvas.width = img.width;
       canvas.height = img.height;
 
       // Draw template image
       ctx.drawImage(img, 0, 0);
-      console.log('Template image drawn to canvas');
 
       // Configure text styling
       ctx.fillStyle = '#ffffff';
@@ -52,46 +47,30 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
       ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
       ctx.shadowBlur = 5;
 
-      // Text positions (adjust these based on your template design)
-      const labelX = 520; // X position for labels
-      const valueX = 620; // X position for values (after labels)
+      // Text positions (adjusted based on template design)
+      const valueX = 590; // X position for values (30px left from before: 620 -> 590)
       
-      // Draw CLAIMANT
-      ctx.font = 'bold 12px Arial';
-      ctx.fillStyle = '#ffd700';
-      ctx.fillText('CLAIMANT:', labelX, 110);
-      
+      // Configure text styling for values only (no labels needed)
       ctx.font = '14px Arial';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(twitterHandle || 'Anonymous Hunter', valueX, 110);
+      
+      // Draw CLAIMANT value (80px lower: 110 -> 190)
+      ctx.fillText(twitterHandle || 'Anonymous Hunter', valueX, 190);
 
-      // Draw DATE
-      ctx.font = 'bold 12px Arial';
-      ctx.fillStyle = '#ffd700';
-      ctx.fillText('DATE:', labelX, 150);
-      
-      ctx.font = '14px Arial';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(formatDate(claimedAt), valueX, 150);
+      // Draw DATE value (80px lower: 150 -> 230)
+      ctx.fillText(formatDate(claimedAt), valueX, 230);
 
-      // Draw LOCATION
-      ctx.font = 'bold 12px Arial';
-      ctx.fillStyle = '#ffd700';
-      ctx.fillText('LOCATION:', labelX, 190);
-      
-      ctx.font = '14px Arial';
-      ctx.fillStyle = '#ffffff';
+      // Draw LOCATION value (80px lower: 190 -> 270)
       // Truncate location if too long
       const maxLocationLength = 20;
       const displayLocation = location.length > maxLocationLength 
         ? location.substring(0, maxLocationLength) + '...' 
         : location;
-      ctx.fillText(displayLocation, valueX, 190);
+      ctx.fillText(displayLocation, valueX, 270);
     };
 
-    img.onerror = (error) => {
-      console.error('Failed to load certificate template image:', error);
-      console.error('Image src:', img.src);
+    img.onerror = () => {
+      console.error('Failed to load certificate template image');
     };
   }, [claimedAt, location, twitterHandle]);
 
