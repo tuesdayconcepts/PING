@@ -808,7 +808,7 @@
   opacity: 0;
   max-height: 0;
   /* Custom cubic-bezier: Fast start, strong deceleration, smooth landing */
-  transition: opacity 2.5s cubic-bezier(0.6, 1, 0.05, 1), max-height 2.5s cubic-bezier(0.6, 1, 0.05, 1);
+  transition: opacity 2.5s cubic-bezier(0.54, 0.03, 0, 1), max-height 2.5s cubic-bezier(0.46, 0.07, 0, 0.95);
   pointer-events: none;
 }
 

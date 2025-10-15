@@ -152,7 +152,7 @@ function MapPage() {
     fetchHotspots();
   }, []);
 
-  // Expand certificate after 3 seconds
+  // Expand certificate after 2 seconds
   useEffect(() => {
     if (showCertificate) {
       setCertificateExpanded(false);
@@ -161,7 +161,7 @@ function MapPage() {
       const timer = setTimeout(() => {
         setCertificateExpanded(true);
         setShareTextReady(true);
-      }, 3000);
+      }, 2000);
       
       return () => clearTimeout(timer);
     } else {
