@@ -30,32 +30,34 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
     <div className="golden-ticket" id="golden-ticket-canvas">
       <div className="ticket-border">
         <div className="ticket-content">
-          <img src="/logo/ping-logo.svg" alt="PING" className="ticket-logo" />
-          <h2 className="ticket-title">CERTIFICATE OF DISCOVERY</h2>
-          <div className="ticket-divider"></div>
-          
+          {/* PING Logo Section */}
+          <div className="ticket-logo-section">
+            <img src="/logo/ping-logo.svg" alt="PING" className="ticket-logo" />
+            <div className="ticket-logo-text">PING</div>
+          </div>
+
+          {/* Title Section */}
+          <div className="ticket-title-section">
+            <h2 className="ticket-title">PROOF OF CLAIM</h2>
+          </div>
+
+          {/* Claim Details Section */}
           <div className="ticket-details">
             <div className="ticket-row">
-              <span className="ticket-label">Claimed By:</span>
+              <span className="ticket-icon">👤</span>
+              <span className="ticket-label">CLAIMANT:</span>
               <span className="ticket-value">{twitterHandle || 'Anonymous Hunter'}</span>
             </div>
             <div className="ticket-row">
-              <span className="ticket-label">Prize Won:</span>
-              <span className="ticket-value prize-highlight">{prize}</span>
+              <span className="ticket-icon">📅</span>
+              <span className="ticket-label">DATE:</span>
+              <span className="ticket-value">{formatDate(claimedAt).split(' ')[0]}</span>
             </div>
             <div className="ticket-row">
-              <span className="ticket-label">Location:</span>
+              <span className="ticket-icon">📍</span>
+              <span className="ticket-label">LOCATION:</span>
               <span className="ticket-value">{location}</span>
             </div>
-            <div className="ticket-row">
-              <span className="ticket-label">Claimed On:</span>
-              <span className="ticket-value">{formatDate(claimedAt)}</span>
-            </div>
-          </div>
-
-          <div className="ticket-divider"></div>
-          <div className="ticket-footer">
-            <span className="ticket-id">Certificate ID: {claimId.slice(0, 8).toUpperCase()}</span>
           </div>
         </div>
       </div>

@@ -817,8 +817,14 @@
 /* Scale down certificate on mobile */
 @media (max-width: 768px) {
   .certificate-container {
-    transform: scale(0.7);
+    transform: scale(0.6);
     transform-origin: top center;
+    overflow-x: auto;
+    padding: 20px;
+  }
+  
+  .golden-ticket {
+    width: 800px; /* Keep original width for scaling */
   }
 }
 
