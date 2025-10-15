@@ -85,6 +85,7 @@ function MapPage() {
   const [claimError, setClaimError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
+  const [certificateExpanded, setCertificateExpanded] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
 
@@ -135,6 +136,21 @@ function MapPage() {
   useEffect(() => {
     fetchHotspots();
   }, []);
+
+  // Expand certificate after 3 seconds
+  useEffect(() => {
+    if (showCertificate) {
+      setCertificateExpanded(false);
+      
+      const timer = setTimeout(() => {
+        setCertificateExpanded(true);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setCertificateExpanded(false);
+    }
+  }, [showCertificate]);
 
 
   const fetchHotspots = async () => {
@@ -523,7 +539,7 @@ function MapPage() {
             {/* Certificate */}
             {claimStatus === 'claimed' && privateKey && showCertificate && selectedHotspot && (
               <div 
-                className="certificate-container"
+                className={`certificate-container ${certificateExpanded ? 'expanded' : ''}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   shareOnTwitter();

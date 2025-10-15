@@ -793,15 +793,29 @@
   }
 }
 
-/* Certificate Container - Simple, no transitions */
+/* Certificate Container - Expands smoothly with max-height */
 .certificate-container {
   display: flex;
   justify-content: center;
   max-width: 500px;
-  overflow: visible;
+  overflow: hidden;
   position: relative;
   cursor: pointer;
   transform-style: preserve-3d;
+  
+  /* Start collapsed */
+  opacity: 0;
+  max-height: 0;
+  transition: opacity 0.8s ease, max-height 0.8s ease;
+  pointer-events: none;
+}
+
+/* Expand after 3 seconds */
+.certificate-container.expanded {
+  opacity: 1;
+  max-height: 1000px;
+  overflow: visible; /* Allow 3D transforms to show */
+  pointer-events: auto;
 }
 
 /* Share Link - Clickable text below certificate */
