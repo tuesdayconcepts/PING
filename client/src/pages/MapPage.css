@@ -797,7 +797,7 @@
 .certificate-container {
   display: flex;
   justify-content: center;
-  max-width: 535px;
+  max-width: 500px;
   overflow: visible; /* Changed from overflow-x: auto to allow 3D transforms */
   position: relative;
   cursor: pointer;
@@ -864,6 +864,7 @@
     overflow: visible; /* Keep overflow visible for 3D effects */
     padding: 20px 0;
     transform-style: preserve-3d; /* Maintain 3D transforms on mobile */
+    max-width: 95%;
   }
   
   .certificate-container:hover {

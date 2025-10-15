@@ -18,6 +18,10 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
   const [transform, setTransform] = useState('');
   const animationTimeoutRef = useRef<number>();
   
+  // Bevel size adjustment tool (temporary)
+  const [bevelSize, setBevelSize] = useState(35);
+  const [mobileBevelSize, setMobileBevelSize] = useState(35);
+  
   // Final optimized positions for new certificate (817×529px)
   const textX1 = 378; // Claimant X
   const textX2 = 314; // Date X  
@@ -179,8 +183,9 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
         className={`certificate-holo-card ${isAnimated ? 'animated' : ''}`}
         style={{ 
           transform,
-          '--bevel-size': '35px'
-        } as React.CSSProperties & { '--bevel-size': string }}
+          '--bevel-size': `${bevelSize}px`,
+          '--mobile-bevel-size': `${mobileBevelSize}px`
+        } as React.CSSProperties & { '--bevel-size': string; '--mobile-bevel-size': string }}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
         onTouchMove={handleMove}
@@ -191,6 +196,62 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
           id="golden-ticket-canvas"
           className="golden-ticket-canvas"
         />
+      </div>
+      
+      {/* Bevel Size Adjustment Tool - Temporary */}
+      <div style={{
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        background: 'rgba(0, 0, 0, 0.9)',
+        padding: '20px',
+        borderRadius: '10px',
+        color: 'white',
+        zIndex: 9999,
+        fontFamily: 'monospace',
+        border: '2px solid #d4af37',
+        maxHeight: '80vh',
+        overflowY: 'auto'
+      }}>
+        <div style={{ marginBottom: '15px', fontWeight: 'bold', color: '#d4af37' }}>
+          Bevel Corner Adjuster
+        </div>
+        
+        {/* Desktop Bevel */}
+        <div style={{ marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #444' }}>
+          <div style={{ marginBottom: '5px', color: '#ffd700' }}>Desktop Bevel:</div>
+          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
+            Size: {bevelSize}px
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="60"
+            value={bevelSize}
+            onChange={(e) => setBevelSize(Number(e.target.value))}
+            style={{ width: '100%' }}
+          />
+        </div>
+        
+        {/* Mobile Bevel */}
+        <div style={{ marginBottom: '15px' }}>
+          <div style={{ marginBottom: '5px', color: '#ffd700' }}>Mobile Bevel:</div>
+          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
+            Size: {mobileBevelSize}px
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="60"
+            value={mobileBevelSize}
+            onChange={(e) => setMobileBevelSize(Number(e.target.value))}
+            style={{ width: '100%' }}
+          />
+        </div>
+        
+        <div style={{ fontSize: '11px', color: '#aaa', marginTop: '10px' }}>
+          Adjust until corners match on both desktop & mobile
+        </div>
       </div>
     </div>
   );

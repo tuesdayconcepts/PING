@@ -261,6 +261,32 @@
       -3px -3px 3px -3px var(--holo-gold), 
       3px 3px 3px -3px var(--holo-bronze), 
       0 15px 25px -15px rgba(0, 0, 0, 0.5);
+    
+    /* Mobile-specific bevel size */
+    clip-path: polygon(
+      var(--mobile-bevel-size, 35px) 0,
+      calc(100% - var(--mobile-bevel-size, 35px)) 0,
+      100% var(--mobile-bevel-size, 35px),
+      100% calc(100% - var(--mobile-bevel-size, 35px)),
+      calc(100% - var(--mobile-bevel-size, 35px)) 100%,
+      var(--mobile-bevel-size, 35px) 100%,
+      0 calc(100% - var(--mobile-bevel-size, 35px)),
+      0 var(--mobile-bevel-size, 35px)
+    );
+  }
+  
+  .golden-ticket-canvas {
+    /* Mobile-specific bevel size for canvas */
+    clip-path: polygon(
+      var(--mobile-bevel-size, 35px) 0,
+      calc(100% - var(--mobile-bevel-size, 35px)) 0,
+      100% var(--mobile-bevel-size, 35px),
+      100% calc(100% - var(--mobile-bevel-size, 35px)),
+      calc(100% - var(--mobile-bevel-size, 35px)) 100%,
+      var(--mobile-bevel-size, 35px) 100%,
+      0 calc(100% - var(--mobile-bevel-size, 35px)),
+      0 var(--mobile-bevel-size, 35px)
+    );
   }
   
   .certificate-holo-card:before {
