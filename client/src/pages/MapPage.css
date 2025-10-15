@@ -370,9 +370,6 @@
   flex-direction: column;
   align-items: center;
   gap: 30px;
-  
-  /* Smooth transition for gap changes */
-  transition: gap 0.6s ease;
 }
 
 /* Modal Content (Frosted Glass) */
@@ -807,17 +804,20 @@
   cursor: pointer;
   transform-style: preserve-3d;
   z-index: 1; /* Lower than modal-content for slide-under effect */
+  min-height: 350px; /* Reserve space to prevent layout shift */
   
   /* Start hidden behind modal-content */
   opacity: 0;
   transform: translateY(-50px);
   transition: opacity 0.8s ease, transform 0.8s ease;
+  pointer-events: none; /* Prevent interaction when hidden */
 }
 
 /* Slide down and fade in after 3 seconds */
 .certificate-container.show {
   opacity: 1;
   transform: translateY(0);
+  pointer-events: auto; /* Enable interaction when visible */
 }
 
 /* Printing/Share Text - Always visible below certificate */
