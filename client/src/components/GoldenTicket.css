@@ -21,8 +21,11 @@
   touch-action: none;
   isolation: isolate;
   transform-origin: center;
-  transition: transform 0.5s ease, box-shadow 0.2s ease;
-  will-change: transform, filter;
+  transition: transform 0.5s ease, box-shadow 0.2s ease, opacity 0.5s ease;
+  will-change: transform, filter, opacity;
+  
+  /* Start invisible, fade in when loaded */
+  opacity: 0;
   
   /* Beveled/chamfered corners using clip-path */
   clip-path: polygon(
@@ -42,6 +45,11 @@
     5px 5px 5px -5px var(--holo-bronze), 
     0 0 5px 0px rgba(255, 255, 255, 0),
     0 25px 35px -20px rgba(0, 0, 0, 0.5);
+}
+
+/* Fade in when image is loaded */
+.certificate-holo-card.loaded {
+  opacity: 1;
 }
 
 /* Enhanced glow on hover */

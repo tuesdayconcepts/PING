@@ -14,7 +14,8 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isAnimated, setIsAnimated] = useState(true);
+  const [isAnimated, setIsAnimated] = useState(false); // Start false, enable after image loads
+  const [imageLoaded, setImageLoaded] = useState(false); // Track image load state
   const [transform, setTransform] = useState('');
   const animationTimeoutRef = useRef<number>();
   
@@ -77,10 +78,18 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
         ? location.substring(0, maxLocationLength) + '...' 
         : location;
       ctx.fillText(displayLocation, textX3, textY3);
+      
+      // Mark image as loaded and start animation after brief delay
+      setImageLoaded(true);
+      setTimeout(() => {
+        setIsAnimated(true);
+      }, 300); // 300ms delay before starting animation
     };
 
     img.onerror = () => {
       console.error('Failed to load certificate template image');
+      // Still show the container even if image fails
+      setImageLoaded(true);
     };
   }, [claimedAt, location, twitterHandle]);
 
@@ -176,7 +185,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
     <div className="certificate-holo-wrapper">
       <div 
         ref={cardRef}
-        className={`certificate-holo-card ${isAnimated ? 'animated' : ''}`}
+        className={`certificate-holo-card ${isAnimated ? 'animated' : ''} ${imageLoaded ? 'loaded' : ''}`}
         style={{ 
           transform,
           '--bevel-size': '32px',
