@@ -85,7 +85,6 @@ function MapPage() {
   const [claimError, setClaimError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
-  const [certificateReady, setCertificateReady] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
 
@@ -137,21 +136,6 @@ function MapPage() {
     fetchHotspots();
   }, []);
 
-  // Certificate reveal after 3 seconds
-  useEffect(() => {
-    if (showCertificate) {
-      setCertificateReady(false);
-      
-      // Reveal certificate after 3 seconds
-      const timer = setTimeout(() => {
-        setCertificateReady(true);
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    } else {
-      setCertificateReady(false);
-    }
-  }, [showCertificate]);
 
   const fetchHotspots = async () => {
     try {
@@ -536,15 +520,13 @@ function MapPage() {
             )}
             </div>
             
-            {/* Certificate - Slides in after 3 seconds */}
+            {/* Certificate */}
             {claimStatus === 'claimed' && privateKey && showCertificate && selectedHotspot && (
               <div 
-                className={`certificate-container ${certificateReady ? 'show' : ''}`}
+                className="certificate-container"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (certificateReady) {
-                    shareOnTwitter();
-                  }
+                  shareOnTwitter();
                 }}
               >
                 <GoldenTicket
@@ -555,29 +537,16 @@ function MapPage() {
               </div>
             )}
             
-            {/* Printing/Share Text - Always visible below certificate */}
+            {/* Share Link */}
             {claimStatus === 'claimed' && privateKey && showCertificate && (
-              <div className="printing-share-text">
-                {!certificateReady ? (
-                  <>
-                    Printing proof of claim
-                    <span className="printing-dots-inline">
-                      <span>.</span>
-                      <span>.</span>
-                      <span>.</span>
-                    </span>
-                  </>
-                ) : (
-                  <div 
-                    className="share-link"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      shareOnTwitter();
-                    }}
-                  >
-                    Share proof on X
-                  </div>
-                )}
+              <div 
+                className="share-link"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  shareOnTwitter();
+                }}
+              >
+                Share proof on X
               </div>
             )}
           </div>

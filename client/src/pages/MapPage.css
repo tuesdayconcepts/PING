@@ -386,7 +386,6 @@
   border-radius: 30px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   animation: slideUp 0.3s ease;
-  z-index: 2; /* Higher than certificate for slide-under effect */
 }
 
 @keyframes slideUp {
@@ -794,85 +793,31 @@
   }
 }
 
-/* Certificate Container - Slides down from under modal-content */
+/* Certificate Container - Simple, no transitions */
 .certificate-container {
   display: flex;
   justify-content: center;
   max-width: 500px;
   overflow: visible;
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform-origin: top center;
+  position: relative;
   cursor: pointer;
   transform-style: preserve-3d;
-  z-index: 1; /* Lower than modal-content for slide-under effect */
-  
-  /* Start hidden behind modal-content */
-  opacity: 0;
-  transform: translate(-50%, -50px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
-  pointer-events: none; /* Prevent interaction when hidden */
 }
 
-/* Slide down and fade in after 3 seconds */
-.certificate-container.show {
-  opacity: 1;
-  transform: translate(-50%, 0);
-  pointer-events: auto; /* Enable interaction when visible */
-}
-
-/* Printing/Share Text - Always visible below certificate */
-.printing-share-text {
-  text-align: center;
-  padding: 20px;
-  padding-top: 370px; /* Space for certificate above */
-  font-size: 1.1rem;
-  color: #d4af37;
-  z-index: 3; /* Above everything */
-  position: relative;
-}
-
-.printing-dots-inline {
-  margin-left: 2px;
-}
-
-.printing-dots-inline span {
-  animation: dotPulse 1.4s infinite;
-  opacity: 0;
-}
-
-.printing-dots-inline span:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.printing-dots-inline span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.printing-dots-inline span:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes dotPulse {
-  0%, 60%, 100% {
-    opacity: 0;
-  }
-  30% {
-    opacity: 1;
-  }
-}
-
-/* Share Link - Clickable text after certificate loads */
+/* Share Link - Clickable text below certificate */
 .share-link {
   display: inline-block;
   padding: 12px 30px;
+  margin-top: 20px;
   font-weight: 600;
+  font-size: 1.1rem;
+  text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 10px;
   background: rgba(212, 175, 55, 0.1);
   border: 2px solid rgba(212, 175, 55, 0.3);
+  color: #d4af37;
 }
 
 .share-link:hover {
@@ -896,15 +841,10 @@
     max-width: 95%;
   }
   
-  .printing-share-text {
-    font-size: 1rem;
-    padding: 15px;
-    padding-top: 300px; /* Smaller space for mobile certificate */
-  }
-  
   .share-link {
     font-size: 1rem;
     padding: 10px 25px;
+    margin-top: 15px;
   }
 }
 
