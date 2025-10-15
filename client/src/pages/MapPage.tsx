@@ -85,8 +85,6 @@ function MapPage() {
   const [claimError, setClaimError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
-  const [certificateVisible, setCertificateVisible] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(true);
   const [certificateReady, setCertificateReady] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
@@ -139,36 +137,21 @@ function MapPage() {
     fetchHotspots();
   }, []);
 
-  // Handle printing state - minimum 3 seconds
+  // Certificate reveal after 3 seconds
   useEffect(() => {
     if (showCertificate) {
-      setIsPrinting(true);
       setCertificateReady(false);
       
-      // Ensure minimum 3 second printing phase
-      const printingTimer = setTimeout(() => {
-        setIsPrinting(false);
+      // Reveal certificate after 3 seconds
+      const timer = setTimeout(() => {
+        setCertificateReady(true);
       }, 3000);
       
-      return () => clearTimeout(printingTimer);
-    }
-  }, [showCertificate]);
-
-  // Animate certificate container sliding in - only after printing is done
-  useEffect(() => {
-    if (showCertificate && !isPrinting && certificateReady) {
-      // Small delay to let modal-content settle first
-      const timer = setTimeout(() => {
-        setCertificateVisible(true);
-      }, 400);
-      
       return () => clearTimeout(timer);
-    } else if (!showCertificate) {
-      setCertificateVisible(false);
-      setIsPrinting(true);
+    } else {
       setCertificateReady(false);
     }
-  }, [showCertificate, isPrinting, certificateReady]);
+  }, [showCertificate]);
 
   const fetchHotspots = async () => {
     try {
@@ -553,50 +536,48 @@ function MapPage() {
             )}
             </div>
             
-            {/* Certificate Container - Outside and below modal-content */}
+            {/* Certificate - Slides in after 3 seconds */}
             {claimStatus === 'claimed' && privateKey && showCertificate && selectedHotspot && (
-              <div className={`certificate-container ${certificateVisible ? 'show' : ''}`}>
-                {/* Printing State - Shows while loading */}
-                {(isPrinting || !certificateReady) && (
-                  <div className="printing-state">
-                    <div className="printing-text">Printing Proof of Claim</div>
-                    <div className="printing-dots">
+              <div 
+                className={`certificate-container ${certificateReady ? 'show' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (certificateReady) {
+                    shareOnTwitter();
+                  }
+                }}
+              >
+                <GoldenTicket
+                  claimedAt={claimedAt}
+                  location={selectedHotspot.title}
+                  twitterHandle={twitterHandle}
+                />
+              </div>
+            )}
+            
+            {/* Printing/Share Text - Always visible below certificate */}
+            {claimStatus === 'claimed' && privateKey && showCertificate && (
+              <div className="printing-share-text">
+                {!certificateReady ? (
+                  <>
+                    Printing proof of claim
+                    <span className="printing-dots-inline">
                       <span>.</span>
                       <span>.</span>
                       <span>.</span>
-                    </div>
+                    </span>
+                  </>
+                ) : (
+                  <div 
+                    className="share-link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      shareOnTwitter();
+                    }}
+                  >
+                    Share proof on X
                   </div>
                 )}
-                
-                {/* Certificate - Hidden during printing, shown after */}
-                <div 
-                  className={`certificate-wrapper ${!isPrinting && certificateReady ? 'visible' : 'hidden'}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isPrinting && certificateReady) {
-                      shareOnTwitter();
-                    }
-                  }}
-                >
-                  <GoldenTicket
-                    claimedAt={claimedAt}
-                    location={selectedHotspot.title}
-                    twitterHandle={twitterHandle}
-                    onReady={() => setCertificateReady(true)}
-                  />
-                  
-                  {!isPrinting && certificateReady && (
-                    <div 
-                      className="share-cta"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        shareOnTwitter();
-                      }}
-                    >
-                      Share proof on X
-                    </div>
-                  )}
-                </div>
               </div>
             )}
           </div>

@@ -389,6 +389,7 @@
   border-radius: 30px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   animation: slideUp 0.3s ease;
+  z-index: 2; /* Higher than certificate for slide-under effect */
 }
 
 @keyframes slideUp {
@@ -796,80 +797,56 @@
   }
 }
 
-/* Certificate Container - Outside and below modal-content */
+/* Certificate Container - Slides down from under modal-content */
 .certificate-container {
   display: flex;
   justify-content: center;
   max-width: 500px;
-  overflow: visible; /* Changed from overflow-x: auto to allow 3D transforms */
+  overflow: visible;
   position: relative;
   cursor: pointer;
-  transform-style: preserve-3d; /* Preserve 3D transforms for holographic effect */
+  transform-style: preserve-3d;
+  z-index: 1; /* Lower than modal-content for slide-under effect */
   
-  /* Start hidden and positioned behind/above modal-content */
+  /* Start hidden behind modal-content */
   opacity: 0;
-  transform: translateY(-30px);
-  /* Collapse vertical space when hidden */
-  margin-top: -100%;
-  max-height: 0;
-  transition: opacity 0.6s ease, transform 0.6s ease, margin-top 0.6s ease, max-height 0.6s ease;
+  transform: translateY(-50px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
-/* Animate certificate sliding down and fading in */
+/* Slide down and fade in after 3 seconds */
 .certificate-container.show {
   opacity: 1;
   transform: translateY(0);
-  /* Expand vertical space when visible */
-  margin-top: 0;
-  max-height: 1000px; /* Large enough for certificate */
 }
 
-.certificate-container:hover {
-  /* Removed scale to avoid conflicting with holographic effect */
-  /* transform: scale(1.02); */
-}
-
-/* Printing State - Shows while certificate is being generated */
-.printing-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 40px;
+/* Printing/Share Text - Always visible below certificate */
+.printing-share-text {
+  text-align: center;
+  padding: 20px;
+  font-size: 1.1rem;
   color: #d4af37;
-  min-height: 200px;
-  position: relative;
-  z-index: 2;
+  z-index: 3; /* Above everything */
 }
 
-.printing-text {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 15px;
-  letter-spacing: 1px;
+.printing-dots-inline {
+  margin-left: 2px;
 }
 
-.printing-dots {
-  display: flex;
-  gap: 8px;
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-.printing-dots span {
+.printing-dots-inline span {
   animation: dotPulse 1.4s infinite;
   opacity: 0;
 }
 
-.printing-dots span:nth-child(1) {
+.printing-dots-inline span:nth-child(1) {
   animation-delay: 0s;
 }
 
-.printing-dots span:nth-child(2) {
+.printing-dots-inline span:nth-child(2) {
   animation-delay: 0.2s;
 }
 
-.printing-dots span:nth-child(3) {
+.printing-dots-inline span:nth-child(3) {
   animation-delay: 0.4s;
 }
 
@@ -882,38 +859,11 @@
   }
 }
 
-/* Certificate wrapper - Renders during printing but stays hidden */
-.certificate-wrapper {
-  cursor: pointer;
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.certificate-wrapper.hidden {
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  z-index: -1;
-}
-
-.certificate-wrapper.visible {
-  opacity: 1;
-  pointer-events: auto;
-  position: relative;
-  z-index: 1;
-}
-
-.certificate-wrapper.visible:active {
-  transform: scale(0.98);
-}
-
-/* Share CTA - Permanent text below certificate */
-.share-cta {
-  text-align: center;
-  margin-top: 20px;
-  padding: 15px 30px;
-  font-size: 1.1rem;
+/* Share Link - Clickable text after certificate loads */
+.share-link {
+  display: inline-block;
+  padding: 12px 30px;
   font-weight: 600;
-  color: #d4af37;
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 10px;
@@ -921,14 +871,14 @@
   border: 2px solid rgba(212, 175, 55, 0.3);
 }
 
-.share-cta:hover {
+.share-link:hover {
   background: rgba(212, 175, 55, 0.2);
   border-color: rgba(212, 175, 55, 0.5);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
 }
 
-.share-cta:active {
+.share-link:active {
   transform: translateY(0);
 }
 
@@ -939,41 +889,18 @@
   }
   
   .certificate-container {
-    /* transform: scale(.6); */
-    transform-origin: top center;
-    overflow: visible; /* Keep overflow visible for 3D effects */
-    padding: 20px 0;
-    transform-style: preserve-3d; /* Maintain 3D transforms on mobile */
     max-width: 95%;
+    padding: 20px 0;
   }
   
-  .certificate-container.show {
-    /* Ensure smooth expansion on mobile */
-    margin-top: 0;
-    max-height: 1000px;
-  }
-  
-  .certificate-container:hover {
-    /* Removed scale to avoid conflicting with holographic effect */
-    /* transform: scale(1.02); */
-  }
-  
-  .printing-text {
-    font-size: 1.1rem;
-  }
-  
-  .printing-dots {
-    font-size: 1.5rem;
-  }
-  
-  .share-cta {
+  .printing-share-text {
     font-size: 1rem;
-    padding: 12px 25px;
-    margin-top: 15px;
+    padding: 15px;
   }
   
-  .golden-ticket {
-    width: 800px; /* Keep original width for scaling */
+  .share-link {
+    font-size: 1rem;
+    padding: 10px 25px;
   }
 }
 
