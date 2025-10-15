@@ -348,7 +348,7 @@
   align-items: center;
   justify-content: center;
   z-index: 500; /* Above everything except close button */
-  padding: 20px;
+  padding: 10px;
   animation: fadeIn 0.3s ease;
 }
 
