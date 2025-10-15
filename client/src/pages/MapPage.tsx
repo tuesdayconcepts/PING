@@ -556,8 +556,8 @@ function MapPage() {
             {/* Certificate Container - Outside and below modal-content */}
             {claimStatus === 'claimed' && privateKey && showCertificate && selectedHotspot && (
               <div className={`certificate-container ${certificateVisible ? 'show' : ''}`}>
-                {isPrinting || !certificateReady ? (
-                  /* Printing State */
+                {/* Printing State - Shows while loading */}
+                {(isPrinting || !certificateReady) && (
                   <div className="printing-state">
                     <div className="printing-text">Printing Proof of Claim</div>
                     <div className="printing-dots">
@@ -566,23 +566,26 @@ function MapPage() {
                       <span>.</span>
                     </div>
                   </div>
-                ) : (
-                  /* Certificate Ready - Show certificate and share button */
-                  <>
-                    <div 
-                      className="certificate-clickable"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        shareOnTwitter();
-                      }}
-                    >
-                      <GoldenTicket
-                        claimedAt={claimedAt}
-                        location={selectedHotspot.title}
-                        twitterHandle={twitterHandle}
-                        onReady={() => setCertificateReady(true)}
-                      />
-                    </div>
+                )}
+                
+                {/* Certificate - Hidden during printing, shown after */}
+                <div 
+                  className={`certificate-wrapper ${!isPrinting && certificateReady ? 'visible' : 'hidden'}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isPrinting && certificateReady) {
+                      shareOnTwitter();
+                    }
+                  }}
+                >
+                  <GoldenTicket
+                    claimedAt={claimedAt}
+                    location={selectedHotspot.title}
+                    twitterHandle={twitterHandle}
+                    onReady={() => setCertificateReady(true)}
+                  />
+                  
+                  {!isPrinting && certificateReady && (
                     <div 
                       className="share-cta"
                       onClick={(e) => {
@@ -592,8 +595,8 @@ function MapPage() {
                     >
                       Share proof on X
                     </div>
-                  </>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </div>
