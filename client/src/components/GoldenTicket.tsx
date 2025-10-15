@@ -48,7 +48,6 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
       ctx.shadowBlur = 5;
 
       // Text positions (adjust these based on your template design)
-      const startX = 520; // X position for text (right side)
       const labelX = 520; // X position for labels
       const valueX = 620; // X position for values (after labels)
       
