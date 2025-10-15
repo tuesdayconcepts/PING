@@ -499,7 +499,9 @@ function MapPage() {
             {claimStatus === 'claimed' && privateKey && (
               <div className="modal-section modal-reveal">
                 <h3 className="congrats-title">Congratulations!</h3>
-                <p className="congrats-text">You've successfully claimed this PING!</p>
+                <p className="congrats-text">
+                  You've successfully claimed this PING! WARNING: Save this private key securely! Import it into your Solana wallet to access your prize.
+                </p>
                 
                 <div className="private-key-box">
                   <label>Solana Private Key:</label>
@@ -511,15 +513,8 @@ function MapPage() {
                     }}
                   >
                     {privateKey}
-                    <svg className="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
-                      <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
                   </code>
                 </div>
-                <p className="warning-text">
-                  WARNING: Save this private key securely! Import it into your Solana wallet to access your prize.
-                </p>
               </div>
             )}
             </div>
