@@ -807,8 +807,8 @@
   /* Start collapsed */
   opacity: 0;
   max-height: 0;
-  /* Custom cubic-bezier for dramatic ease-out - much more noticeable slow finish */
-  transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1), max-height 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Custom cubic-bezier: Fast start, strong deceleration, smooth landing */
+  transition: opacity 2.5s cubic-bezier(0.6, 1, 0.05, 1), max-height 2.5s cubic-bezier(0.6, 1, 0.05, 1);
   pointer-events: none;
 }
 
