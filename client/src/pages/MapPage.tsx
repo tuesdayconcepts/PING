@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import Confetti from 'react-confetti';
 import L from 'leaflet';
-import html2canvas from 'html2canvas';
 import { Hotspot } from '../types';
 import { getHotspotStatus } from '../utils/time';
 import { GoldenTicket } from '../components/GoldenTicket';
@@ -101,15 +100,10 @@ function MapPage() {
 
   // Download certificate as PNG
   const downloadCertificate = async () => {
-    const element = document.getElementById('golden-ticket-canvas');
-    if (!element) return;
+    const canvas = document.getElementById('golden-ticket-canvas') as HTMLCanvasElement;
+    if (!canvas) return;
 
     try {
-      const canvas = await html2canvas(element, {
-        backgroundColor: null,
-        scale: 2, // Higher quality
-      });
-      
       const link = document.createElement('a');
       link.download = `ping-certificate-${selectedHotspot?.id}.png`;
       link.href = canvas.toDataURL('image/png');
