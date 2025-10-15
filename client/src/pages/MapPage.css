@@ -370,6 +370,9 @@
   flex-direction: column;
   align-items: center;
   gap: 30px;
+  
+  /* Smooth transition for gap changes */
+  transition: gap 0.6s ease;
 }
 
 /* Modal Content (Frosted Glass) */
@@ -806,13 +809,19 @@
   /* Start hidden and positioned behind/above modal-content */
   opacity: 0;
   transform: translateY(-30px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  /* Collapse vertical space when hidden */
+  margin-top: -100%;
+  max-height: 0;
+  transition: opacity 0.6s ease, transform 0.6s ease, margin-top 0.6s ease, max-height 0.6s ease;
 }
 
 /* Animate certificate sliding down and fading in */
 .certificate-container.show {
   opacity: 1;
   transform: translateY(0);
+  /* Expand vertical space when visible */
+  margin-top: 0;
+  max-height: 1000px; /* Large enough for certificate */
 }
 
 .certificate-container:hover {
@@ -875,6 +884,12 @@
     padding: 20px 0;
     transform-style: preserve-3d; /* Maintain 3D transforms on mobile */
     max-width: 95%;
+  }
+  
+  .certificate-container.show {
+    /* Ensure smooth expansion on mobile */
+    margin-top: 0;
+    max-height: 1000px;
   }
   
   .certificate-container:hover {
