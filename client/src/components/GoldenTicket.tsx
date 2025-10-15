@@ -16,7 +16,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const [isAnimated, setIsAnimated] = useState(true);
   const [transform, setTransform] = useState('');
-  const animationTimeoutRef = useRef<NodeJS.Timeout>();
+  const animationTimeoutRef = useRef<number>();
   
   // Final optimized positions for certificate (886×598px)
   const textX1 = 412; // Claimant X
