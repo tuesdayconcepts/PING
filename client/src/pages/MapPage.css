@@ -697,7 +697,7 @@
 }
 
 .private-key-box code {
-  display: block;
+  /* display: block; */
   margin: 10px 0 0;
   color: #d2b35f;
   font-family: 'Courier New', monospace;
@@ -713,7 +713,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 60px; /* Prevent height change when text switches */
+  min-height: 60px;
+  justify-content: center;
 }
 
 .clickable-key:hover {
@@ -877,11 +878,6 @@
   
   .certificate-container {
     max-width: 95%;
-  }
-  
-  .share-text {
-    font-size: 1rem;
-    margin-top: 15px;
   }
 }
 
