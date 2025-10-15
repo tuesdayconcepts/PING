@@ -800,15 +800,17 @@
   justify-content: center;
   max-width: 500px;
   overflow: visible;
-  position: relative;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform-origin: top center;
   cursor: pointer;
   transform-style: preserve-3d;
   z-index: 1; /* Lower than modal-content for slide-under effect */
-  min-height: 350px; /* Reserve space to prevent layout shift */
   
   /* Start hidden behind modal-content */
   opacity: 0;
-  transform: translateY(-50px);
+  transform: translate(-50%, -50px);
   transition: opacity 0.8s ease, transform 0.8s ease;
   pointer-events: none; /* Prevent interaction when hidden */
 }
@@ -816,7 +818,7 @@
 /* Slide down and fade in after 3 seconds */
 .certificate-container.show {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
   pointer-events: auto; /* Enable interaction when visible */
 }
 
@@ -824,9 +826,11 @@
 .printing-share-text {
   text-align: center;
   padding: 20px;
+  padding-top: 370px; /* Space for certificate above */
   font-size: 1.1rem;
   color: #d4af37;
   z-index: 3; /* Above everything */
+  position: relative;
 }
 
 .printing-dots-inline {
@@ -890,12 +894,12 @@
   
   .certificate-container {
     max-width: 95%;
-    padding: 20px 0;
   }
   
   .printing-share-text {
     font-size: 1rem;
     padding: 15px;
+    padding-top: 300px; /* Smaller space for mobile certificate */
   }
   
   .share-link {
