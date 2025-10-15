@@ -681,10 +681,10 @@
 
 .private-key-box {
   background: #0000004d;
-  border: 1px solid rgb(153 153 153 / 24%);
+  border: 1px solid rgb(227 192 103);
   border-radius: 20px;
   padding: 20px;
-  margin: 20px 0;
+  /* margin: 20px 0; */
 }
 
 .private-key-box label {
