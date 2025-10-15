@@ -812,7 +812,7 @@
 .certificate-container {
   display: flex;
   justify-content: center;
-  max-width: 100%;
+  max-width: 535px;
   overflow-x: auto;
   position: relative;
   cursor: pointer;
@@ -866,15 +866,19 @@
 
 /* Scale down certificate on mobile */
 @media (max-width: 768px) {
+  .modal-wrapper {
+    gap: 0;
+  }
+  
   .certificate-container {
-    transform: scale(0.6);
+    /* transform: scale(.6); */
     transform-origin: top center;
     overflow-x: auto;
     padding: 20px 0;
   }
   
   .certificate-container:hover {
-    transform: scale(0.62);
+    transform: scale(1.02);
   }
   
   .certificate-cta {
