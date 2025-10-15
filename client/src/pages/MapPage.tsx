@@ -86,6 +86,8 @@ function MapPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
   const [certificateVisible, setCertificateVisible] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(true);
+  const [certificateReady, setCertificateReady] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
 
@@ -137,19 +139,36 @@ function MapPage() {
     fetchHotspots();
   }, []);
 
-  // Animate certificate container sliding in
+  // Handle printing state - minimum 3 seconds
   useEffect(() => {
     if (showCertificate) {
+      setIsPrinting(true);
+      setCertificateReady(false);
+      
+      // Ensure minimum 3 second printing phase
+      const printingTimer = setTimeout(() => {
+        setIsPrinting(false);
+      }, 3000);
+      
+      return () => clearTimeout(printingTimer);
+    }
+  }, [showCertificate]);
+
+  // Animate certificate container sliding in - only after printing is done
+  useEffect(() => {
+    if (showCertificate && !isPrinting && certificateReady) {
       // Small delay to let modal-content settle first
       const timer = setTimeout(() => {
         setCertificateVisible(true);
-      }, 400); // 400ms delay gives modal time to appear
+      }, 400);
       
       return () => clearTimeout(timer);
-    } else {
+    } else if (!showCertificate) {
       setCertificateVisible(false);
+      setIsPrinting(true);
+      setCertificateReady(false);
     }
-  }, [showCertificate]);
+  }, [showCertificate, isPrinting, certificateReady]);
 
   const fetchHotspots = async () => {
     try {
@@ -536,21 +555,45 @@ function MapPage() {
             
             {/* Certificate Container - Outside and below modal-content */}
             {claimStatus === 'claimed' && privateKey && showCertificate && selectedHotspot && (
-              <div 
-                className={`certificate-container ${certificateVisible ? 'show' : ''}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  shareOnTwitter();
-                }}
-              >
-                <div className="certificate-overlay">
-                  <div className="certificate-cta">Share Proof of Claim</div>
-                </div>
-                <GoldenTicket
-                  claimedAt={claimedAt}
-                  location={selectedHotspot.title}
-                  twitterHandle={twitterHandle}
-                />
+              <div className={`certificate-container ${certificateVisible ? 'show' : ''}`}>
+                {isPrinting || !certificateReady ? (
+                  /* Printing State */
+                  <div className="printing-state">
+                    <div className="printing-text">Printing Proof of Claim</div>
+                    <div className="printing-dots">
+                      <span>.</span>
+                      <span>.</span>
+                      <span>.</span>
+                    </div>
+                  </div>
+                ) : (
+                  /* Certificate Ready - Show certificate and share button */
+                  <>
+                    <div 
+                      className="certificate-clickable"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        shareOnTwitter();
+                      }}
+                    >
+                      <GoldenTicket
+                        claimedAt={claimedAt}
+                        location={selectedHotspot.title}
+                        twitterHandle={twitterHandle}
+                        onReady={() => setCertificateReady(true)}
+                      />
+                    </div>
+                    <div 
+                      className="share-cta"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        shareOnTwitter();
+                      }}
+                    >
+                      Share proof on X
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>

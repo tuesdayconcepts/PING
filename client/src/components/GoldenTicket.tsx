@@ -5,12 +5,14 @@ interface GoldenTicketProps {
   claimedAt: string;
   location: string;
   twitterHandle?: string;
+  onReady?: () => void; // Callback when certificate image is loaded
 }
 
 export const GoldenTicket: React.FC<GoldenTicketProps> = ({
   claimedAt,
   location,
-  twitterHandle
+  twitterHandle,
+  onReady
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -81,6 +83,12 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
       
       // Mark image as loaded and start animation after brief delay
       setImageLoaded(true);
+      
+      // Notify parent component that certificate is ready
+      if (onReady) {
+        onReady();
+      }
+      
       setTimeout(() => {
         setIsAnimated(true);
       }, 300); // 300ms delay before starting animation
@@ -90,8 +98,13 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
       console.error('Failed to load certificate template image');
       // Still show the container even if image fails
       setImageLoaded(true);
+      
+      // Notify parent even on error so UI doesn't hang
+      if (onReady) {
+        onReady();
+      }
     };
-  }, [claimedAt, location, twitterHandle]);
+  }, [claimedAt, location, twitterHandle, onReady]);
 
   // Mouse/touch tracking for 3D effect
   const handleMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
