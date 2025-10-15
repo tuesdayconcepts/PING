@@ -47,26 +47,26 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
       ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
       ctx.shadowBlur = 5;
 
-      // Text positions (adjusted based on template design)
-      const valueX = 590; // X position for values (30px left from before: 620 -> 590)
+      // Text positions (moved to lower end of certificate)
+      const valueX = 590; // X position for values
       
-      // Configure text styling for values only (no labels needed)
-      ctx.font = '14px Arial';
+      // Configure text styling for values only (2x larger font)
+      ctx.font = '28px Arial'; // Doubled from 14px to 28px
       ctx.fillStyle = '#ffffff';
       
-      // Draw CLAIMANT value (80px lower: 110 -> 190)
-      ctx.fillText(twitterHandle || 'Anonymous Hunter', valueX, 190);
+      // Draw CLAIMANT value (moved to lower end)
+      ctx.fillText(twitterHandle || 'Anonymous Hunter', valueX, 200);
 
-      // Draw DATE value (80px lower: 150 -> 230)
-      ctx.fillText(formatDate(claimedAt), valueX, 230);
+      // Draw DATE value (moved to lower end)
+      ctx.fillText(formatDate(claimedAt), valueX, 240);
 
-      // Draw LOCATION value (80px lower: 190 -> 270)
+      // Draw LOCATION value (moved to lower end)
       // Truncate location if too long
-      const maxLocationLength = 20;
+      const maxLocationLength = 15; // Reduced since font is larger
       const displayLocation = location.length > maxLocationLength 
         ? location.substring(0, maxLocationLength) + '...' 
         : location;
-      ctx.fillText(displayLocation, valueX, 270);
+      ctx.fillText(displayLocation, valueX, 280);
     };
 
     img.onerror = () => {
