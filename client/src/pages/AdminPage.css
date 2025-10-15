@@ -18,9 +18,12 @@
 }
 
 .login-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgb(130 130 130 / 24%);
   padding: 40px;
-  border-radius: 12px;
+  border-radius: 30px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   width: 100%;
   max-width: 400px;
@@ -29,7 +32,7 @@
 .login-card h2 {
   margin: 0 0 30px 0;
   text-align: center;
-  color: #e0e0e0;
+  color: #ffffff;
 }
 
 .form-group {
@@ -39,7 +42,7 @@
 .form-group label {
   display: block;
   margin-bottom: 5px;
-  color: #e0e0e0;
+  color: #ffffff;
   font-weight: 500;
 }
 

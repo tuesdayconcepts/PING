@@ -380,10 +380,10 @@
   max-height: 90vh;
   overflow-y: auto;
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgb(130 130 130 / 24%);
+  border-radius: 30px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   animation: slideUp 0.3s ease;
 }
@@ -775,7 +775,7 @@
 
   .modal-content {
     max-width: 95%;
-    border-radius: 16px;
+    border-radius: 30px;
   }
 
   .modal-title h2 {
