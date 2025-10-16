@@ -428,17 +428,10 @@
 .modal-section {
   padding: 20px 25px;
   margin: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.modal-section:first-of-type {
-  border-radius: 20px 20px 0 0;
-}
-
-.modal-section:last-of-type {
-  border-bottom: none;
-  border-radius: 0 0 20px 20px;
+  border: 2px solid rgb(255 255 255 / 3%);
+  color: #fffffff2;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
 }
 
 /* Combined Header Section (Title + Time Info) */
