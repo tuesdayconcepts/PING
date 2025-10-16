@@ -6,7 +6,7 @@ export interface Hotspot {
   description: string;
   lat: number;
   lng: number;
-  prize: string | null;
+  prize: number | null; // Prize amount in SOL
   startDate: string;
   endDate: string;
   active: boolean;

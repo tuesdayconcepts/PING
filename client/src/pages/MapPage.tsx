@@ -474,7 +474,7 @@ function MapPage() {
                           backgroundColor: getStatusColor(selectedHotspot.startDate, selectedHotspot.endDate) 
                         }}>
                           <span className="prize-icon">🎁</span>
-                          <span className="prize-text">{selectedHotspot.prize}</span>
+                          <span className="prize-text">{selectedHotspot.prize} SOL</span>
                         </div>
                       </div>
                     )}

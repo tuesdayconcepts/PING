@@ -408,7 +408,7 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
         description: sanitizeString(description),
         lat: roundedLat,
         lng: roundedLng,
-        prize: prize ? sanitizeString(prize) : null,
+        prize: prize ? parseFloat(prize) : null, // Parse as numeric value
         startDate,
         endDate: finalEndDate,
         active: active !== undefined ? active : true,
@@ -486,7 +486,7 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
         ...(description && { description: sanitizeString(description) }),
         ...(roundedLat !== undefined && { lat: roundedLat }),
         ...(roundedLng !== undefined && { lng: roundedLng }),
-        ...(prize !== undefined && { prize: prize ? sanitizeString(prize) : null }),
+        ...(prize !== undefined && { prize: prize ? parseFloat(prize) : null }), // Parse as numeric value
         ...(startDate && { startDate: new Date(startDate) }),
         ...(endDate && { endDate: new Date(endDate) }),
         ...(active !== undefined && { active }),

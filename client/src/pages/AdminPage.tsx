@@ -70,7 +70,7 @@ function AdminPage() {
     description: '',
     lat: 40.7128,
     lng: -74.0060,
-    prize: '',
+    prize: '' as string | number, // Number for prize amount in SOL
     endDate: '',
     active: true,
     imageUrl: '',
@@ -726,7 +726,7 @@ function AdminPage() {
                           {hasPendingClaim ? 'Pending Claim' : (isActive ? 'Active' : `Queue #${hotspot.queuePosition}`)}
                         </span>
                       </div>
-                      <p className="hotspot-prize">Prize: {hotspot.prize || 'N/A'}</p>
+                      <p className="hotspot-prize">Prize: {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}</p>
                       <div className="hotspot-actions">
                         <button onClick={() => handleEdit(hotspot)} className="action-btn edit-btn">
                           Edit PING
@@ -830,13 +830,16 @@ function AdminPage() {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="prize">Prize</label>
+                      <label htmlFor="prize">Prize (SOL)</label>
                       <input
-                        type="text"
+                        type="number"
                         id="prize"
                         name="prize"
                         value={formData.prize}
                         onChange={handleInputChange}
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
                       />
                     </div>
 
@@ -944,7 +947,7 @@ function AdminPage() {
                       <strong>{hotspot.title}</strong>
                     </div>
                     <div className="claim-details">
-                      <p><strong>Prize:</strong> {hotspot.prize}</p>
+                      <p><strong>Prize:</strong> {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}</p>
                       <p><strong>Claimed by:</strong> {hotspot.claimedBy || 'Unknown'}</p>
                       <p><strong>Claimed at:</strong> {hotspot.claimedAt ? formatDate(hotspot.claimedAt) : 'N/A'}</p>
                       <p><strong>PING URL:</strong> <a href={`${window.location.origin}/ping/${hotspot.id}`} target="_blank" rel="noopener noreferrer">{`${window.location.origin}/ping/${hotspot.id}`}</a></p>

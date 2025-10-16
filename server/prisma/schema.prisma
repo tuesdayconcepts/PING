@@ -24,7 +24,7 @@ model Hotspot {
   description   String
   lat           Float
   lng           Float
-  prize         String?
+  prize         Float?    // Prize amount in SOL
   startDate     DateTime
   endDate       DateTime
   active        Boolean   @default(true)
