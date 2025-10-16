@@ -467,32 +467,76 @@ function MapPage() {
                       <h2>{selectedHotspot.title}</h2>
                     </div>
 
-                    {/* Prize section */}
+                    {/* Prize Option A: Animated Gradient */}
                     {selectedHotspot.prize && (
-                      <div className="modal-section modal-prize">
-                        <div className="prize-badge" style={{ 
-                          backgroundColor: getStatusColor(selectedHotspot.startDate, selectedHotspot.endDate) 
-                        }}>
+                      <div className="modal-section modal-prize prize-option-a">
+                        <div className="prize-label">Option A: Animated Gradient</div>
+                        <div className="prize-badge">
                           <span className="prize-icon">🎁</span>
                           <span className="prize-text">{selectedHotspot.prize} SOL</span>
                         </div>
                       </div>
                     )}
 
-                    {/* Status section */}
-                    <div className="modal-section modal-status">
-                      <div className="status-info">
-                        <span className="status-icon">TIME</span>
-                        <span className="status-text">
+                    {/* Prize Option B: Glowing Pulse */}
+                    {selectedHotspot.prize && (
+                      <div className="modal-section modal-prize prize-option-b">
+                        <div className="prize-label">Option B: Glowing Pulse</div>
+                        <div className="prize-badge">
+                          <span className="prize-icon">🎁</span>
+                          <span className="prize-text">{selectedHotspot.prize} SOL</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Prize Option C: Shimmer Sweep */}
+                    {selectedHotspot.prize && (
+                      <div className="modal-section modal-prize prize-option-c">
+                        <div className="prize-label">Option C: Shimmer Sweep</div>
+                        <div className="prize-badge">
+                          <span className="prize-icon">🎁</span>
+                          <span className="prize-text">{selectedHotspot.prize} SOL</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Prize Option D: Large Hero */}
+                    {selectedHotspot.prize && (
+                      <div className="modal-section modal-prize prize-option-d">
+                        <div className="prize-label">Option D: Large Hero</div>
+                        <div className="prize-badge-hero">
+                          {selectedHotspot.prize} SOL
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Combined Time Info section */}
+                    <div className="modal-section modal-time-info">
+                      <div className="time-item">
+                        <span className="time-label">Running:</span>
+                        <span className="time-value">
                           {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
                         </span>
                       </div>
-                    </div>
-
-                    {/* Description section */}
-                    <div className="modal-section modal-description">
-                      <h3>Details</h3>
-                      <p>{selectedHotspot.description}</p>
+                      {(() => {
+                        const endDate = new Date(selectedHotspot.endDate);
+                        const now = new Date();
+                        const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
+                        const hasExpiration = yearsDiff < 50;
+                        
+                        return hasExpiration && (
+                          <div className="time-item">
+                            <span className="time-label">Expires:</span>
+                            <span className="time-value">
+                              {new Date(selectedHotspot.endDate).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Image section (if available) */}
