@@ -408,6 +408,10 @@ function MapPage() {
             fullscreenControl: true,
             clickableIcons: false, // Disable clicking on POI icons
             gestureHandling: 'greedy', // Allow single-finger pan on mobile
+            // Hide Google branding and legal text
+            disableDefaultUI: true, // Hide all default UI elements
+            zoomControl: true, // Re-enable only zoom control
+            fullscreenControl: true, // Re-enable only fullscreen control
           }}
           onClick={(e) => {
             // Prevent default Google Maps click behavior (location info dialog)

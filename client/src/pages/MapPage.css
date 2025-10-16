@@ -125,6 +125,21 @@
   z-index: 0;
 }
 
+/* Custom positioning for Google Maps controls */
+.gm-fullscreen-control {
+  top: 10px !important;
+  right: 10px !important;
+  bottom: auto !important;
+  left: auto !important;
+}
+
+.gm-zoom-control {
+  top: 70px !important;
+  right: 10px !important;
+  bottom: auto !important;
+  left: auto !important;
+}
+
 /* Ensure Leaflet map panes stay at base level */
 .map-container .leaflet-pane {
   z-index: 0;
