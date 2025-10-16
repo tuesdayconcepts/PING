@@ -343,7 +343,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: #00000052;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -404,7 +404,8 @@
   position: absolute;
   top: 15px;
   right: 15px;
-  background: rgba(255, 255, 255, 0.2);
+  background: #00000078;
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   width: 35px;
@@ -812,10 +813,6 @@
 
   .modal-header h2 {
     font-size: 1.5rem;
-  }
-
-  .modal-section {
-    padding: 15px 20px;
   }
 
   .modal-close {
