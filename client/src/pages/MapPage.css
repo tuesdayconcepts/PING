@@ -475,17 +475,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 8px 30px;
+  gap: 13px;
+  padding: 8px 25px;
   border-radius: 50px;
   font-size: 1.2rem;
   font-weight: 700;
-  /* box-shadow: 0 4px 15px #0000004d; */
   margin-bottom: 0;
   background: linear-gradient(135deg, #9351b6, #25b273);
-  border: 5px solid #ffffff4d;
+  border: 3px solid #ffffff4d;
   color: #ffffff9c;
-  flex-shrink: 0; /* Don't shrink, fit content */
+  flex-shrink: 0;
 }
 
 /* Shimmer sweep effect */
@@ -508,9 +507,9 @@
 }
 
 .prize-icon {
-  width: 24px;
-  height: 24px;
-  stroke-width: 2.5;
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
 }
 
 .prize-text {
@@ -526,18 +525,18 @@
 /* Hint CTA Button */
 .hint-cta {
   background: gold;
-  color: #000;
-  padding: 13px 30px;
+  color: #000000ad;
+  padding: 16px 30px;
   border-radius: 50px;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
-  flex: 1; /* Fill remaining space */
+  flex: 1;
   text-align: center;
 }
 
