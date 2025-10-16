@@ -605,9 +605,11 @@ function AdminPage() {
               streetViewControl: false,
               fullscreenControl: true,
               gestureHandling: 'greedy',
+              clickableIcons: false,
             }}
             onClick={(e) => {
               if (e.latLng) {
+                e.stop(); // Prevent event propagation
                 // Round to 6 decimal places (~11cm precision)
                 const lat = Math.round(e.latLng.lat() * 1000000) / 1000000;
                 const lng = Math.round(e.latLng.lng() * 1000000) / 1000000;
