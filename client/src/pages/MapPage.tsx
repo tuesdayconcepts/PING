@@ -6,7 +6,7 @@ import Confetti from 'react-confetti';
 import { Gift, Clock, Calendar } from 'lucide-react';
 import L from 'leaflet';
 import { Hotspot } from '../types';
-import { getHotspotStatus } from '../utils/time';
+import { getHotspotStatus, getTimeUntilExpiration } from '../utils/time';
 import { GoldenTicket } from '../components/GoldenTicket';
 import 'leaflet/dist/leaflet.css';
 import './MapPage.css';
@@ -474,11 +474,7 @@ function MapPage() {
                               <div className="time-item">
                                 <Calendar className="time-icon" />
                                 <span className="time-value">
-                                  {new Date(selectedHotspot.endDate).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
+                                  {getTimeUntilExpiration(selectedHotspot.endDate)}
                                 </span>
                               </div>
                             );

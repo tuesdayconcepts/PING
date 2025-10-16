@@ -41,3 +41,27 @@ export function formatDate(dateString: string): string {
   return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 }
 
+// Get time remaining until expiration in "Ends in Xh Xm" format
+export function getTimeUntilExpiration(endDate: string): string {
+  const now = new Date();
+  const end = new Date(endDate);
+  const timeDiff = end.getTime() - now.getTime();
+  
+  // If already expired
+  if (timeDiff <= 0) {
+    return 'Expired';
+  }
+  
+  const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (days > 0) {
+    return `Ends in ${days}d ${hours}h`;
+  }
+  if (hours > 0) {
+    return `Ends in ${hours}h ${minutes}m`;
+  }
+  return `Ends in ${minutes}m`;
+}
+
