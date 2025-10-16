@@ -844,16 +844,20 @@ function AdminPage() {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="privateKey">Solana Private Key</label>
+                      <label htmlFor="privateKey">Solana Private Key {formMode === 'edit' && '(Optional)'}</label>
                       <input
                         type="password"
                         id="privateKey"
                         name="privateKey"
                         value={formData.privateKey}
                         onChange={handleInputChange}
-                        placeholder="Enter private key (encrypted in database)"
+                        placeholder={formMode === 'edit' ? 'Leave blank to keep existing key' : 'Enter private key (encrypted in database)'}
                       />
-                      <small className="form-hint">Note: This will be encrypted and revealed only when claim is approved</small>
+                      <small className="form-hint">
+                        {formMode === 'edit' 
+                          ? 'Only enter a new key if you want to replace the existing one' 
+                          : 'This will be encrypted and revealed only when claim is approved'}
+                      </small>
                     </div>
 
                     <div className="form-group checkbox">
