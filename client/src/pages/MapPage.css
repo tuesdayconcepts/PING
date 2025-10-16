@@ -34,9 +34,7 @@
 /* Mobile: top and bottom gradients */
 @media (max-width: 768px) {
   .vignette-overlay {
-    background: 
-      linear-gradient(to bottom, rgb(11 40 255), rgb(11 40 255 / 90%) 90px, rgb(11 40 255 / 63%) 150px, #0000 300px),
-      linear-gradient(to top, rgb(11 40 255), rgb(11 40 255 / 90%) 90px, rgb(11 40 255 / 63%) 150px, #0000 300px);
+    background: linear-gradient(to bottom, #0b28ff, #0b28ffe5 90px, #0b28ffa1 150px, #0000 300px), linear-gradient(to top, #0b28ff, #0b28ffc7 20px, #0b28ff8f 50px, #0000 150px);
   }
 }
 
