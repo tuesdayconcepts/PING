@@ -1,58 +1,22 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
-import 'leaflet/dist/leaflet.css';
+import { customMapStyles } from '../utils/mapStyles';
+import { CustomMarker } from '../components/CustomMarker';
 import './AdminPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-// Create pulsing marker icon with custom star SVG
-const createPulseIcon = () => {
-  const color = 'gold';
-  const starPath = "M344.13,6.42l80.5,217.54c3.64,9.83,11.39,17.58,21.22,21.22l217.54,80.5c8.56,3.17,8.56,15.28,0,18.45l-217.54,80.5c-9.83,3.64-17.58,11.39-21.22,21.22l-80.5,217.54c-3.17,8.56-15.28,8.56-18.45,0l-80.5-217.54c-3.64-9.83-11.39-17.58-21.22-21.22L6.42,344.13c-8.56-3.17-8.56-15.28,0-18.45l217.54-80.5c9.83-3.64,17.58-11.39,21.22-21.22L325.68,6.42c3.17-8.56,15.28-8.56,18.45,0Z";
-  
-  return L.divIcon({
-    className: 'custom-pulse-icon',
-    html: `
-      <div class="pulse-marker">
-        <svg class="pulse-marker-ring" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="none" stroke="${color}" stroke-width="8" stroke-opacity="0.6" fill-rule="evenodd" d="${starPath}"/>
-        </svg>
-        <svg class="pulse-marker-ring" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="none" stroke="${color}" stroke-width="8" stroke-opacity="0.6" fill-rule="evenodd" d="${starPath}"/>
-        </svg>
-        <svg class="pulse-marker-ring" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="none" stroke="${color}" stroke-width="8" stroke-opacity="0.6" fill-rule="evenodd" d="${starPath}"/>
-        </svg>
-        <svg class="pulse-marker-star" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="${color}" fill-rule="evenodd" d="${starPath}"/>
-        </svg>
-      </div>
-    `,
-    iconSize: [80, 80],
-    iconAnchor: [40, 40],
-    popupAnchor: [0, -40],
-  });
-};
-
-// Component to handle map clicks
-function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click: (e) => {
-      // Round to 6 decimal places (~11cm precision)
-      const roundedLat = Math.round(e.latlng.lat * 1000000) / 1000000;
-      const roundedLng = Math.round(e.latlng.lng * 1000000) / 1000000;
-      onMapClick(roundedLat, roundedLng);
-    },
-  });
-  return null;
-}
-
 function AdminPage() {
+  // Load Google Maps API
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  });
+
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsernameInput] = useState('');
@@ -92,7 +56,7 @@ function AdminPage() {
   const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'editor' as 'admin' | 'editor' });
   const [showNewUserForm, setShowNewUserForm] = useState(false);
 
-  const [markerPosition, setMarkerPosition] = useState<[number, number]>([40.7128, -74.0060]);
+  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
 
   useEffect(() => {
     if (getToken()) {
@@ -234,7 +198,7 @@ function AdminPage() {
       const lat = name === 'lat' ? parseFloat(value) : formData.lat;
       const lng = name === 'lng' ? parseFloat(value) : formData.lng;
       if (!isNaN(lat) && !isNaN(lng)) {
-        setMarkerPosition([lat, lng]);
+        setMarkerPosition({ lat, lng });
       }
     }
   };
@@ -326,8 +290,8 @@ function AdminPage() {
     setFormData({
       title: '',
       description: '',
-      lat: markerPosition[0],
-      lng: markerPosition[1],
+      lat: markerPosition.lat,
+      lng: markerPosition.lng,
       prize: '',
       endDate: '',
       active: true,
@@ -340,7 +304,7 @@ function AdminPage() {
 
   // Handle map click to set location and open form
   const handleMapClickOpen = (lat: number, lng: number) => {
-    setMarkerPosition([lat, lng]);
+    setMarkerPosition({ lat, lng });
     setFormData({ ...formData, lat, lng });
     
     // If form is not open, open it in create mode
@@ -377,7 +341,7 @@ function AdminPage() {
       privateKey: '', // Don't populate private key on edit for security
     });
     setImagePreview(hotspot.imageUrl || null);
-    setMarkerPosition([hotspot.lat, hotspot.lng]);
+    setMarkerPosition({ lat: hotspot.lat, lng: hotspot.lng });
   };
 
   // Save hotspot (create or update)
@@ -476,7 +440,7 @@ function AdminPage() {
       imageUrl: '',
       privateKey: '',
     });
-    setMarkerPosition([40.7128, -74.0060]);
+    setMarkerPosition({ lat: 40.7128, lng: -74.0060 });
   };
 
   // Copy PING URL to clipboard
@@ -625,25 +589,35 @@ function AdminPage() {
 
       {/* Full viewport map */}
       <div className="admin-map-container">
-        <MapContainer 
-          center={markerPosition} 
-          zoom={13} 
-          className="admin-map"
-        >
-          {/* ESRI Dark Gray Canvas Basemap */}
-          <TileLayer
-            attribution='Tiles &copy; Esri'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={16}
-          />
-          <TileLayer
-            attribution='&copy; Esri'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={16}
-          />
-          <MapClickHandler onMapClick={handleMapClickOpen} />
-          <Marker position={markerPosition} icon={createPulseIcon()} />
-        </MapContainer>
+        {isLoaded && (
+          <GoogleMap
+            center={markerPosition}
+            zoom={13}
+            mapContainerClassName="admin-map"
+            options={{
+              styles: customMapStyles,
+              disableDefaultUI: false,
+              zoomControl: true,
+              mapTypeControl: false,
+              streetViewControl: false,
+              fullscreenControl: true,
+            }}
+            onClick={(e) => {
+              if (e.latLng) {
+                // Round to 6 decimal places (~11cm precision)
+                const lat = Math.round(e.latLng.lat() * 1000000) / 1000000;
+                const lng = Math.round(e.latLng.lng() * 1000000) / 1000000;
+                handleMapClickOpen(lat, lng);
+              }
+            }}
+          >
+            <CustomMarker
+              position={markerPosition}
+              isActive={true}
+              onClick={() => {}}
+            />
+          </GoogleMap>
+        )}
       </div>
 
       {/* Left Sidebar (Desktop) / Bottom Drawer (Mobile) */}
