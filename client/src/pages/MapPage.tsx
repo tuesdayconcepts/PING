@@ -428,119 +428,121 @@ function MapPage() {
                 ✕
               </button>
 
-            {/* Check if hotspot is queued (not active yet) */}
-            {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 0 ? (
-              <div className="modal-section modal-queued">
-                <h3>This PING is Not Active Yet</h3>
-                <p>This PING is currently in queue. It will become active in the future.</p>
-                <button 
-                  className="view-active-btn"
-                  onClick={() => window.location.href = '/'}
-                >
-                  View Active PING
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* Show all sections except when claimed */}
-                {claimStatus !== 'claimed' && (
-                  <>
-                    {/* Title + Time Info combined section */}
-                    <div className="modal-section modal-header">
-                      <h2>{selectedHotspot.title}</h2>
-                      <div className="header-time-info">
-                        <div className="time-item">
-                          <span className="time-label">Running:</span>
-                          <span className="time-value">
-                            {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
-                          </span>
-                        </div>
-                        {(() => {
-                          const endDate = new Date(selectedHotspot.endDate);
-                          const now = new Date();
-                          const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
-                          const hasExpiration = yearsDiff < 50;
-                          
-                          return hasExpiration && (
-                            <div className="time-item">
-                              <span className="time-label">Expires:</span>
-                              <span className="time-value">
-                                {new Date(selectedHotspot.endDate).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
-                              </span>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-
-                    {/* Prize - Option C: Shimmer Sweep with custom gradient */}
-                    {selectedHotspot.prize && (
-                      <div className="modal-section modal-prize">
-                        <div className="prize-badge">
-                          <span className="prize-icon">🎁</span>
-                          <span className="prize-text">{selectedHotspot.prize} SOL</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Image section (if available) */}
-                    {selectedHotspot.imageUrl && (
-                      <div className="modal-section modal-image">
-                        <img src={selectedHotspot.imageUrl} alt={selectedHotspot.title} />
-                      </div>
-                    )}
-                  </>
-                )}
-              </>
-            )}
-
-            {/* Action section - Different states */}
-            {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not queued */}
-            {claimStatus === 'unclaimed' && id && (!selectedHotspot.queuePosition || selectedHotspot.queuePosition === 0) && (
-              <div className="modal-section modal-actions">
-                {claimError && (
-                  <p className="claim-error">{claimError}</p>
-                )}
-                <button 
-                  className={claimError ? "view-active-btn" : "claim-btn"} 
-                  onClick={claimError ? () => window.location.href = '/' : handleClaim}
-                >
-                  {claimError ? 'View Active PING' : 'Claim Prize'}
-                </button>
-              </div>
-            )}
-
-            {claimStatus === 'pending' && (
-              <div className="modal-section modal-pending">
-                <div className="pending-animation">⏳</div>
-                <h3>Waiting for Approval</h3>
-                <p>Your claim is being reviewed by the admin. This usually takes a few minutes.</p>
-                <p className="pending-note">Stay on this page to see when it's approved!</p>
-              </div>
-            )}
-
-            {claimStatus === 'claimed' && privateKey && (
-              <div className="modal-section modal-reveal">
-                <h3 className="congrats-title">Congratulations!</h3>
-                <p className="congrats-text">
-                  You've successfully claimed this PING! Add this privat key to your Solana wallet to access your prize.
-                </p>
-                
-                <div className="private-key-box">
-                  <label>Solana Private Key:</label>
-                  <code 
-                    className="clickable-key"
-                    onClick={handleCopyKey}
+            <div className="modal-sections">
+              {/* Check if hotspot is queued (not active yet) */}
+              {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 0 ? (
+                <div className="modal-section modal-queued">
+                  <h3>This PING is Not Active Yet</h3>
+                  <p>This PING is currently in queue. It will become active in the future.</p>
+                  <button 
+                    className="view-active-btn"
+                    onClick={() => window.location.href = '/'}
                   >
-                    {keyCopied ? 'Private key copied to clipboard!' : privateKey}
-                  </code>
+                    View Active PING
+                  </button>
                 </div>
-              </div>
-            )}
+              ) : (
+                <>
+                  {/* Show all sections except when claimed */}
+                  {claimStatus !== 'claimed' && (
+                    <>
+                      {/* Title + Time Info combined section */}
+                      <div className="modal-section modal-header">
+                        <h2>{selectedHotspot.title}</h2>
+                        <div className="header-time-info">
+                          <div className="time-item">
+                            <span className="time-label">Running:</span>
+                            <span className="time-value">
+                              {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
+                            </span>
+                          </div>
+                          {(() => {
+                            const endDate = new Date(selectedHotspot.endDate);
+                            const now = new Date();
+                            const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
+                            const hasExpiration = yearsDiff < 50;
+                            
+                            return hasExpiration && (
+                              <div className="time-item">
+                                <span className="time-label">Expires:</span>
+                                <span className="time-value">
+                                  {new Date(selectedHotspot.endDate).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+
+                      {/* Prize - Option C: Shimmer Sweep with custom gradient */}
+                      {selectedHotspot.prize && (
+                        <div className="modal-section modal-prize">
+                          <div className="prize-badge">
+                            <span className="prize-icon">🎁</span>
+                            <span className="prize-text">{selectedHotspot.prize} SOL</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Image section (if available) */}
+                      {selectedHotspot.imageUrl && (
+                        <div className="modal-section modal-image">
+                          <img src={selectedHotspot.imageUrl} alt={selectedHotspot.title} />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Action section - Different states */}
+              {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not queued */}
+              {claimStatus === 'unclaimed' && id && (!selectedHotspot.queuePosition || selectedHotspot.queuePosition === 0) && (
+                <div className="modal-section modal-actions">
+                  {claimError && (
+                    <p className="claim-error">{claimError}</p>
+                  )}
+                  <button 
+                    className={claimError ? "view-active-btn" : "claim-btn"} 
+                    onClick={claimError ? () => window.location.href = '/' : handleClaim}
+                  >
+                    {claimError ? 'View Active PING' : 'Claim Prize'}
+                  </button>
+                </div>
+              )}
+
+              {claimStatus === 'pending' && (
+                <div className="modal-section modal-pending">
+                  <div className="pending-animation">⏳</div>
+                  <h3>Waiting for Approval</h3>
+                  <p>Your claim is being reviewed by the admin. This usually takes a few minutes.</p>
+                  <p className="pending-note">Stay on this page to see when it's approved!</p>
+                </div>
+              )}
+
+              {claimStatus === 'claimed' && privateKey && (
+                <div className="modal-section modal-reveal">
+                  <h3 className="congrats-title">Congratulations!</h3>
+                  <p className="congrats-text">
+                    You've successfully claimed this PING! Add this privat key to your Solana wallet to access your prize.
+                  </p>
+                  
+                  <div className="private-key-box">
+                    <label>Solana Private Key:</label>
+                    <code 
+                      className="clickable-key"
+                      onClick={handleCopyKey}
+                    >
+                      {keyCopied ? 'Private key copied to clipboard!' : privateKey}
+                    </code>
+                  </div>
+                </div>
+              )}
+            </div>
             </div>
             
             {/* Certificate */}
