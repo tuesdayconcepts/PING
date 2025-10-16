@@ -28,12 +28,12 @@ export function getHotspotStatus(startDate: string, endDate: string): string {
   const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
   if (days > 0) {
-    return `Running ${days} day${days !== 1 ? 's' : ''}, ${hours} hour${hours !== 1 ? 's' : ''}`;
+    return `Started ${days}d ${hours}h ago`;
   }
   if (hours > 0) {
-    return `Running ${hours} hour${hours !== 1 ? 's' : ''}, ${minutes} min`;
+    return `Started ${hours}h ${minutes}m ago`;
   }
-  return `Running ${minutes} min`;
+  return `Started ${minutes}m ago`;
 }
 
 export function formatDate(dateString: string): string {

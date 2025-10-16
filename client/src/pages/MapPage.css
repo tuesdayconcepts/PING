@@ -558,10 +558,12 @@
   font-size: 0.95rem;
 }
 
-.time-label {
-  color: rgba(255, 255, 255, 0.6);
-  font-weight: 500;
-  min-width: 80px;
+.time-icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+  color: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
 }
 
 .time-value {

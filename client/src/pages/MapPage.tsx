@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import Confetti from 'react-confetti';
-import { Gift } from 'lucide-react';
+import { Gift, Clock, Calendar } from 'lucide-react';
 import L from 'leaflet';
 import { Hotspot } from '../types';
 import { getHotspotStatus } from '../utils/time';
@@ -459,7 +459,7 @@ function MapPage() {
                         <h2>{selectedHotspot.title}</h2>
                         <div className="header-time-info">
                           <div className="time-item">
-                            <span className="time-label">Running:</span>
+                            <Clock className="time-icon" />
                             <span className="time-value">
                               {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
                             </span>
@@ -472,7 +472,7 @@ function MapPage() {
                             
                             return hasExpiration && (
                               <div className="time-item">
-                                <span className="time-label">Expires:</span>
+                                <Calendar className="time-icon" />
                                 <span className="time-value">
                                   {new Date(selectedHotspot.endDate).toLocaleDateString('en-US', {
                                     month: 'short',
