@@ -160,11 +160,6 @@ function MapPage() {
     fetchHotspots();
   }, []);
 
-  // Request user location on mount for ETA feature
-  useEffect(() => {
-    requestUserLocation();
-  }, []);
-
   // Expand certificate after 2 seconds
   useEffect(() => {
     if (showCertificate) {
@@ -510,18 +505,27 @@ function MapPage() {
                               </div>
                             );
                           })()}
-                          {userLocation && (
-                            <div 
-                              className="time-item eta-clickable" 
-                              onClick={() => openDirections(selectedHotspot.lat, selectedHotspot.lng)}
-                              title="Get directions"
-                            >
-                              <Navigation className="time-icon" />
-                              <span className="time-value">
-                                {calculateETA(userLocation.lat, userLocation.lng, selectedHotspot.lat, selectedHotspot.lng)}
-                              </span>
-                            </div>
-                          )}
+                          <div 
+                            className="time-item eta-clickable" 
+                            onClick={() => {
+                              if (userLocation) {
+                                // If location already granted, open directions
+                                openDirections(selectedHotspot.lat, selectedHotspot.lng);
+                              } else {
+                                // Request location first
+                                requestUserLocation();
+                              }
+                            }}
+                            title={userLocation ? "Get directions" : "Click to get ETA"}
+                          >
+                            <Navigation className="time-icon" />
+                            <span className="time-value">
+                              {userLocation 
+                                ? calculateETA(userLocation.lat, userLocation.lng, selectedHotspot.lat, selectedHotspot.lng)
+                                : "Get ETA"
+                              }
+                            </span>
+                          </div>
                         </div>
                       </div>
 
