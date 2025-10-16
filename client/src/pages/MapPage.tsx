@@ -506,7 +506,7 @@ function MapPage() {
                             );
                           })()}
                           <div 
-                            className="time-item eta-clickable" 
+                            className="time-item" 
                             onClick={() => {
                               if (userLocation) {
                                 // If location already granted, open directions
@@ -517,6 +517,7 @@ function MapPage() {
                               }
                             }}
                             title={userLocation ? "Get directions" : "Click to get ETA"}
+                            style={{ cursor: 'pointer' }}
                           >
                             <Navigation className="time-icon" />
                             <span className="time-value">

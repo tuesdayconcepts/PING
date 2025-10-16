@@ -454,7 +454,7 @@
 .header-time-info {
   display: flex;
   flex-direction: row;
-  gap: 22px;
+  /* gap: 22px; */
   font-size: 0.95rem;
   flex-wrap: wrap;
 }
@@ -557,6 +557,7 @@
   align-items: center;
   gap: 10px;
   font-size: 0.95rem;
+  margin: 0 20px 10px 0;
 }
 
 .time-icon {
@@ -570,27 +571,6 @@
 .time-value {
   color: #ffffffa3;
   font-weight: 600;
-}
-
-/* ETA Clickable Styling */
-.eta-clickable {
-  cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 5px 10px;
-  margin: -5px -10px;
-  border-radius: 8px;
-}
-
-.eta-clickable:hover {
-  background: rgba(255, 215, 0, 0.1);
-}
-
-.eta-clickable:hover .time-value {
-  color: #ffd700;
-}
-
-.eta-clickable:hover .time-icon {
-  color: #ffd700;
 }
 
 /* Description Section */
