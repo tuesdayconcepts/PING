@@ -381,6 +381,13 @@
   animation: slideUp 0.3s ease;
 }
 
+/* Modal Sections Wrapper */
+.modal-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
 @keyframes slideUp {
   from {
     transform: translateY(50px);
