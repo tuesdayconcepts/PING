@@ -407,6 +407,7 @@ function MapPage() {
             streetViewControl: false,
             fullscreenControl: true,
             clickableIcons: false, // Disable clicking on POI icons
+            gestureHandling: 'greedy', // Allow single-finger pan on mobile
           }}
           onClick={(e) => {
             // Prevent default Google Maps click behavior (location info dialog)
