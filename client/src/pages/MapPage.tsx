@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import Confetti from 'react-confetti';
+import { Gift } from 'lucide-react';
 import L from 'leaflet';
 import { Hotspot } from '../types';
 import { getHotspotStatus } from '../utils/time';
@@ -489,7 +490,7 @@ function MapPage() {
                       {selectedHotspot.prize && (
                         <div className="modal-section modal-prize">
                           <div className="prize-badge">
-                            <span className="prize-icon">🎁</span>
+                            <Gift className="prize-icon" />
                             <span className="prize-text">{selectedHotspot.prize} SOL</span>
                           </div>
                           <button className="hint-cta">
