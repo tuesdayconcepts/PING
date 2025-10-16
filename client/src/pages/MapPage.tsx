@@ -422,7 +422,7 @@ function MapPage() {
       {selectedHotspot && (
         <div className="modal-overlay" onClick={() => setSelectedHotspot(null)}>
           <div className="modal-wrapper">
-            <div className={`modal-content ${!id ? 'modal-info-only' : ''}`} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               {/* Close button */}
               <button className="modal-close" onClick={() => setSelectedHotspot(null)}>
                 ✕
