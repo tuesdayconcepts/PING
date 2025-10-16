@@ -453,9 +453,10 @@
 
 .header-time-info {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  gap: 2px;
   font-size: 0.95rem;
+  flex-wrap: wrap;
 }
 
 /* Prize Section - Shimmer Sweep with Custom Gradient */
@@ -567,7 +568,7 @@
 }
 
 .time-value {
-  color: rgba(255, 255, 255, 0.95);
+  color: #ffffffa3;
   font-weight: 600;
 }
 
