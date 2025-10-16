@@ -316,23 +316,6 @@ function MapPage() {
     }
   }, [claimStatus, selectedHotspot]);
 
-  const getStatusColor = (startDate: string, endDate: string): string => {
-    const now = new Date();
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    // Expired
-    if (now > end) {
-      return '#999'; // Gray
-    }
-    // Not started yet
-    if (now < start) {
-      return '#f39c12'; // Orange
-    }
-    // Active
-    return '#27ae60'; // Green
-  };
-
   return (
     <div className="map-page">
       {/* Vignette Overlay */}
