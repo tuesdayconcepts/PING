@@ -445,82 +445,47 @@ function MapPage() {
                 {/* Show all sections except when claimed */}
                 {claimStatus !== 'claimed' && (
                   <>
-                    {/* Title section */}
-                    <div className="modal-section modal-title">
+                    {/* Title + Time Info combined section */}
+                    <div className="modal-section modal-header">
                       <h2>{selectedHotspot.title}</h2>
+                      <div className="header-time-info">
+                        <div className="time-item">
+                          <span className="time-label">Running:</span>
+                          <span className="time-value">
+                            {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
+                          </span>
+                        </div>
+                        {(() => {
+                          const endDate = new Date(selectedHotspot.endDate);
+                          const now = new Date();
+                          const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
+                          const hasExpiration = yearsDiff < 50;
+                          
+                          return hasExpiration && (
+                            <div className="time-item">
+                              <span className="time-label">Expires:</span>
+                              <span className="time-value">
+                                {new Date(selectedHotspot.endDate).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </div>
                     </div>
 
-                    {/* Prize Option A: Animated Gradient */}
+                    {/* Prize - Option C: Shimmer Sweep with custom gradient */}
                     {selectedHotspot.prize && (
-                      <div className="modal-section modal-prize prize-option-a">
-                        <div className="prize-label">Option A: Animated Gradient</div>
+                      <div className="modal-section modal-prize">
                         <div className="prize-badge">
                           <span className="prize-icon">🎁</span>
                           <span className="prize-text">{selectedHotspot.prize} SOL</span>
                         </div>
                       </div>
                     )}
-
-                    {/* Prize Option B: Glowing Pulse */}
-                    {selectedHotspot.prize && (
-                      <div className="modal-section modal-prize prize-option-b">
-                        <div className="prize-label">Option B: Glowing Pulse</div>
-                        <div className="prize-badge">
-                          <span className="prize-icon">🎁</span>
-                          <span className="prize-text">{selectedHotspot.prize} SOL</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Prize Option C: Shimmer Sweep */}
-                    {selectedHotspot.prize && (
-                      <div className="modal-section modal-prize prize-option-c">
-                        <div className="prize-label">Option C: Shimmer Sweep</div>
-                        <div className="prize-badge">
-                          <span className="prize-icon">🎁</span>
-                          <span className="prize-text">{selectedHotspot.prize} SOL</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Prize Option D: Large Hero */}
-                    {selectedHotspot.prize && (
-                      <div className="modal-section modal-prize prize-option-d">
-                        <div className="prize-label">Option D: Large Hero</div>
-                        <div className="prize-badge-hero">
-                          {selectedHotspot.prize} SOL
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Combined Time Info section */}
-                    <div className="modal-section modal-time-info">
-                      <div className="time-item">
-                        <span className="time-label">Running:</span>
-                        <span className="time-value">
-                          {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
-                        </span>
-                      </div>
-                      {(() => {
-                        const endDate = new Date(selectedHotspot.endDate);
-                        const now = new Date();
-                        const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
-                        const hasExpiration = yearsDiff < 50;
-                        
-                        return hasExpiration && (
-                          <div className="time-item">
-                            <span className="time-label">Expires:</span>
-                            <span className="time-value">
-                              {new Date(selectedHotspot.endDate).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric'
-                              })}
-                            </span>
-                          </div>
-                        );
-                      })()}
-                    </div>
 
                     {/* Image section (if available) */}
                     {selectedHotspot.imageUrl && (
