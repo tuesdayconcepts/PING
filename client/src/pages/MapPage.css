@@ -34,7 +34,7 @@
 /* Mobile: only top gradient with nav bar */
 @media (max-width: 768px) {
   .vignette-overlay {
-    background: linear-gradient(to bottom, rgb(0 15 130) 0%, rgb(0 15 130 / 90%) 90px, rgb(0 15 130 / 63%) 150px, #00000000 300px);
+    background: linear-gradient(to bottom, rgb(11 40 255), rgb(11 40 255 / 90%) 90px, rgb(11 40 255 / 63%) 150px, #0000 300px);
   }
 }
 
@@ -425,7 +425,7 @@
 .modal-sections {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 @keyframes slideUp {
@@ -477,7 +477,7 @@
 
 /* Combined Header Section (Title + Time Info) */
 .modal-header {
-  background: #ffffff0d;
+  background: #ffffff30;
   padding: 30px;
 }
 
