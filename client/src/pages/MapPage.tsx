@@ -406,6 +406,11 @@ function MapPage() {
             mapTypeControl: false,
             streetViewControl: false,
             fullscreenControl: true,
+            clickableIcons: false, // Disable clicking on POI icons
+          }}
+          onClick={(e) => {
+            // Prevent default Google Maps click behavior (location info dialog)
+            e.stop();
           }}
         >
           {/* Render custom markers for each hotspot */}
