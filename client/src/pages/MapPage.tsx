@@ -160,6 +160,11 @@ function MapPage() {
     fetchHotspots();
   }, []);
 
+  // Request user location on mount for ETA feature
+  useEffect(() => {
+    requestUserLocation();
+  }, []);
+
   // Expand certificate after 2 seconds
   useEffect(() => {
     if (showCertificate) {
@@ -179,6 +184,23 @@ function MapPage() {
   }, [showCertificate]);
 
 
+  // Request user location for ETA calculation
+  const requestUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLat = position.coords.latitude;
+          const userLng = position.coords.longitude;
+          setUserLocation({ lat: userLat, lng: userLng });
+          console.log('User location acquired:', userLat, userLng);
+        },
+        (err) => {
+          console.log('Geolocation permission denied or unavailable:', err.message);
+        }
+      );
+    }
+  };
+
   const fetchHotspots = async () => {
     try {
       const response = await fetch(`${API_URL}/api/hotspots`);
@@ -196,14 +218,13 @@ function MapPage() {
           setZoom(14);
         }
       } else {
-        // Try to get user's geolocation
+        // Try to get user's geolocation for map centering
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
             (position) => {
               const userLat = position.coords.latitude;
               const userLng = position.coords.longitude;
               setCenter([userLat, userLng]);
-              setUserLocation({ lat: userLat, lng: userLng });
               setZoom(13);
             },
             (err) => {
