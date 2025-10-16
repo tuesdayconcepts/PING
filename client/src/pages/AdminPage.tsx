@@ -57,6 +57,7 @@ function AdminPage() {
   const [showNewUserForm, setShowNewUserForm] = useState(false);
 
   const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
 
   useEffect(() => {
     if (getToken()) {
@@ -341,7 +342,9 @@ function AdminPage() {
       privateKey: '', // Don't populate private key on edit for security
     });
     setImagePreview(hotspot.imageUrl || null);
-    setMarkerPosition({ lat: hotspot.lat, lng: hotspot.lng });
+    const position = { lat: hotspot.lat, lng: hotspot.lng };
+    setMarkerPosition(position);
+    setMapCenter(position); // Center map on the hotspot being edited
   };
 
   // Save hotspot (create or update)
@@ -591,7 +594,7 @@ function AdminPage() {
       <div className="admin-map-container">
         {isLoaded && (
           <GoogleMap
-            center={markerPosition}
+            center={mapCenter}
             zoom={13}
             mapContainerClassName="admin-map"
             options={{
@@ -601,6 +604,7 @@ function AdminPage() {
               mapTypeControl: false,
               streetViewControl: false,
               fullscreenControl: true,
+              gestureHandling: 'greedy',
             }}
             onClick={(e) => {
               if (e.latLng) {
