@@ -31,10 +31,12 @@
   z-index: 150;
 }
 
-/* Mobile: only top gradient with nav bar */
+/* Mobile: top and bottom gradients */
 @media (max-width: 768px) {
   .vignette-overlay {
-    background: linear-gradient(to bottom, rgb(11 40 255), rgb(11 40 255 / 90%) 90px, rgb(11 40 255 / 63%) 150px, #0000 300px);
+    background: 
+      linear-gradient(to bottom, rgb(11 40 255), rgb(11 40 255 / 90%) 90px, rgb(11 40 255 / 63%) 150px, #0000 300px),
+      linear-gradient(to top, rgb(11 40 255), rgb(11 40 255 / 90%) 90px, rgb(11 40 255 / 63%) 150px, #0000 300px);
   }
 }
 
