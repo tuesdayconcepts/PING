@@ -86,9 +86,6 @@ export function calculateETA(
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distanceKm = R * c;
   
-  // Convert to miles or keep in km based on distance
-  const distanceMiles = distanceKm * 0.621371;
-  
   // Average walking speed: 5 km/h (3.1 mph)
   const walkingMinutes = Math.round((distanceKm / 5) * 60);
   
