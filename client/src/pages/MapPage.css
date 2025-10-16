@@ -27,27 +27,14 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 30%,
-    rgb(0 0 0 / 80%) 60%,
-    rgb(0 0 0) 70%,
-    rgb(0 0 0) 100%,
-    rgba(0 0 0) 100%
-  );
+  background: radial-gradient(ellipse at center, #00000000 3%, rgb(11 40 255 / 58%) 50%, rgb(11 40 255) 80%);
   z-index: 150;
 }
 
 /* Mobile: only top gradient with nav bar */
 @media (max-width: 768px) {
   .vignette-overlay {
-    background: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, .95) 0%,
-      rgba(0, 0, 0, .8) 100px,
-      rgb(0 0 0 / 45%) 220px,
-      transparent 400px
-    );
+    background: linear-gradient(to bottom, rgb(0 15 130) 0%, rgb(0 15 130 / 90%) 90px, rgb(0 15 130 / 63%) 150px, #00000000 300px);
   }
 }
 
@@ -120,9 +107,18 @@
 .map-container {
   width: 100%;
   height: 100%;
-  background: #000000;
+  background: #0b28ff;
   position: relative;
   z-index: 0;
+}
+
+/* Override Google Maps default background */
+.map-container > div {
+  background: #0b28ff !important;
+}
+
+.gm-style > div {
+  background-color: #0b28ff !important;
 }
 
 /* Custom positioning for Google Maps controls */
