@@ -470,17 +470,15 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 15px 30px;
-  border-radius: 50px; /* Completely round edges */
+  padding: 8px 30px;
+  border-radius: 50px;
   font-size: 1.2rem;
   font-weight: 700;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  /* box-shadow: 0 4px 15px #0000004d; */
   margin-bottom: 0;
-  
-  /* Custom gradient: purple to teal */
-  background: linear-gradient(135deg, #B160DB, #6FEBB4);
-  border: 2px solid #ffffff; /* White border */
-  color: #ffffff;
+  background: linear-gradient(135deg, #9351b6, #25b273);
+  border: 5px solid #ffffff4d;
+  color: #ffffff9c;
 }
 
 /* Shimmer sweep effect */
