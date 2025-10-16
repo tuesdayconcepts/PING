@@ -446,7 +446,14 @@ function MapPage() {
                   {/* Show all sections except when claimed */}
                   {claimStatus !== 'claimed' && (
                     <>
-                      {/* Title + Time Info combined section */}
+                      {/* Image section (if available) - First */}
+                      {selectedHotspot.imageUrl && (
+                        <div className="modal-section modal-image">
+                          <img src={selectedHotspot.imageUrl} alt={selectedHotspot.title} />
+                        </div>
+                      )}
+
+                      {/* Title + Time Info combined section - Second */}
                       <div className="modal-section modal-header">
                         <h2>{selectedHotspot.title}</h2>
                         <div className="header-time-info">
@@ -478,20 +485,13 @@ function MapPage() {
                         </div>
                       </div>
 
-                      {/* Prize - Option C: Shimmer Sweep with custom gradient */}
+                      {/* Prize - Shimmer Sweep with custom gradient - Third */}
                       {selectedHotspot.prize && (
                         <div className="modal-section modal-prize">
                           <div className="prize-badge">
                             <span className="prize-icon">🎁</span>
                             <span className="prize-text">{selectedHotspot.prize} SOL</span>
                           </div>
-                        </div>
-                      )}
-
-                      {/* Image section (if available) */}
-                      {selectedHotspot.imageUrl && (
-                        <div className="modal-section modal-image">
-                          <img src={selectedHotspot.imageUrl} alt={selectedHotspot.title} />
                         </div>
                       )}
                     </>

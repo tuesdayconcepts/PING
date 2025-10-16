@@ -755,11 +755,6 @@
   justify-content: center;
 }
 
-.clickable-key:hover {
-  /* Removed background and border-color for cleaner hover */
-}
-
-
 .copy-btn:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
