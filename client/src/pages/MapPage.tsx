@@ -408,7 +408,7 @@ function MapPage() {
             // Hide Google branding and legal text
             disableDefaultUI: true, // Hide all default UI elements
             zoomControl: true, // Re-enable only zoom control
-            fullscreenControl: true, // Re-enable only fullscreen control
+            fullscreenControl: false, // Disable fullscreen control
           }}
           onClick={(e) => {
             // Prevent default Google Maps click behavior (location info dialog)
