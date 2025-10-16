@@ -140,6 +140,35 @@
   left: auto !important;
 }
 
+/* Hide Google Maps branding and legal text */
+.gm-style-cc {
+  display: none !important;
+}
+
+.gm-style .gm-style-cc {
+  display: none !important;
+}
+
+/* Hide Google logo */
+.gm-style .gm-style-iw-c {
+  display: none !important;
+}
+
+/* Hide terms and keyboard shortcuts */
+.gm-style-cc a {
+  display: none !important;
+}
+
+/* Hide attribution */
+.gm-style a[href*="google.com/maps"] {
+  display: none !important;
+}
+
+/* Hide additional Google Maps elements */
+.gmnoprint {
+  display: none !important;
+}
+
 /* Ensure Leaflet map panes stay at base level */
 .map-container .leaflet-pane {
   z-index: 0;
