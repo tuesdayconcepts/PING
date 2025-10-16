@@ -430,7 +430,7 @@ function MapPage() {
             <DirectionsRenderer
               directions={directionsResponse}
               options={{
-                suppressMarkers: false,
+                suppressMarkers: true, // Hide default Google Maps markers
                 polylineOptions: {
                   strokeColor: '#FFD700',
                   strokeWeight: 5,

@@ -14,7 +14,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, 
     <OverlayView
       position={position}
       mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-      getPixelPositionOffset={() => ({ x: -45, y: -45 })}
+      getPixelPositionOffset={() => ({ x: -40, y: -40 })}
     >
       <div 
         className={`pulse-marker ${isActive ? '' : 'inactive'}`}
