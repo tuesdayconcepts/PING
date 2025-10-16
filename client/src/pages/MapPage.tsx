@@ -1,14 +1,14 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { GoogleMap, useJsApiLoader, DirectionsRenderer } from '@react-google-maps/api';
 import Confetti from 'react-confetti';
 import { Gift, ClockPlus, ClockFading, Navigation } from 'lucide-react';
-import L from 'leaflet';
 import { Hotspot } from '../types';
 import { getHotspotStatus, getTimeUntilExpiration, calculateETA } from '../utils/time';
 import { GoldenTicket } from '../components/GoldenTicket';
-import 'leaflet/dist/leaflet.css';
+import { customMapStyles } from '../utils/mapStyles';
+import { CustomMarker } from '../components/CustomMarker';
 import './MapPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -43,44 +43,24 @@ const getClaimSession = (hotspotId: string) => {
 };
 
 
-// Create pulsing marker icon with custom star SVG
-const createPulseIcon = (isActive: boolean = true) => {
-  const color = isActive ? 'gold' : '#95a5a6';
-  const starPath = "M344.13,6.42l80.5,217.54c3.64,9.83,11.39,17.58,21.22,21.22l217.54,80.5c8.56,3.17,8.56,15.28,0,18.45l-217.54,80.5c-9.83,3.64-17.58,11.39-21.22,21.22l-80.5,217.54c-3.17,8.56-15.28,8.56-18.45,0l-80.5-217.54c-3.64-9.83-11.39-17.58-21.22-21.22L6.42,344.13c-8.56-3.17-8.56-15.28,0-18.45l217.54-80.5c9.83-3.64,17.58-11.39,21.22-21.22L325.68,6.42c3.17-8.56,15.28-8.56,18.45,0Z";
-  
-  return L.divIcon({
-    className: 'custom-pulse-icon',
-    html: `
-      <div class="pulse-marker ${isActive ? '' : 'inactive'}">
-        <svg class="pulse-marker-ring" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="none" stroke="${color}" stroke-width="8" stroke-opacity="0.6" fill-rule="evenodd" d="${starPath}"/>
-        </svg>
-        <svg class="pulse-marker-ring" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="none" stroke="${color}" stroke-width="8" stroke-opacity="0.6" fill-rule="evenodd" d="${starPath}"/>
-        </svg>
-        <svg class="pulse-marker-ring" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="none" stroke="${color}" stroke-width="8" stroke-opacity="0.6" fill-rule="evenodd" d="${starPath}"/>
-        </svg>
-        <svg class="pulse-marker-star" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 669.82 669.82">
-          <path fill="${color}" fill-rule="evenodd" d="${starPath}"/>
-        </svg>
-      </div>
-    `,
-    iconSize: [80, 80],
-    iconAnchor: [40, 40],
-    popupAnchor: [0, -40],
-  });
-};
-
 function MapPage() {
   const { id } = useParams<{ id: string }>(); // Get hotspot ID from URL params
+  
+  // Load Google Maps API
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  });
+  
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [center, setCenter] = useState<[number, number]>([40.7128, -74.0060]); // Default: NYC
+  const [center, setCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 }); // Default: NYC
   const [zoom, setZoom] = useState(13);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
+  const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null);
+  const [showRoute, setShowRoute] = useState(false);
   const [claimStatus, setClaimStatus] = useState<'unclaimed' | 'pending' | 'claimed'>('unclaimed');
   const [privateKey, setPrivateKey] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -116,10 +96,27 @@ function MapPage() {
     }
   };
 
-  // Open directions in default maps app
-  const openDirections = (lat: number, lng: number) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`;
-    window.open(url, '_blank');
+  // Fetch and display route on map
+  const fetchAndDisplayRoute = async (destinationLat: number, destinationLng: number) => {
+    if (!userLocation) {
+      requestUserLocation();
+      return;
+    }
+
+    const directionsService = new google.maps.DirectionsService();
+    
+    try {
+      const results = await directionsService.route({
+        origin: new google.maps.LatLng(userLocation.lat, userLocation.lng),
+        destination: new google.maps.LatLng(destinationLat, destinationLng),
+        travelMode: google.maps.TravelMode.WALKING,
+      });
+
+      setDirectionsResponse(results);
+      setShowRoute(true);
+    } catch (error) {
+      console.error('Error fetching directions:', error);
+    }
   };
 
   // Download certificate as PNG
@@ -209,7 +206,7 @@ function MapPage() {
       if (data.length > 0) {
         const activeHotspot = data.find((h: Hotspot) => h.active);
         if (activeHotspot) {
-          setCenter([activeHotspot.lat, activeHotspot.lng]);
+          setCenter({ lat: activeHotspot.lat, lng: activeHotspot.lng });
           setZoom(14);
         }
       } else {
@@ -219,7 +216,7 @@ function MapPage() {
             (position) => {
               const userLat = position.coords.latitude;
               const userLng = position.coords.longitude;
-              setCenter([userLat, userLng]);
+              setCenter({ lat: userLat, lng: userLng });
               setZoom(13);
             },
             (err) => {
@@ -247,7 +244,7 @@ function MapPage() {
       }
       const hotspot = await response.json();
       setSelectedHotspot(hotspot);
-      setCenter([hotspot.lat, hotspot.lng]);
+      setCenter({ lat: hotspot.lat, lng: hotspot.lng });
       setZoom(16);
       
       // Check if this user has a claim session for this hotspot
@@ -397,26 +394,21 @@ function MapPage() {
       )}
 
       {/* Map */}
-      {!loading && (
-        <MapContainer 
-          center={center} 
-          zoom={zoom} 
-          className="map-container"
-          scrollWheelZoom={true}
+      {!loading && isLoaded && (
+        <GoogleMap
+          center={center}
+          zoom={zoom}
+          mapContainerClassName="map-container"
+          options={{
+            styles: customMapStyles,
+            disableDefaultUI: false,
+            zoomControl: true,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: true,
+          }}
         >
-          {/* ESRI Dark Gray Canvas Basemap */}
-          <TileLayer
-            attribution='Tiles &copy; Esri'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={16}
-          />
-          <TileLayer
-            attribution='&copy; Esri'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={16}
-          />
-
-          {/* Render markers for each hotspot */}
+          {/* Render custom markers for each hotspot */}
           {hotspots.map((hotspot) => {
             // Check if hotspot is active/expired
             const now = new Date();
@@ -424,17 +416,30 @@ function MapPage() {
             const isActive = now <= endDate && hotspot.active;
             
             return (
-              <Marker 
-                key={hotspot.id} 
-                position={[hotspot.lat, hotspot.lng]}
-                icon={createPulseIcon(isActive)}
-                eventHandlers={{
-                  click: () => setSelectedHotspot(hotspot)
-                }}
+              <CustomMarker
+                key={hotspot.id}
+                position={{ lat: hotspot.lat, lng: hotspot.lng }}
+                isActive={isActive}
+                onClick={() => setSelectedHotspot(hotspot)}
               />
             );
           })}
-        </MapContainer>
+
+          {/* Render directions on map when route is shown */}
+          {showRoute && directionsResponse && (
+            <DirectionsRenderer
+              directions={directionsResponse}
+              options={{
+                suppressMarkers: false,
+                polylineOptions: {
+                  strokeColor: '#FFD700',
+                  strokeWeight: 5,
+                  strokeOpacity: 0.8,
+                },
+              }}
+            />
+          )}
+        </GoogleMap>
       )}
 
       {/* Empty state */}
@@ -509,14 +514,14 @@ function MapPage() {
                             className="time-item" 
                             onClick={() => {
                               if (userLocation) {
-                                // If location already granted, open directions
-                                openDirections(selectedHotspot.lat, selectedHotspot.lng);
+                                // Show route on map
+                                fetchAndDisplayRoute(selectedHotspot.lat, selectedHotspot.lng);
                               } else {
                                 // Request location first
                                 requestUserLocation();
                               }
                             }}
-                            title={userLocation ? "Get directions" : "Click to get ETA"}
+                            title={userLocation ? "Show route on map" : "Click to get ETA"}
                             style={{ cursor: 'pointer' }}
                           >
                             <Navigation className="time-icon" />
