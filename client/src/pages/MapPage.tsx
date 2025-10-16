@@ -3,10 +3,10 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import Confetti from 'react-confetti';
-import { Gift, ClockPlus, ClockFading } from 'lucide-react';
+import { Gift, ClockPlus, ClockFading, Navigation } from 'lucide-react';
 import L from 'leaflet';
 import { Hotspot } from '../types';
-import { getHotspotStatus, getTimeUntilExpiration } from '../utils/time';
+import { getHotspotStatus, getTimeUntilExpiration, calculateETA } from '../utils/time';
 import { GoldenTicket } from '../components/GoldenTicket';
 import 'leaflet/dist/leaflet.css';
 import './MapPage.css';
@@ -79,6 +79,7 @@ function MapPage() {
   const [error, setError] = useState<string | null>(null);
   const [center, setCenter] = useState<[number, number]>([40.7128, -74.0060]); // Default: NYC
   const [zoom, setZoom] = useState(13);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [claimStatus, setClaimStatus] = useState<'unclaimed' | 'pending' | 'claimed'>('unclaimed');
   const [privateKey, setPrivateKey] = useState<string | null>(null);
@@ -113,6 +114,12 @@ function MapPage() {
         setKeyCopied(false);
       }, 2000);
     }
+  };
+
+  // Open directions in default maps app
+  const openDirections = (lat: number, lng: number) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`;
+    window.open(url, '_blank');
   };
 
   // Download certificate as PNG
@@ -193,7 +200,10 @@ function MapPage() {
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
             (position) => {
-              setCenter([position.coords.latitude, position.coords.longitude]);
+              const userLat = position.coords.latitude;
+              const userLng = position.coords.longitude;
+              setCenter([userLat, userLng]);
+              setUserLocation({ lat: userLat, lng: userLng });
               setZoom(13);
             },
             (err) => {
@@ -479,6 +489,18 @@ function MapPage() {
                               </div>
                             );
                           })()}
+                          {userLocation && (
+                            <div 
+                              className="time-item eta-clickable" 
+                              onClick={() => openDirections(selectedHotspot.lat, selectedHotspot.lng)}
+                              title="Get directions"
+                            >
+                              <Navigation className="time-icon" />
+                              <span className="time-value">
+                                {calculateETA(userLocation.lat, userLocation.lng, selectedHotspot.lat, selectedHotspot.lng)}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 

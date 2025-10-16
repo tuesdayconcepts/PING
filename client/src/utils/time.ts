@@ -65,3 +65,42 @@ export function getTimeUntilExpiration(endDate: string): string {
   return `Ends in ${minutes}m`;
 }
 
+// Calculate ETA based on straight-line distance and walking speed
+export function calculateETA(
+  userLat: number,
+  userLng: number,
+  destLat: number,
+  destLng: number
+): string {
+  // Haversine formula for distance between two points
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (destLat - userLat) * Math.PI / 180;
+  const dLng = (destLng - userLng) * Math.PI / 180;
+  
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(userLat * Math.PI / 180) * 
+    Math.cos(destLat * Math.PI / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distanceKm = R * c;
+  
+  // Convert to miles or keep in km based on distance
+  const distanceMiles = distanceKm * 0.621371;
+  
+  // Average walking speed: 5 km/h (3.1 mph)
+  const walkingMinutes = Math.round((distanceKm / 5) * 60);
+  
+  if (walkingMinutes < 1) {
+    return "Less than 1 min";
+  }
+  if (walkingMinutes < 60) {
+    return `${walkingMinutes} min walk`;
+  }
+  
+  const hours = Math.floor(walkingMinutes / 60);
+  const mins = walkingMinutes % 60;
+  return `${hours}h ${mins}m walk`;
+}
+

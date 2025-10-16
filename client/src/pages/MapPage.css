@@ -572,6 +572,27 @@
   font-weight: 600;
 }
 
+/* ETA Clickable Styling */
+.eta-clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 5px 10px;
+  margin: -5px -10px;
+  border-radius: 8px;
+}
+
+.eta-clickable:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.eta-clickable:hover .time-value {
+  color: #ffd700;
+}
+
+.eta-clickable:hover .time-icon {
+  color: #ffd700;
+}
+
 /* Description Section */
 .modal-description {
   background: rgba(255, 255, 255, 0.02);
