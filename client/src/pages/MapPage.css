@@ -454,7 +454,7 @@
 .header-time-info {
   display: flex;
   flex-direction: row;
-  gap: 2px;
+  gap: 22px;
   font-size: 0.95rem;
   flex-wrap: wrap;
 }
