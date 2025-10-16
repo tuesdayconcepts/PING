@@ -401,11 +401,8 @@ function MapPage() {
           mapContainerClassName="map-container"
           options={{
             styles: customMapStyles,
-            disableDefaultUI: false,
-            zoomControl: true,
             mapTypeControl: false,
             streetViewControl: false,
-            fullscreenControl: true,
             clickableIcons: false, // Disable clicking on POI icons
             gestureHandling: 'greedy', // Allow single-finger pan on mobile
             // Hide Google branding and legal text
