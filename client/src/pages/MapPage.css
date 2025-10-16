@@ -528,7 +528,8 @@
 
 .modal-image img {
   width: 100%;
-  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover; /* Crop to fill 16:9 ratio */
   display: block;
 }
 

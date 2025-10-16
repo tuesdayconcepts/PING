@@ -995,8 +995,8 @@
 
 .image-preview img {
   width: 100%;
-  max-height: 200px;
-  object-fit: contain;
+  aspect-ratio: 16 / 9;
+  object-fit: cover; /* Crop to fill 16:9 ratio */
   border-radius: 6px;
 }
 

@@ -239,27 +239,81 @@ function AdminPage() {
     }
   };
 
-  // Handle image file selection
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Check file size (limit to 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        alert('Image size must be less than 2MB');
+  // Compress and optimize image
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      // Initial size check (before compression)
+      if (file.size > 5 * 1024 * 1024) {
+        reject(new Error('Image size must be less than 5MB'));
         return;
       }
 
-      // Convert to base64
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setFormData({
-          ...formData,
-          imageUrl: base64String,
-        });
-        setImagePreview(base64String);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Create canvas with 16:9 aspect ratio
+          const targetWidth = 1920;
+          const targetHeight = 1080; // 16:9 ratio
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          
+          const ctx = canvas.getContext('2d')!;
+          
+          // Calculate dimensions to cover 16:9 area (crop if needed)
+          const imgRatio = img.width / img.height;
+          const targetRatio = targetWidth / targetHeight;
+          
+          let drawWidth = img.width;
+          let drawHeight = img.height;
+          let offsetX = 0;
+          let offsetY = 0;
+          
+          if (imgRatio > targetRatio) {
+            // Image is wider - crop sides
+            drawWidth = img.height * targetRatio;
+            offsetX = (img.width - drawWidth) / 2;
+          } else {
+            // Image is taller - crop top/bottom
+            drawHeight = img.width / targetRatio;
+            offsetY = (img.height - drawHeight) / 2;
+          }
+          
+          // Draw image cropped to 16:9
+          ctx.drawImage(
+            img,
+            offsetX, offsetY, drawWidth, drawHeight,
+            0, 0, targetWidth, targetHeight
+          );
+          
+          // Convert to WebP with compression
+          const compressed = canvas.toDataURL('image/webp', 0.85);
+          resolve(compressed);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
       };
+      reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsDataURL(file);
+    });
+  };
+
+  // Handle image file selection
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const compressed = await compressImage(file);
+      setFormData({
+        ...formData,
+        imageUrl: compressed,
+      });
+      setImagePreview(compressed);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to process image');
     }
   };
 
