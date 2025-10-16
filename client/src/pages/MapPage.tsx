@@ -492,6 +492,9 @@ function MapPage() {
                             <span className="prize-icon">🎁</span>
                             <span className="prize-text">{selectedHotspot.prize} SOL</span>
                           </div>
+                          <button className="hint-cta">
+                            GET ANOTHER HINT
+                          </button>
                         </div>
                       )}
                     </>
