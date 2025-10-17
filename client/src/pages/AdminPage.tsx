@@ -201,12 +201,12 @@ function AdminPage() {
       [name]: type === 'checkbox' ? checked : value,
     });
 
-    // Update marker if lat/lng changed manually
+    // Update map center if lat/lng changed manually
     if (name === 'lat' || name === 'lng') {
       const lat = name === 'lat' ? parseFloat(value) : formData.lat;
       const lng = name === 'lng' ? parseFloat(value) : formData.lng;
       if (!isNaN(lat) && !isNaN(lng)) {
-        setMarkerPosition({ lat, lng });
+        setMapCenter({ lat, lng });
       }
     }
   };
@@ -348,7 +348,6 @@ function AdminPage() {
     });
     setImagePreview(hotspot.imageUrl || null);
     const position = { lat: hotspot.lat, lng: hotspot.lng };
-    setMarkerPosition(position);
     setMapCenter(position); // Center map on the hotspot being edited
   };
 
@@ -446,7 +445,7 @@ function AdminPage() {
       imageUrl: '',
       privateKey: '',
     });
-    setMarkerPosition({ lat: 40.7128, lng: -74.0060 });
+    setMapCenter({ lat: 40.7128, lng: -74.0060 });
   };
 
   // Copy PING URL to clipboard
