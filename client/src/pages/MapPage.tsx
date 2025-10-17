@@ -65,6 +65,7 @@ function MapPage() {
   const [pendingDestination, setPendingDestination] = useState<{ lat: number; lng: number } | null>(null);
   const [isModalClosing, setIsModalClosing] = useState(false);
   const [claimStatus, setClaimStatus] = useState<'unclaimed' | 'pending' | 'claimed'>('unclaimed');
+  const [showCheckmark, setShowCheckmark] = useState(false); // Controls checkmark animation
   const [privateKey, setPrivateKey] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
@@ -628,7 +629,7 @@ function MapPage() {
               {claimStatus === 'pending' && (
                 <>
                   <div className="modal-section modal-pending">
-                    <div className="sa">
+                    <div className={`sa ${showCheckmark ? 'show-checkmark' : ''}`}>
                       <div className="sa-success">
                         <div className="sa-success-tip"></div>
                         <div className="sa-success-long"></div>

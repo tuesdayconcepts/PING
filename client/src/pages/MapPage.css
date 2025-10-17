@@ -998,22 +998,37 @@
   height: 5px;
   position: absolute;
   z-index: 2;
+  width: 0; /* Hidden by default */
 }
 
-.sa-success-tip {
+/* Show checkmark animation when approved */
+.show-checkmark .sa-success-tip {
+  left: 14px;
+  top: 46px;
+  transform: rotate(45deg);
+  animation: animateSuccessTip 0.75s forwards;
+}
+
+.show-checkmark .sa-success-long {
+  right: 8px;
+  top: 38px;
+  transform: rotate(-45deg);
+  animation: animateSuccessLong 0.75s forwards;
+}
+
+/* For claimed state, show checkmark immediately without animation */
+.modal-reveal .sa-success-tip {
   left: 14px;
   top: 46px;
   transform: rotate(45deg);
   width: 25px;
-  animation: animateSuccessTip 0.75s;
 }
 
-.sa-success-long {
+.modal-reveal .sa-success-long {
   right: 8px;
   top: 38px;
   transform: rotate(-45deg);
   width: 47px;
-  animation: animateSuccessLong 0.75s;
 }
 
 @keyframes animateSuccessTip {
