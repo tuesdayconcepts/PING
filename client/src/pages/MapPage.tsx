@@ -515,83 +515,94 @@ function MapPage() {
                 </div>
               ) : (
                 <>
-                  {/* Show all sections except when claimed */}
-                  {claimStatus !== 'claimed' && (
+                  {/* Show congratulations for claim flow (unique URLs), otherwise show all sections */}
+                  {claimStatus === 'unclaimed' && id && (!selectedHotspot.queuePosition || selectedHotspot.queuePosition === 0) ? (
+                    <div className="modal-section modal-claim-intro">
+                      <h2>GREAT JOB!</h2>
+                      <p>You found the PING! That means you are almost {selectedHotspot.prize} SOL richer!</p>
+                      <p>To finish claiming it, press the big yellow button to notify our team on X, and return to this screen.</p>
+                    </div>
+                  ) : (
                     <>
-                      {/* Image section (if available) - First */}
-                      {selectedHotspot.imageUrl && (
-                        <div className="modal-section modal-image">
-                          <img src={selectedHotspot.imageUrl} alt={selectedHotspot.title} />
-                        </div>
-                      )}
+                      {/* Show all sections except when claimed */}
+                      {claimStatus !== 'claimed' && (
+                        <>
+                          {/* Image section (if available) - First */}
+                          {selectedHotspot.imageUrl && (
+                            <div className="modal-section modal-image">
+                              <img src={selectedHotspot.imageUrl} alt={selectedHotspot.title} />
+                            </div>
+                          )}
 
-                      {/* Title + Time Info combined section - Second */}
-                      <div className="modal-section modal-header">
-                        <h2>{selectedHotspot.title}</h2>
-                        {locationName && (
-                          <div className="location-info">
-                            <MapPin size={14} />
-                            <span>{locationName}</span>
-                          </div>
-                        )}
-                        <div className="header-time-info">
-                          <div className="time-item">
-                            <ClockPlus className="time-icon" />
-                            <span className="time-value">
-                              {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
-                            </span>
-                          </div>
-                          {(() => {
-                            const endDate = new Date(selectedHotspot.endDate);
-                            const now = new Date();
-                            const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
-                            const hasExpiration = yearsDiff < 50;
-                            
-                            return hasExpiration && (
+                          {/* Title + Time Info combined section - Second */}
+                          <div className="modal-section modal-header">
+                            <h2>{selectedHotspot.title}</h2>
+                            {locationName && (
+                              <div className="location-info">
+                                <MapPin size={14} />
+                                <span>{locationName}</span>
+                              </div>
+                            )}
+                            <div className="header-time-info">
                               <div className="time-item">
-                                <ClockFading className="time-icon" />
+                                <ClockPlus className="time-icon" />
                                 <span className="time-value">
-                                  {getTimeUntilExpiration(selectedHotspot.endDate)}
+                                  {getHotspotStatus(selectedHotspot.startDate, selectedHotspot.endDate)}
                                 </span>
                               </div>
-                            );
-                          })()}
-                          <div 
-                            className={`time-item ${!userLocation ? 'eta-inactive' : ''}`}
-                            onClick={() => {
-                              if (userLocation) {
-                                // Show route on map
-                                fetchAndDisplayRoute(selectedHotspot.lat, selectedHotspot.lng);
-                              } else {
-                                // Request location and auto-fetch route after permission
-                                requestUserLocation(selectedHotspot.lat, selectedHotspot.lng);
-                              }
-                            }}
-                            title={userLocation ? "Show route on map" : "Click to get ETA"}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <Navigation className="time-icon" />
-                            <span className="time-value">
-                              {userLocation 
-                                ? calculateETA(userLocation.lat, userLocation.lng, selectedHotspot.lat, selectedHotspot.lng)
-                                : "Get ETA"
-                              }
-                            </span>
+                              {(() => {
+                                const endDate = new Date(selectedHotspot.endDate);
+                                const now = new Date();
+                                const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
+                                const hasExpiration = yearsDiff < 50;
+                                
+                                return hasExpiration && (
+                                  <div className="time-item">
+                                    <ClockFading className="time-icon" />
+                                    <span className="time-value">
+                                      {getTimeUntilExpiration(selectedHotspot.endDate)}
+                                    </span>
+                                  </div>
+                                );
+                              })()}
+                              <div 
+                                className={`time-item ${!userLocation ? 'eta-inactive' : ''}`}
+                                onClick={() => {
+                                  if (userLocation) {
+                                    // Show route on map
+                                    fetchAndDisplayRoute(selectedHotspot.lat, selectedHotspot.lng);
+                                  } else {
+                                    // Request location and auto-fetch route after permission
+                                    requestUserLocation(selectedHotspot.lat, selectedHotspot.lng);
+                                  }
+                                }}
+                                title={userLocation ? "Show route on map" : "Click to get ETA"}
+                                style={{ cursor: 'pointer' }}
+                              >
+                                <Navigation className="time-icon" />
+                                <span className="time-value">
+                                  {userLocation 
+                                    ? calculateETA(userLocation.lat, userLocation.lng, selectedHotspot.lat, selectedHotspot.lng)
+                                    : "Get ETA"
+                                  }
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
 
-                      {/* Prize - Shimmer Sweep with custom gradient - Third */}
-                      {selectedHotspot.prize && (
-                        <div className="modal-section modal-prize">
-                          <div className="prize-badge">
-                            <Gift className="prize-icon" />
-                            <span className="prize-text">{selectedHotspot.prize} SOL</span>
-                          </div>
-                          <button className="hint-cta">
-                            GET A HINT!
-                          </button>
-                        </div>
+                          {/* Prize - Shimmer Sweep with custom gradient - Third */}
+                          {selectedHotspot.prize && (
+                            <div className="modal-section modal-prize">
+                              <div className="prize-badge">
+                                <Gift className="prize-icon" />
+                                <span className="prize-text">{selectedHotspot.prize} SOL</span>
+                              </div>
+                              <button className="hint-cta">
+                                GET A HINT!
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </>
                   )}

@@ -822,6 +822,31 @@
   text-align: center;
 }
 
+/* Claim Intro State */
+.modal-claim-intro {
+  background: #ffffff30;
+  text-align: center;
+  padding: 30px 25px !important;
+}
+
+.modal-claim-intro h2 {
+  margin: 0 0 20px;
+  font-size: 1.8rem;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.modal-claim-intro p {
+  margin: 0 0 20px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.modal-claim-intro p:last-of-type {
+  margin-bottom: 0;
+}
+
 /* Queued State */
 .modal-queued {
   background: #ffffff30;
