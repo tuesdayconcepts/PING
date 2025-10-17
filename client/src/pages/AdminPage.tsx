@@ -595,6 +595,12 @@ function AdminPage() {
             center={mapCenter}
             zoom={13}
             mapContainerClassName="admin-map"
+            onLoad={(map) => {
+              // Force marker positioning after map loads
+              setTimeout(() => {
+                google.maps.event.trigger(map, 'resize');
+              }, 100);
+            }}
             options={{
               styles: customMapStyles,
               disableDefaultUI: false,

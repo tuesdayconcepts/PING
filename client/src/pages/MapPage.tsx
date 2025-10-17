@@ -479,6 +479,12 @@ function MapPage() {
           center={center}
           zoom={zoom}
           mapContainerClassName="map-container"
+          onLoad={(map) => {
+            // Force marker positioning after map loads
+            setTimeout(() => {
+              google.maps.event.trigger(map, 'resize');
+            }, 100);
+          }}
           options={{
             styles: customMapStyles,
             mapTypeControl: false,
