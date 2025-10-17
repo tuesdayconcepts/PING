@@ -347,23 +347,30 @@ function MapPage() {
           const response = await fetch(`${API_URL}/api/hotspots/${selectedHotspot.id}`);
           const data = await response.json();
           if (data.claimStatus === 'claimed') {
-            setClaimStatus('claimed');
-            setPrivateKey(data.privateKey);
-            setShowConfetti(true);
+            // First, trigger the checkmark animation
+            setShowCheckmark(true);
             
-            // Store claim session so user can refresh
-            storeClaimSession(selectedHotspot.id, data.privateKey);
-            
-            // Set certificate data
-            setShowCertificate(true);
-            setClaimedAt(new Date().toISOString());
-            if (data.tweetUrl) {
-              setTwitterHandle(extractTwitterHandle(data.tweetUrl));
-            }
+            // Then after animation completes (1 second: 0.75s checkmark + 0.25s buffer), update to claimed state
+            setTimeout(() => {
+              setClaimStatus('claimed');
+              setPrivateKey(data.privateKey);
+              setShowConfetti(true);
+              
+              // Store claim session so user can refresh
+              storeClaimSession(selectedHotspot.id, data.privateKey);
+              
+              // Set certificate data
+              setShowCertificate(true);
+              setClaimedAt(new Date().toISOString());
+              if (data.tweetUrl) {
+                setTwitterHandle(extractTwitterHandle(data.tweetUrl));
+              }
+              
+              // Stop confetti after 6 seconds
+              setTimeout(() => setShowConfetti(false), 6000);
+            }, 1000);
             
             clearInterval(interval);
-            // Stop confetti after 6 seconds
-            setTimeout(() => setShowConfetti(false), 6000);
           }
         } catch (err) {
           console.error('Error polling claim status:', err);
