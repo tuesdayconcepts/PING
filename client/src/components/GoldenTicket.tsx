@@ -189,7 +189,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
         className={`certificate-holo-card ${isAnimated ? 'animated' : ''} ${imageLoaded ? 'loaded' : ''}`}
         style={{ 
           transform,
-          '--bevel-size': '32px',
+          '--bevel-size': '35px',
           '--mobile-bevel-size': '22px'
         } as React.CSSProperties & { '--bevel-size': string; '--mobile-bevel-size': string }}
         onMouseMove={handleMove}
