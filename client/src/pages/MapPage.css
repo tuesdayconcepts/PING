@@ -536,7 +536,7 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-  animation: shimmerSweep 2.5s infinite;
+  animation: shimmerSweep 4s infinite; /* 1.5s sweep + 2.5s pause */
   z-index: 1;
 }
 
@@ -559,7 +559,8 @@
 
 @keyframes shimmerSweep {
   0% { left: -100%; }
-  100% { left: 100%; }
+  37.5% { left: 100%; } /* Sweep completes at 1.5s (37.5% of 4s) */
+  100% { left: 100%; } /* Stay off-screen for remaining 2.5s */
 }
 
 /* Hint CTA Button */
