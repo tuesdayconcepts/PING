@@ -524,8 +524,8 @@ function MapPage() {
                     </div>
                   ) : (
                     <>
-                      {/* Show all sections except when claimed */}
-                      {claimStatus !== 'claimed' && (
+                      {/* Show all sections except when claimed or pending (for claim flow) */}
+                      {claimStatus !== 'claimed' && !(claimStatus === 'pending' && id) && (
                         <>
                           {/* Image section (if available) - First */}
                           {selectedHotspot.imageUrl && (
