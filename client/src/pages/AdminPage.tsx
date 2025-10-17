@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut } from 'lucide-react';
+import { LogOut, Pencil, Copy, Trash2 } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -709,17 +709,18 @@ function AdminPage() {
                       </div>
                       <p className="hotspot-prize">Prize: {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}</p>
                       <div className="hotspot-actions">
-                        <button onClick={() => handleEdit(hotspot)} className="action-btn edit-btn">
-                          Edit PING
+                        <button onClick={() => handleEdit(hotspot)} className="action-icon-btn" aria-label="Edit PING">
+                          <Pencil size={18} />
                         </button>
                         <button 
                           onClick={() => handleCopyUrl(hotspot.id, nfcUrl)} 
-                          className="action-btn copy-btn"
+                          className="action-icon-btn"
+                          aria-label={copiedId === hotspot.id ? 'Copied!' : 'Copy PING URL'}
                         >
-                          {copiedId === hotspot.id ? 'Copied!' : 'Copy PING URL'}
+                          <Copy size={18} />
                         </button>
-                        <button onClick={() => handleDelete(hotspot.id)} className="action-btn delete-btn">
-                          Delete PING
+                        <button onClick={() => handleDelete(hotspot.id)} className="action-icon-btn" aria-label="Delete PING">
+                          <Trash2 size={18} />
                         </button>
                       </div>
                       

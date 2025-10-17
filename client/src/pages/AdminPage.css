@@ -718,62 +718,33 @@
 
 .hotspot-actions {
   display: flex;
-  gap: 8px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
-.action-btn {
-  flex: 1;
-  min-width: fit-content;
-  padding: 10px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
+.action-icon-btn {
+  padding: 0;
+  background: none;
+  border: none;
+  color: #fff;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: rgba(255, 255, 255, 0.05);
-  color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+.action-icon-btn:hover {
+  color: #3498db;
   transform: translateY(-1px);
 }
 
-.action-btn:active {
-  transform: translateY(0);
-}
-
-.edit-btn {
-  border-color: rgba(52, 152, 219, 0.3);
-  color: #3498db;
-}
-
-.edit-btn:hover {
-  background: rgba(52, 152, 219, 0.15);
-  border-color: rgba(52, 152, 219, 0.5);
-}
-
-.copy-btn {
-  border-color: rgba(255, 215, 0, 0.3);
+.action-icon-btn:nth-child(2):hover {
   color: #ffd700;
 }
 
-.copy-btn:hover {
-  background: rgba(255, 215, 0, 0.15);
-  border-color: rgba(255, 215, 0, 0.5);
-}
-
-.delete-btn {
-  border-color: rgba(231, 76, 60, 0.3);
+.action-icon-btn:nth-child(3):hover {
   color: #e74c3c;
-}
-
-.delete-btn:hover {
-  background: rgba(231, 76, 60, 0.15);
-  border-color: rgba(231, 76, 60, 0.5);
 }
 
 /* Map Section */
