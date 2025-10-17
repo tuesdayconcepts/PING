@@ -435,7 +435,7 @@ function MapPage() {
           <Confetti
             width={window.innerWidth}
             height={window.innerHeight}
-            numberOfPieces={showDiscoveryConfetti ? 150 : 200}
+            numberOfPieces={showDiscoveryConfetti ? 75 : 100}
             colors={showDiscoveryConfetti ? ['#FFD700', '#FFC700', '#FFE87C', '#FFAA00', '#FF8C00'] : undefined}
             recycle={false}
             gravity={0.3}
