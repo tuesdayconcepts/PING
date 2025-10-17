@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import { LogOut } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -582,7 +583,9 @@ function AdminPage() {
       {/* Mobile Top Bar (logo + logout) */}
       <div className="mobile-top-bar">
         <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
-        <button onClick={handleLogout} className="logout-btn">Logout</button>
+        <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
+          <LogOut size={20} />
+        </button>
       </div>
 
       {/* Full viewport map */}
@@ -626,8 +629,8 @@ function AdminPage() {
         {/* Desktop: Logo and Logout */}
         <div className="sidebar-header">
           <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
-          <button onClick={handleLogout} className="logout-btn">
-            Logout
+          <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
+            <LogOut size={20} />
           </button>
         </div>
 
