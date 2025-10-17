@@ -350,7 +350,7 @@ function MapPage() {
             // First, trigger the checkmark animation
             setShowCheckmark(true);
             
-            // Then after animation completes (1 second: 0.75s checkmark + 0.25s buffer), update to claimed state
+            // Then after animation completes (2.5 seconds: 0.75s checkmark + 1.75s display time), update to claimed state
             setTimeout(() => {
               setClaimStatus('claimed');
               setPrivateKey(data.privateKey);
@@ -368,7 +368,7 @@ function MapPage() {
               
               // Stop confetti after 6 seconds
               setTimeout(() => setShowConfetti(false), 6000);
-            }, 1000);
+            }, 2500);
             
             clearInterval(interval);
           }
@@ -658,14 +658,6 @@ function MapPage() {
 
               {claimStatus === 'claimed' && privateKey && (
                 <div className="modal-section modal-reveal">
-                  <div className="sa">
-                    <div className="sa-success">
-                      <div className="sa-success-tip"></div>
-                      <div className="sa-success-long"></div>
-                      <div className="sa-success-placeholder"></div>
-                      <div className="sa-success-fix"></div>
-                    </div>
-                  </div>
                   <h3 className="congrats-title">Congratulations!</h3>
                   <p className="congrats-text">
                     You've successfully claimed this PING! Add this privat key to your Solana wallet to access your prize.

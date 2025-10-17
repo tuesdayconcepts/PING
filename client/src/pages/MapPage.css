@@ -965,6 +965,10 @@
   top: -11px;
   transform-origin: 0 60px;
   transform: rotate(-45deg);
+}
+
+/* Only spin during pending state (not when checkmark is showing or in claimed state) */
+.modal-pending .sa:not(.show-checkmark) .sa-success:after {
   animation: rotatePlaceholder 4.25s ease-in infinite;
 }
 
@@ -1016,20 +1020,6 @@
   animation: animateSuccessLong 0.75s forwards;
 }
 
-/* For claimed state, show checkmark immediately without animation */
-.modal-reveal .sa-success-tip {
-  left: 14px;
-  top: 46px;
-  transform: rotate(45deg);
-  width: 25px;
-}
-
-.modal-reveal .sa-success-long {
-  right: 8px;
-  top: 38px;
-  transform: rotate(-45deg);
-  width: 47px;
-}
 
 @keyframes animateSuccessTip {
   0%, 54% {
