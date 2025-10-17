@@ -57,7 +57,6 @@ function AdminPage() {
   const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'editor' as 'admin' | 'editor' });
   const [showNewUserForm, setShowNewUserForm] = useState(false);
 
-  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
   const [locationNames, setLocationNames] = useState<Record<string, string>>({});
 
@@ -298,8 +297,8 @@ function AdminPage() {
     // Reset form when opening new create form
     setFormData({
       title: '',
-      lat: markerPosition.lat,
-      lng: markerPosition.lng,
+      lat: mapCenter.lat,
+      lng: mapCenter.lng,
       prize: '',
       endDate: '',
       active: true,
@@ -623,11 +622,15 @@ function AdminPage() {
               }
             }}
           >
-            <CustomMarker
-              position={markerPosition}
-              isActive={true}
-              onClick={() => {}}
-            />
+            {/* Show markers for all active and queued hotspots */}
+            {hotspots.map((hotspot, index) => (
+              <CustomMarker
+                key={hotspot.id}
+                position={{ lat: hotspot.lat, lng: hotspot.lng }}
+                isActive={index === 0} // First hotspot is active
+                onClick={() => {}}
+              />
+            ))}
           </GoogleMap>
         )}
       </div>
