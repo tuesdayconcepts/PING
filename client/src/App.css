@@ -11,6 +11,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Ensure buttons inherit Montserrat */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
 #root {
   width: 100%;
   min-height: 100vh;
