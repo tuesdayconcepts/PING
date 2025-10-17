@@ -133,7 +133,7 @@
   border-bottom: 1px solid rgba(42, 42, 42, 0.6);
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .sidebar-header .admin-logo {
@@ -204,20 +204,19 @@
 }
 
 .logout-btn {
-  padding: 8px 12px;
-  background: #e74c3c;
-  color: white;
+  padding: 0;
+  background: #e74c3c00;
+  color: #fff;
   border: none;
-  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: flex-start;
 }
 
 .logout-btn:hover {
-  background: #c0392b;
+  color: #e74c3c;
   transform: translateY(-1px);
 }
 

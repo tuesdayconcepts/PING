@@ -584,7 +584,7 @@ function AdminPage() {
       <div className="mobile-top-bar">
         <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
         <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
-          <LogOut size={20} />
+          <LogOut size={24} />
         </button>
       </div>
 
@@ -630,7 +630,7 @@ function AdminPage() {
         <div className="sidebar-header">
           <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
           <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
-            <LogOut size={20} />
+            <LogOut size={24} />
           </button>
         </div>
 
