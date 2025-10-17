@@ -698,9 +698,10 @@ function AdminPage() {
               {hotspots
                 .filter(h => h.claimStatus !== 'claimed')
                 .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0))
-                .map((hotspot) => {
+                .map((hotspot, index) => {
                   const nfcUrl = `${window.location.origin}/ping/${hotspot.id}`;
-                  const isActive = hotspot.queuePosition === 0;
+                  const isActive = index === 0; // First item is active
+                  const displayPosition = index + 1; // Display position: 1, 2, 3, etc.
                   const pendingClaim = pendingClaims.find(claim => claim.id === hotspot.id);
                   const hasPendingClaim = !!pendingClaim;
                   
@@ -712,7 +713,7 @@ function AdminPage() {
                       <div className="hotspot-header">
                         <strong>{hotspot.title}</strong>
                         <span className={`status-badge ${hasPendingClaim ? 'badge-pending' : (isActive ? 'badge-active' : 'badge-queued')}`}>
-                          {hasPendingClaim ? 'Pending Claim' : (isActive ? 'Active' : `Queue #${hotspot.queuePosition}`)}
+                          {hasPendingClaim ? 'Pending Claim' : (isActive ? 'Active' : `Queue #${displayPosition}`)}
                         </span>
                       </div>
                       {locationNames[hotspot.id] && (
