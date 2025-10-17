@@ -51,13 +51,13 @@
 .form-group textarea {
   width: 100%;
   padding: 10px;
-  border: 1px solid #2a2a2a;
-  border-radius: 6px;
+  border: 0;
+  border-radius: 10px;
   font-size: 1rem;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.05);
+  background: #ffffff26;
   color: #e0e0e0;
-  transition: all 0.3s;
+  transition: all .3s;
 }
 
 .form-group input:focus,
@@ -476,10 +476,10 @@
 /* Hotspot Item (in floating panel) */
 .hotspot-item {
   padding: 20px;
-  border: none;
-  border-radius: 15px;
+  border: 2px solid #d3d3d314;
+  border-radius: 25px;
   background: #00000063;
-  transition: all 0.2s;
+  transition: all .2s;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -489,12 +489,9 @@
   background: #00000090;
 }
 
-.hotspot-item.active-hotspot {
-  background: #00000063;
-}
-
+.hotspot-item.active-hotspot,
 .hotspot-item.queued-hotspot {
-  background: #00000063;
+  background: #27ae6047;
 }
 
 .hotspot-item.claimed-hotspot {
@@ -610,18 +607,18 @@
 
 /* Hotspot Prize */
 .hotspot-prize {
-  color: #a0a0a0;
-  font-size: 0.85rem;
+  color: #ffffff;
+  font-size: .85rem;
   margin: 0;
 }
 
 /* Add PING Card */
 .add-ping-card {
   padding: 24px;
-  border: 2px dashed #2a2a2a;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  transition: all 0.3s ease;
+  border: 2px dashed #ffd70082;
+  border-radius: 25px;
+  background: #ffffff1a;
+  transition: all .3s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -629,7 +626,7 @@
   justify-content: center;
   gap: 8px;
   min-height: 100px;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn .3s ease;
 }
 
 .add-ping-card:hover {
@@ -658,10 +655,10 @@
 /* Inline Form Container */
 .inline-form-container {
   padding: 20px;
-  border: 2px solid #ffd700;
-  border-radius: 8px;
-  background: rgba(255, 215, 0, 0.05);
-  animation: expandIn 0.3s ease;
+  border: 2px solid #d3d3d31f;
+  border-radius: 25px;
+  background: #ffffff30;
+  animation: expandIn .3s ease;
 }
 
 @keyframes fadeIn {
@@ -688,11 +685,6 @@
   }
 }
 
-.inline-form-container h4 {
-  margin: 0 0 16px 0;
-  color: #ffd700;
-  font-size: 1.1rem;
-}
 
 .form-hint-map {
   text-align: center;
