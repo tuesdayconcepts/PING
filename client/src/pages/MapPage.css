@@ -824,15 +824,15 @@
 
 /* Queued State */
 .modal-queued {
-  background: linear-gradient(135deg, rgba(241, 196, 15, 0.08) 0%, rgba(243, 156, 18, 0.08) 100%);
-  text-align: center;
-  padding: 40px 25px !important;
+  background: #ffffff30;
+  text-align: left;
+  padding: 25px 25px !important;
 }
 
 .modal-queued h3 {
-  margin: 0 0 20px 0;
-  font-size: 1.1rem;
-  color: #ffffff;
+  margin: 0 0 20px;
+  font-size: 1.3rem;
+  color: #fff;
   text-transform: uppercase;
 }
 
