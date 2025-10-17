@@ -83,6 +83,7 @@
 
 .nav-center.mobile-menu-open {
   right: 0;
+  display: flex;
 }
 
 .nav-link {
