@@ -201,14 +201,8 @@ function AdminPage() {
       [name]: type === 'checkbox' ? checked : value,
     });
 
-    // Update map center if lat/lng changed manually
-    if (name === 'lat' || name === 'lng') {
-      const lat = name === 'lat' ? parseFloat(value) : formData.lat;
-      const lng = name === 'lng' ? parseFloat(value) : formData.lng;
-      if (!isNaN(lat) && !isNaN(lng)) {
-        setMapCenter({ lat, lng });
-      }
-    }
+    // Don't auto-center map when manually typing coordinates
+    // (removed to prevent unwanted map jumping)
   };
 
   // Compress and optimize image
@@ -311,7 +305,7 @@ function AdminPage() {
 
   // Handle map click to set location and open form
   const handleMapClickOpen = (lat: number, lng: number) => {
-    setMapCenter({ lat, lng });
+    // Only update form data, don't move the map center
     setFormData({ ...formData, lat, lng });
     
     // If form is not open, open it in create mode
