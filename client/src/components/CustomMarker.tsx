@@ -13,10 +13,10 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, 
   return (
     <OverlayView
       position={position}
-      mapPaneName={OverlayView.FLOAT_PANE}
-      getPixelPositionOffset={(width, height) => ({
-        x: -(width / 2),
-        y: -(height / 2),
+      mapPaneName={OverlayView.OVERLAY_LAYER}
+      getPixelPositionOffset={() => ({
+        x: -40,
+        y: -40,
       })}
     >
       <div 
