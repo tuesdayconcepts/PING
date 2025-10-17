@@ -504,7 +504,7 @@ function MapPage() {
               {/* Check if hotspot is queued (not active yet) */}
               {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 0 ? (
                 <div className="modal-section modal-queued">
-                  <h3>This PING is Not Active Yet</h3>
+                  <h3>INACTIVE PING</h3>
                   <p>This PING is currently in queue. It will become active in the future.</p>
                   <button 
                     className="view-active-btn"

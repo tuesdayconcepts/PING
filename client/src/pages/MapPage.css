@@ -831,8 +831,9 @@
 
 .modal-queued h3 {
   margin: 0 0 20px 0;
-  font-size: 1.5rem;
-  color: #f39c12;
+  font-size: 1.1rem;
+  color: #ffffff;
+  text-transform: uppercase;
 }
 
 .modal-queued p {
@@ -844,22 +845,29 @@
 
 .view-active-btn {
   width: 100%;
-  padding: 16px 32px;
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-  color: white;
+  background: linear-gradient(135deg, #ffe87c, #ffd700);
+  color: #000000ad;
+  padding: 16px 20px;
+  border-radius: 50px;
   border: none;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .view-active-btn:hover {
+  background: #ffd700;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-  background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.view-active-btn:active {
+  transform: translateY(0);
 }
 
 /* Pending State */
