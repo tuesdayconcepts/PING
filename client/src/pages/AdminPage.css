@@ -483,10 +483,6 @@
   gap: 8px;
 }
 
-.hotspot-item:hover {
-  background: #00000090;
-}
-
 .hotspot-item.active-hotspot {
   background: #27ae6047;
 }
