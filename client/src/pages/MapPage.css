@@ -520,7 +520,7 @@
   font-size: 1.2rem;
   font-weight: 700;
   margin-bottom: 0;
-  background: linear-gradient(135deg, #9351b6, #25b273);
+  background: linear-gradient(135deg, #b11eff, #19d27f);
   background-clip: padding-box; /* Prevents gradient from bleeding under border */
   border: 3px solid #ffffff4d;
   color: #ffffff9c;
