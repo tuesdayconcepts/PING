@@ -858,6 +858,7 @@
   color: rgba(255, 255, 255, 0.9);
   line-height: 1.6;
   font-size: 1.05rem;
+  font-weight: 500;
 }
 
 .modal-claim-intro p:last-of-type {
@@ -883,6 +884,7 @@
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.7;
   font-size: 1rem;
+  font-weight: 500;
 }
 
 .view-active-btn {
