@@ -926,73 +926,55 @@
   padding: 26px;
   background-color: transparent;
   margin: 0 auto 20px;
+  position: relative;
 }
 
+/* Spinning loader circle - shown during pending */
+.sa-spinner {
+  width: 88px;
+  height: 88px;
+  border: 4px solid rgba(165, 220, 134, 0.25);
+  border-top: 4px solid #A5DC86;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Hide spinner when checkmark shows */
+.show-checkmark .sa-spinner {
+  opacity: 0;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Checkmark container - hidden by default */
 .sa-success {
   border-radius: 50%;
   border: 4px solid #A5DC86;
   box-sizing: content-box;
   height: 80px;
   padding: 0;
-  position: relative;
+  position: absolute;
   background-color: transparent;
   width: 80px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.sa-success:after,
-.sa-success:before {
-  background: transparent;
-  content: '';
-  height: 120px;
-  position: absolute;
-  transform: rotate(45deg);
-  width: 60px;
-}
-
-.sa-success:before {
-  border-radius: 40px 0 0 40px;
-  width: 26px;
-  height: 80px;
-  top: -17px;
-  left: 5px;
-  transform-origin: 60px 60px;
-  transform: rotate(-45deg);
-}
-
-.sa-success:after {
-  border-radius: 0 120px 120px 0;
-  left: 30px;
-  top: -11px;
-  transform-origin: 0 60px;
-  transform: rotate(-45deg);
-}
-
-/* Only spin during pending state (not when checkmark is showing or in claimed state) */
-.modal-pending .sa:not(.show-checkmark) .sa-success:after {
-  animation: rotatePlaceholder 4.25s ease-in infinite;
-}
-
-.sa-success-placeholder {
-  border-radius: 50%;
-  border: 4px solid rgba(165, 220, 134, 0.25);
-  box-sizing: content-box;
-  height: 80px;
-  left: -4px;
-  position: absolute;
-  top: -4px;
-  width: 80px;
-  z-index: 2;
-}
-
-.sa-success-fix {
-  background-color: transparent;
-  height: 90px;
-  left: 28px;
-  position: absolute;
-  top: 8px;
-  transform: rotate(-45deg);
-  width: 5px;
-  z-index: 1;
+/* Show checkmark container when approved */
+.show-checkmark .sa-success {
+  opacity: 1;
 }
 
 .sa-success-tip,
@@ -1002,10 +984,10 @@
   height: 5px;
   position: absolute;
   z-index: 2;
-  width: 0; /* Hidden by default */
+  width: 0;
 }
 
-/* Show checkmark animation when approved */
+/* Animate checkmark when approved */
 .show-checkmark .sa-success-tip {
   left: 14px;
   top: 46px;
@@ -1019,7 +1001,6 @@
   transform: rotate(-45deg);
   animation: animateSuccessLong 0.75s forwards;
 }
-
 
 @keyframes animateSuccessTip {
   0%, 54% {
@@ -1059,15 +1040,6 @@
     width: 47px;
     right: 8px;
     top: 38px;
-  }
-}
-
-@keyframes rotatePlaceholder {
-  0%, 5% {
-    transform: rotate(-45deg);
-  }
-  100%, 12% {
-    transform: rotate(-405deg);
   }
 }
 

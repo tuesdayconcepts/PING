@@ -637,11 +637,10 @@ function MapPage() {
                 <>
                   <div className="modal-section modal-pending">
                     <div className={`sa ${showCheckmark ? 'show-checkmark' : ''}`}>
+                      <div className="sa-spinner"></div>
                       <div className="sa-success">
                         <div className="sa-success-tip"></div>
                         <div className="sa-success-long"></div>
-                        <div className="sa-success-placeholder"></div>
-                        <div className="sa-success-fix"></div>
                       </div>
                     </div>
                     <h3>Waiting for Approval</h3>
