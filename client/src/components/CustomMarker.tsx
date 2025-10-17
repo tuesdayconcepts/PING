@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { MarkerF } from '@react-google-maps/api';
 
 interface CustomMarkerProps {
   position: { lat: number; lng: number };
