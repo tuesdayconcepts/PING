@@ -14,6 +14,9 @@ import './MapPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+// Google Maps libraries - must be outside component to prevent reload
+const GOOGLE_MAPS_LIBRARIES: ['marker'] = ['marker'];
+
 // Session storage keys
 const CLAIM_SESSION_KEY = 'ping_claim_session';
 
@@ -51,8 +54,9 @@ function MapPage() {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    libraries: ['marker'],
+    libraries: GOOGLE_MAPS_LIBRARIES,
     version: 'beta',
+    mapIds: ['PING_MAP'], // Required for AdvancedMarker
   });
   
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
@@ -486,6 +490,7 @@ function MapPage() {
             setMapInstance(map);
           }}
           options={{
+            mapId: 'PING_MAP', // Required for AdvancedMarker
             styles: customMapStyles,
             mapTypeControl: false,
             streetViewControl: false,
