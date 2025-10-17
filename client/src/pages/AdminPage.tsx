@@ -621,15 +621,17 @@ function AdminPage() {
               }
             }}
           >
-            {/* Show markers for all active and queued hotspots */}
-            {hotspots.map((hotspot, index) => (
-              <CustomMarker
-                key={hotspot.id}
-                position={{ lat: hotspot.lat, lng: hotspot.lng }}
-                isActive={index === 0} // First hotspot is active
-                onClick={() => {}}
-              />
-            ))}
+            {/* Show markers only for active and queued (unclaimed) hotspots */}
+            {hotspots
+              .filter(hotspot => hotspot.claimStatus !== 'claimed')
+              .map((hotspot, index) => (
+                <CustomMarker
+                  key={hotspot.id}
+                  position={{ lat: hotspot.lat, lng: hotspot.lng }}
+                  isActive={index === 0} // First unclaimed hotspot is active
+                  onClick={() => {}}
+                />
+              ))}
           </GoogleMap>
         )}
       </div>
