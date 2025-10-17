@@ -550,6 +550,7 @@
   width: 22px;
   height: 22px;
   stroke-width: 2;
+  animation: prizeWiggle 4s infinite; /* Synced with shimmer */
 }
 
 .prize-text {
@@ -561,6 +562,16 @@
   0% { left: -100%; }
   37.5% { left: 100%; } /* Sweep completes at 1.5s (37.5% of 4s) */
   100% { left: 100%; } /* Stay off-screen for remaining 2.5s */
+}
+
+@keyframes prizeWiggle {
+  0%, 37.5%, 100% { transform: rotate(0deg); } /* Still during pause */
+  10% { transform: rotate(-8deg); } /* Start wiggle */
+  15% { transform: rotate(8deg); }
+  20% { transform: rotate(-8deg); }
+  25% { transform: rotate(8deg); }
+  30% { transform: rotate(-5deg); }
+  35% { transform: rotate(0deg); } /* End wiggle */
 }
 
 /* Hint CTA Button */
