@@ -429,14 +429,16 @@ function MapPage() {
       {/* Vignette Overlay */}
       <div className="vignette-overlay"></div>
       
-      {/* Confetti - Full screen on successful claim */}
-      {showConfetti && (
+      {/* Confetti - Full screen on successful claim or discovery */}
+      {(showConfetti || showDiscoveryConfetti) && (
         <div className="confetti-wrapper">
           <Confetti
             width={window.innerWidth}
             height={window.innerHeight}
+            numberOfPieces={showDiscoveryConfetti ? 150 : 200}
+            colors={showDiscoveryConfetti ? ['#FFD700', '#FFC700', '#FFE87C', '#FFAA00', '#FF8C00'] : undefined}
             recycle={false}
-            numberOfPieces={200}
+            gravity={0.3}
           />
         </div>
       )}
