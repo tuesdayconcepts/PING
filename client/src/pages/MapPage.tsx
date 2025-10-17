@@ -114,6 +114,9 @@ function MapPage() {
 
       setDirectionsResponse(results);
       setShowRoute(true);
+      
+      // Close modal after directions load to show the map
+      setSelectedHotspot(null);
     } catch (error) {
       console.error('Error fetching directions:', error);
     }
@@ -518,7 +521,7 @@ function MapPage() {
                             );
                           })()}
                           <div 
-                            className="time-item" 
+                            className={`time-item ${!userLocation ? 'eta-inactive' : ''}`}
                             onClick={() => {
                               if (userLocation) {
                                 // Show route on map

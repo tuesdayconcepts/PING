@@ -624,6 +624,16 @@
   font-weight: 600;
 }
 
+/* Pulsing gold animation for "Get ETA" text when location not available */
+.time-item.eta-inactive .time-value {
+  animation: etaPulse 2s ease-in-out infinite;
+}
+
+@keyframes etaPulse {
+  0%, 100% { color: #ffffffa3; }
+  50% { color: #ffd700; } /* Gold */
+}
+
 /* Description Section */
 .modal-description {
   background: rgba(255, 255, 255, 0.02);
