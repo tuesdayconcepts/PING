@@ -67,7 +67,6 @@ function MapPage() {
   const [claimStatus, setClaimStatus] = useState<'unclaimed' | 'pending' | 'claimed'>('unclaimed');
   const [showCheckmark, setShowCheckmark] = useState(false); // Controls checkmark animation
   const [privateKey, setPrivateKey] = useState<string | null>(null);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [showDiscoveryConfetti, setShowDiscoveryConfetti] = useState(false); // Discovery confetti
   const [claimError, setClaimError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
