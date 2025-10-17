@@ -8,7 +8,6 @@ interface CustomMarkerProps {
 }
 
 export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, onClick, map }) => {
-  const markerRef = useRef<google.maps.Marker | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
