@@ -628,7 +628,14 @@ function MapPage() {
               {claimStatus === 'pending' && (
                 <>
                   <div className="modal-section modal-pending">
-                    <div className="pending-animation">⏳</div>
+                    <div className="sa">
+                      <div className="sa-success">
+                        <div className="sa-success-tip"></div>
+                        <div className="sa-success-long"></div>
+                        <div className="sa-success-placeholder"></div>
+                        <div className="sa-success-fix"></div>
+                      </div>
+                    </div>
                     <h3>Waiting for Approval</h3>
                     <p>Your claim is being reviewed by the admin. This usually takes a few minutes.</p>
                     <p className="pending-note">Stay on this page to see when it's approved!</p>
@@ -643,6 +650,14 @@ function MapPage() {
 
               {claimStatus === 'claimed' && privateKey && (
                 <div className="modal-section modal-reveal">
+                  <div className="sa">
+                    <div className="sa-success">
+                      <div className="sa-success-tip"></div>
+                      <div className="sa-success-long"></div>
+                      <div className="sa-success-placeholder"></div>
+                      <div className="sa-success-fix"></div>
+                    </div>
+                  </div>
                   <h3 className="congrats-title">Congratulations!</h3>
                   <p className="congrats-text">
                     You've successfully claimed this PING! Add this privat key to your Solana wallet to access your prize.
