@@ -487,8 +487,7 @@
   background: #00000090;
 }
 
-.hotspot-item.active-hotspot,
-.hotspot-item.queued-hotspot {
+.hotspot-item.active-hotspot {
   background: #27ae6047;
 }
 
