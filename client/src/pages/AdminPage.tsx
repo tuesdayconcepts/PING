@@ -13,10 +13,12 @@ import './AdminPage.css';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 function AdminPage() {
-  // Load Google Maps API
+  // Load Google Maps API with beta marker library
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: ['marker'],
+    version: 'beta',
   });
 
   // Auth state
@@ -59,6 +61,7 @@ function AdminPage() {
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
   const [locationNames, setLocationNames] = useState<Record<string, string>>({});
+  const [adminMapInstance, setAdminMapInstance] = useState<google.maps.Map | null>(null);
 
   useEffect(() => {
     if (getToken()) {
@@ -596,10 +599,7 @@ function AdminPage() {
             zoom={13}
             mapContainerClassName="admin-map"
             onLoad={(map) => {
-              // Force marker positioning after map loads
-              setTimeout(() => {
-                google.maps.event.trigger(map, 'resize');
-              }, 100);
+              setAdminMapInstance(map);
             }}
             options={{
               styles: customMapStyles,
@@ -630,6 +630,7 @@ function AdminPage() {
                   position={{ lat: hotspot.lat, lng: hotspot.lng }}
                   isActive={index === 0} // First unclaimed hotspot is active
                   onClick={() => {}}
+                  map={adminMapInstance || undefined}
                 />
               ))}
           </GoogleMap>

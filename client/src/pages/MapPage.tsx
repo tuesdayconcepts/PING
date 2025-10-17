@@ -47,10 +47,12 @@ const getClaimSession = (hotspotId: string) => {
 function MapPage() {
   const { id } = useParams<{ id: string }>(); // Get hotspot ID from URL params
   
-  // Load Google Maps API
+  // Load Google Maps API with beta marker library
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: ['marker'],
+    version: 'beta',
   });
   
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
@@ -70,6 +72,7 @@ function MapPage() {
   const [showDiscoveryConfetti, setShowDiscoveryConfetti] = useState(false); // Discovery confetti
   const [claimError, setClaimError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [showCertificate, setShowCertificate] = useState(false);
   const [certificateExpanded, setCertificateExpanded] = useState(false);
   const [shareTextReady, setShareTextReady] = useState(false);
@@ -480,10 +483,7 @@ function MapPage() {
           zoom={zoom}
           mapContainerClassName="map-container"
           onLoad={(map) => {
-            // Force marker positioning after map loads
-            setTimeout(() => {
-              google.maps.event.trigger(map, 'resize');
-            }, 100);
+            setMapInstance(map);
           }}
           options={{
             styles: customMapStyles,
@@ -514,6 +514,7 @@ function MapPage() {
                 position={{ lat: hotspot.lat, lng: hotspot.lng }}
                 isActive={isActive}
                 onClick={() => setSelectedHotspot(hotspot)}
+                map={mapInstance || undefined}
               />
             );
           })}
