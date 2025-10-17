@@ -473,7 +473,7 @@
 
 /* Hotspot Item (in floating panel) */
 .hotspot-item {
-  padding: 20px;
+  padding: 20px 25px;
   border: 2px solid #d3d3d314;
   border-radius: 25px;
   background: #00000063;
