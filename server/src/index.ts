@@ -348,7 +348,6 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
   try {
     const {
       title,
-      description,
       lat,
       lng,
       prize,
@@ -359,9 +358,9 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
     } = req.body;
 
     // Validation
-    if (!title || !description || lat === undefined || lng === undefined) {
+    if (!title || lat === undefined || lng === undefined) {
       return res.status(400).json({
-        error: "Title, description, latitude, and longitude are required",
+        error: "Title, latitude, and longitude are required",
       });
     }
 
@@ -405,7 +404,7 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
     const hotspot = await prisma.hotspot.create({
       data: {
         title: sanitizeString(title),
-        description: sanitizeString(description),
+        description: '', // Empty string as default
         lat: roundedLat,
         lng: roundedLng,
         prize: prize ? parseFloat(prize) : null, // Parse as numeric value
@@ -441,7 +440,6 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
     const { id } = req.params;
     const {
       title,
-      description,
       lat,
       lng,
       prize,
@@ -483,7 +481,6 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
       where: { id },
       data: {
         ...(title && { title: sanitizeString(title) }),
-        ...(description && { description: sanitizeString(description) }),
         ...(roundedLat !== undefined && { lat: roundedLat }),
         ...(roundedLng !== undefined && { lng: roundedLng }),
         ...(prize !== undefined && { prize: prize ? parseFloat(prize) : null }), // Parse as numeric value
