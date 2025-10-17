@@ -626,12 +626,19 @@ function MapPage() {
               )}
 
               {claimStatus === 'pending' && (
-                <div className="modal-section modal-pending">
-                  <div className="pending-animation">⏳</div>
-                  <h3>Waiting for Approval</h3>
-                  <p>Your claim is being reviewed by the admin. This usually takes a few minutes.</p>
-                  <p className="pending-note">Stay on this page to see when it's approved!</p>
-                </div>
+                <>
+                  <div className="modal-section modal-pending">
+                    <div className="pending-animation">⏳</div>
+                    <h3>Waiting for Approval</h3>
+                    <p>Your claim is being reviewed by the admin. This usually takes a few minutes.</p>
+                    <p className="pending-note">Stay on this page to see when it's approved!</p>
+                  </div>
+                  <div className="modal-section modal-actions">
+                    <button className="claim-btn" disabled>
+                      CLAIM PENDING
+                    </button>
+                  </div>
+                </>
               )}
 
               {claimStatus === 'claimed' && privateKey && (

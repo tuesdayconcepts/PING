@@ -816,6 +816,17 @@
   transform: translateY(0);
 }
 
+.claim-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #ffe87c, #ffd700);
+}
+
+.claim-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 /* Claim Error */
 .claim-error {
   background: rgba(231, 76, 60, 0.2);
