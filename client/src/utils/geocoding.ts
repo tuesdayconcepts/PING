@@ -1,7 +1,8 @@
 // Reverse geocode coordinates to get location name
 export async function getLocationName(lat: number, lng: number): Promise<string> {
   try {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    // Use separate geocoding API key (cannot have referrer restrictions)
+    const apiKey = import.meta.env.VITE_GOOGLE_GEOCODING_API_KEY || import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     
     if (!apiKey) {
       console.error('Google Maps API key is not configured');
