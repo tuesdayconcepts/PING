@@ -803,6 +803,7 @@ function AdminPage() {
                         step="0.01"
                         min="0"
                         placeholder="0.00"
+                        required
                       />
                     </div>
 
@@ -816,6 +817,7 @@ function AdminPage() {
                         onChange={handleInputChange}
                         placeholder={formMode === 'edit' ? 'Leave blank to keep existing key' : 'Enter private key (encrypted in database)'}
                         autoComplete="off"
+                        required={formMode === 'create'}
                       />
                       <small className="form-hint">
                         {formMode === 'edit' 
