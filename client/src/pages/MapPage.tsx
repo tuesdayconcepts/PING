@@ -68,6 +68,7 @@ function MapPage() {
   const [showCheckmark, setShowCheckmark] = useState(false); // Controls checkmark animation
   const [privateKey, setPrivateKey] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showDiscoveryConfetti, setShowDiscoveryConfetti] = useState(false); // Discovery confetti
   const [claimError, setClaimError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
@@ -292,9 +293,51 @@ function MapPage() {
         setClaimStatus('pending');
       } else {
         setClaimStatus('unclaimed');
+        // Trigger discovery celebration
+        setShowDiscoveryConfetti(true);
+        playSuccessSound();
+        setTimeout(() => setShowDiscoveryConfetti(false), 4000);
       }
     } catch (err) {
       console.error('Error fetching hotspot:', err);
+    }
+  };
+
+  // Play retro success sound using Web Audio API
+  const playSuccessSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Classic 8-bit success: E -> G# -> E (high)
+      oscillator.type = 'square'; // Retro square wave
+      
+      const now = audioContext.currentTime;
+      
+      // Note frequencies
+      const E4 = 329.63;
+      const Gs4 = 415.30;
+      const E5 = 659.25;
+      
+      // Play sequence
+      oscillator.frequency.setValueAtTime(E4, now);
+      oscillator.frequency.setValueAtTime(Gs4, now + 0.1);
+      oscillator.frequency.setValueAtTime(E5, now + 0.2);
+      
+      // Volume envelope
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(0.15, now + 0.01); // Quick attack
+      gainNode.gain.setValueAtTime(0.15, now + 0.3);
+      gainNode.gain.linearRampToValueAtTime(0, now + 0.5); // Fade out
+      
+      oscillator.start(now);
+      oscillator.stop(now + 0.5);
+    } catch (err) {
+      console.log('Audio not supported:', err);
     }
   };
 
@@ -527,7 +570,7 @@ function MapPage() {
                   {claimStatus === 'unclaimed' && id && (!selectedHotspot.queuePosition || selectedHotspot.queuePosition === 0) ? (
                     <div className="modal-section modal-claim-intro">
                       <h3>GREAT JOB!</h3>
-                      <p>You found the PING! That means you are almost {selectedHotspot.prize} SOL richer!</p>
+                      <p>You found the PING! That means you are almost <span className="prize-amount">{selectedHotspot.prize} SOL</span> richer!</p>
                       <p>To finish claiming it, press the big yellow button to notify our team on X, and return to this screen.</p>
                     </div>
                   ) : (

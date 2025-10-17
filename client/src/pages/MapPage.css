@@ -844,6 +844,45 @@
   background: #ffffff30;
   text-align: center;
   padding: 30px 25px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated gold radial gradient */
+.modal-claim-intro::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, rgba(255, 215, 0, 0) 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: goldExpand 2s ease-out forwards;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.modal-claim-intro > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes goldExpand {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    width: 800px;
+    height: 800px;
+    opacity: 0;
+  }
 }
 
 .modal-claim-intro h3 {
@@ -863,6 +902,15 @@
 
 .modal-claim-intro p:last-of-type {
   margin-bottom: 0;
+}
+
+/* Prize amount highlight */
+.prize-amount {
+  color: #FFD700;
+  font-weight: 700;
+  font-size: 1.15em;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.6),
+               0 0 40px rgba(255, 215, 0, 0.3);
 }
 
 /* Queued State */
