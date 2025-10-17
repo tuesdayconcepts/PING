@@ -46,7 +46,7 @@ export async function getLocationName(lat: number, lng: number): Promise<string>
       // Fallback: use formatted_address but simplify it
       const formatted = data.results[0].formatted_address;
       // Try to extract meaningful parts (e.g., "City, State, Country")
-      const parts = formatted.split(',').map(p => p.trim());
+      const parts = formatted.split(',').map((p: string) => p.trim());
       if (parts.length >= 3) {
         // Take last 3 parts (usually City, State, Country)
         return parts.slice(-3).join(', ');
