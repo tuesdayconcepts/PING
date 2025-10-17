@@ -280,7 +280,6 @@ function MapPage() {
         // Original claimer returning - show success modal
         setClaimStatus('claimed');
         setPrivateKey(claimSession.privateKey);
-        setShowConfetti(true);
         setShowCertificate(true);
         setClaimedAt(new Date().toISOString());
         if (hotspot.tweetUrl) {
@@ -397,7 +396,6 @@ function MapPage() {
             setTimeout(() => {
               setClaimStatus('claimed');
               setPrivateKey(data.privateKey);
-              setShowConfetti(true);
               
               // Store claim session so user can refresh
               storeClaimSession(selectedHotspot.id, data.privateKey);
@@ -408,9 +406,6 @@ function MapPage() {
               if (data.tweetUrl) {
                 setTwitterHandle(extractTwitterHandle(data.tweetUrl));
               }
-              
-              // Stop confetti after 6 seconds
-              setTimeout(() => setShowConfetti(false), 6000);
             }, 2500);
             
             clearInterval(interval);
@@ -429,14 +424,14 @@ function MapPage() {
       {/* Vignette Overlay */}
       <div className="vignette-overlay"></div>
       
-      {/* Confetti - Full screen on successful claim or discovery */}
-      {(showConfetti || showDiscoveryConfetti) && (
+      {/* Confetti - Gold confetti on discovery only */}
+      {showDiscoveryConfetti && (
         <div className="confetti-wrapper">
           <Confetti
             width={window.innerWidth}
             height={window.innerHeight}
-            numberOfPieces={showDiscoveryConfetti ? 75 : 100}
-            colors={showDiscoveryConfetti ? ['#FFD700', '#FFC700', '#FFE87C', '#FFAA00', '#FF8C00'] : undefined}
+            numberOfPieces={75}
+            colors={['#FFD700', '#FFC700', '#FFE87C', '#FFAA00', '#FF8C00']}
             recycle={false}
             gravity={0.3}
           />
