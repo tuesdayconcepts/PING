@@ -391,13 +391,13 @@ function MapPage() {
           </a>
         </div>
         <button 
-          className="hamburger-menu"
+          className={`hamburger-menu ${mobileMenuOpen ? 'open' : ''}`}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span className="line-menu half start"></span>
+          <span className="line-menu"></span>
+          <span className="line-menu half end"></span>
         </button>
       </nav>
 
