@@ -2,15 +2,28 @@
 export async function getLocationName(lat: number, lng: number): Promise<string> {
   try {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    if (!apiKey) {
+      console.error('Google Maps API key is not configured');
+      return 'Unknown Location';
+    }
+    
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
     );
     
     if (!response.ok) {
+      console.error('Geocoding request failed with status:', response.status);
       throw new Error('Geocoding request failed');
     }
     
     const data = await response.json();
+    
+    // Log the API response status for debugging
+    if (data.status !== 'OK') {
+      console.error('Geocoding API error:', data.status, data.error_message);
+      return 'Unknown Location';
+    }
     
     if (data.status === 'OK' && data.results && data.results.length > 0) {
       // Try to find a result with locality (city) and administrative_area_level_1 (state)
