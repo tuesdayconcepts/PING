@@ -31,7 +31,6 @@ function AdminPage() {
   // Form state
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
     lat: 40.7128,
     lng: -74.0060,
     prize: '' as string | number, // Number for prize amount in SOL
@@ -290,7 +289,6 @@ function AdminPage() {
     // Reset form when opening new create form
     setFormData({
       title: '',
-      description: '',
       lat: markerPosition.lat,
       lng: markerPosition.lng,
       prize: '',
@@ -332,7 +330,6 @@ function AdminPage() {
     setHasExpiration(hasExpiry);
     setFormData({
       title: hotspot.title,
-      description: hotspot.description,
       lat: hotspot.lat,
       lng: hotspot.lng,
       prize: hotspot.prize || '',
@@ -360,7 +357,6 @@ function AdminPage() {
       // Prepare payload: exclude endDate if no expiration set
       const payload: any = {
         title: formData.title,
-        description: formData.description,
         lat: parseFloat(formData.lat.toString()),
         lng: parseFloat(formData.lng.toString()),
         prize: formData.prize,
@@ -434,7 +430,6 @@ function AdminPage() {
     setImagePreview(null);
     setFormData({
       title: '',
-      description: '',
       lat: 40.7128,
       lng: -74.0060,
       prize: '',
@@ -758,18 +753,6 @@ function AdminPage() {
                         name="title"
                         value={formData.title}
                         onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="description">Description *</label>
-                      <textarea
-                        id="description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        rows={3}
                         required
                       />
                     </div>
