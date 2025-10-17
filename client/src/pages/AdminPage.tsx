@@ -12,17 +12,11 @@ import './AdminPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-// Google Maps libraries - must be outside component to prevent reload
-const GOOGLE_MAPS_LIBRARIES: ['marker'] = ['marker'];
-
 function AdminPage() {
-  // Load Google Maps API with beta marker library
+  // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    libraries: GOOGLE_MAPS_LIBRARIES,
-    version: 'beta',
-    mapIds: ['PING_ADMIN_MAP'], // Required for AdvancedMarker
   });
 
   // Auth state
@@ -606,7 +600,6 @@ function AdminPage() {
               setAdminMapInstance(map);
             }}
             options={{
-              mapId: 'PING_ADMIN_MAP', // Required for AdvancedMarker
               styles: customMapStyles,
               disableDefaultUI: false,
               zoomControl: true,
