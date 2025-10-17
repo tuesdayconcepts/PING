@@ -526,7 +526,7 @@ function MapPage() {
                   {/* Show congratulations for claim flow (unique URLs), otherwise show all sections */}
                   {claimStatus === 'unclaimed' && id && (!selectedHotspot.queuePosition || selectedHotspot.queuePosition === 0) ? (
                     <div className="modal-section modal-claim-intro">
-                      <h2>GREAT JOB!</h2>
+                      <h3>GREAT JOB!</h3>
                       <p>You found the PING! That means you are almost {selectedHotspot.prize} SOL richer!</p>
                       <p>To finish claiming it, press the big yellow button to notify our team on X, and return to this screen.</p>
                     </div>

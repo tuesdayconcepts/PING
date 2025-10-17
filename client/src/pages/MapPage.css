@@ -846,9 +846,9 @@
   padding: 30px 25px !important;
 }
 
-.modal-claim-intro h2 {
+.modal-claim-intro h3 {
   margin: 0 0 20px;
-  font-size: 1.8rem;
+  font-size: 1.3rem;
   color: #fff;
   text-transform: uppercase;
 }
