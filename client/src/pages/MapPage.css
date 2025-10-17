@@ -430,13 +430,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #00000052;
+  background: #00000000;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 500; /* Above everything except close button */
   padding: 10px;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn .3s ease;
+  backdrop-filter: blur(8px);
 }
 
 @keyframes fadeIn {
