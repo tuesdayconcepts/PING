@@ -937,9 +937,10 @@
 }
 
 .modal-pending h3 {
-  margin: 0 0 15px 0;
-  font-size: 1.4rem;
-  color: #f39c12;
+  margin: 0 0 20px;
+  font-size: 1.3rem;
+  color: #fff;
+  text-transform: uppercase;
 }
 
 .modal-pending p {
