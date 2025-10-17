@@ -517,6 +517,19 @@
   gap: 8px;
 }
 
+.hotspot-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffffa3;
+  font-size: 0.8rem;
+  margin: 4px 0;
+}
+
+.hotspot-location svg {
+  flex-shrink: 0;
+}
+
 .status-badge {
   padding: 6px 14px;
   border-radius: 50px;

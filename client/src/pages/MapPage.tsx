@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { GoogleMap, useJsApiLoader, DirectionsRenderer } from '@react-google-maps/api';
 import Confetti from 'react-confetti';
-import { Gift, ClockPlus, ClockFading, Navigation } from 'lucide-react';
+import { Gift, ClockPlus, ClockFading, Navigation, MapPin } from 'lucide-react';
 import { Hotspot } from '../types';
 import { getHotspotStatus, getTimeUntilExpiration, calculateETA } from '../utils/time';
+import { getLocationName } from '../utils/geocoding';
 import { GoldenTicket } from '../components/GoldenTicket';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
@@ -74,6 +75,7 @@ function MapPage() {
   const [keyCopied, setKeyCopied] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
+  const [locationName, setLocationName] = useState<string>('');
 
   // Extract Twitter handle from tweet URL
   const extractTwitterHandle = (tweetUrl: string): string => {
@@ -327,6 +329,15 @@ function MapPage() {
     }
   };
 
+  // Fetch location name when selectedHotspot changes
+  useEffect(() => {
+    if (selectedHotspot) {
+      getLocationName(selectedHotspot.lat, selectedHotspot.lng).then(name => {
+        setLocationName(name);
+      });
+    }
+  }, [selectedHotspot]);
+
   // Poll for approval status
   useEffect(() => {
     if (claimStatus === 'pending' && selectedHotspot) {
@@ -517,6 +528,12 @@ function MapPage() {
                       {/* Title + Time Info combined section - Second */}
                       <div className="modal-section modal-header">
                         <h2>{selectedHotspot.title}</h2>
+                        {locationName && (
+                          <div className="location-info">
+                            <MapPin size={14} />
+                            <span>{locationName}</span>
+                          </div>
+                        )}
                         <div className="header-time-info">
                           <div className="time-item">
                             <ClockPlus className="time-icon" />

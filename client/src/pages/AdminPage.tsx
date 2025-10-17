@@ -1,10 +1,11 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, Pencil, Copy, Trash2 } from 'lucide-react';
+import { LogOut, Pencil, Copy, Trash2, MapPin } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
+import { getLocationName } from '../utils/geocoding';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import './AdminPage.css';
@@ -58,6 +59,7 @@ function AdminPage() {
 
   const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
+  const [locationNames, setLocationNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (getToken()) {
@@ -124,6 +126,12 @@ function AdminPage() {
       if (response.ok) {
         const data = await response.json();
         setHotspots(data);
+        
+        // Fetch location names for all hotspots
+        data.forEach(async (hotspot: Hotspot) => {
+          const name = await getLocationName(hotspot.lat, hotspot.lng);
+          setLocationNames(prev => ({ ...prev, [hotspot.id]: name }));
+        });
       }
     } catch (err) {
       console.error('Failed to fetch hotspots:', err);
@@ -707,6 +715,12 @@ function AdminPage() {
                           {hasPendingClaim ? 'Pending Claim' : (isActive ? 'Active' : `Queue #${hotspot.queuePosition}`)}
                         </span>
                       </div>
+                      {locationNames[hotspot.id] && (
+                        <div className="hotspot-location">
+                          <MapPin size={12} />
+                          <span>{locationNames[hotspot.id]}</span>
+                        </div>
+                      )}
                       <p className="hotspot-prize">Prize: {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}</p>
                       <div className="hotspot-actions">
                         <button onClick={() => handleEdit(hotspot)} className="action-icon-btn" aria-label="Edit PING">

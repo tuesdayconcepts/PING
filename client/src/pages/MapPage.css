@@ -567,13 +567,26 @@
 }
 
 .modal-header h2 {
-  margin: 0 0 15px;
+  margin: 0 0 8px;
   font-size: 1.1rem;
   font-weight: 600;
   color: #fff;
-  border-bottom: solid 1.5px #ffffff0a;
-  padding-bottom: 15px;
   text-transform: uppercase;
+}
+
+.location-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffffa3;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: solid 1.5px #ffffff0a;
+}
+
+.location-info svg {
+  flex-shrink: 0;
 }
 
 .header-time-info {
