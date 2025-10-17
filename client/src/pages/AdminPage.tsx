@@ -623,9 +623,12 @@ function AdminPage() {
 
       {/* Left Sidebar (Desktop) / Bottom Drawer (Mobile) */}
       <div className={`admin-sidebar ${drawerExpanded ? 'expanded' : ''}`}>
-        {/* Desktop: Logo at top */}
+        {/* Desktop: Logo and Logout */}
         <div className="sidebar-header">
           <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
+          <button onClick={handleLogout} className="logout-btn">
+            Logout
+          </button>
         </div>
 
         {/* Tabs */}
@@ -1055,13 +1058,6 @@ function AdminPage() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Desktop: Logout at bottom */}
-        <div className="sidebar-footer">
-          <button onClick={handleLogout} className="logout-btn">
-            Logout
-          </button>
         </div>
       </div>
     </div>

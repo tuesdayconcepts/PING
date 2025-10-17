@@ -127,14 +127,17 @@
   overflow-y: auto;
 }
 
-/* Sidebar Header with Logo */
+/* Sidebar Header with Logo and Logout */
 .sidebar-header {
   padding: 24px;
   border-bottom: 1px solid rgba(42, 42, 42, 0.6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .sidebar-header .admin-logo {
-  height: 50px;
+  height: 35px;
   width: auto;
 }
 
@@ -183,15 +186,7 @@
   overflow-y: auto;
 }
 
-/* Sidebar Footer with Logout */
-.sidebar-footer {
-  padding: 20px 24px;
-  border-top: 1px solid rgba(42, 42, 42, 0.6);
-}
-
-.sidebar-footer .logout-btn {
-  width: 100%;
-}
+/* Sidebar Footer - Removed (logout now in header) */
 
 /* Full Viewport Map - Full Width with Sidebar Overlay */
 .admin-map-container {
