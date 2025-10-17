@@ -565,7 +565,7 @@
 
 /* Hint CTA Button */
 .hint-cta {
-  background: gold;
+  background: linear-gradient(135deg, #ffe87c, #ffd700); /* Light gold to gold */
   color: #000000ad;
   padding: 16px 20px;
   border-radius: 50px;
