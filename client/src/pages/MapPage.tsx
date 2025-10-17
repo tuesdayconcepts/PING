@@ -296,7 +296,7 @@ function MapPage() {
         // Trigger discovery celebration
         setShowDiscoveryConfetti(true);
         playSuccessSound();
-        setTimeout(() => setShowDiscoveryConfetti(false), 4000);
+        setTimeout(() => setShowDiscoveryConfetti(false), 6000); // 6 seconds to let confetti fall completely
       }
     } catch (err) {
       console.error('Error fetching hotspot:', err);
