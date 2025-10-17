@@ -19,8 +19,9 @@
 
 .login-card {
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  transform: translateZ(0); /* GPU acceleration */
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   border: 2px solid rgb(130 130 130 / 24%);
   padding: 40px;
   border-radius: 30px;
@@ -116,8 +117,9 @@
   bottom: 0;
   width: 400px;
   background: #232227ab;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  transform: translateZ(0); /* GPU acceleration */
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   border-right: 1px solid rgba(42, 42, 42, 0.6);
   display: flex;
   flex-direction: column;
