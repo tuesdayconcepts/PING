@@ -61,6 +61,8 @@ function MapPage() {
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null);
   const [showRoute, setShowRoute] = useState(false);
+  const [pendingDestination, setPendingDestination] = useState<{ lat: number; lng: number } | null>(null);
+  const [isModalClosing, setIsModalClosing] = useState(false);
   const [claimStatus, setClaimStatus] = useState<'unclaimed' | 'pending' | 'claimed'>('unclaimed');
   const [privateKey, setPrivateKey] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -115,8 +117,12 @@ function MapPage() {
       setDirectionsResponse(results);
       setShowRoute(true);
       
-      // Close modal after directions load to show the map
-      setSelectedHotspot(null);
+      // Smooth close modal after directions load
+      setIsModalClosing(true);
+      setTimeout(() => {
+        setSelectedHotspot(null);
+        setIsModalClosing(false);
+      }, 300); // Match animation duration
     } catch (error) {
       console.error('Error fetching directions:', error);
     }
@@ -179,8 +185,16 @@ function MapPage() {
   }, [showCertificate]);
 
 
+  // Automatically fetch route when location is granted and destination is pending
+  useEffect(() => {
+    if (userLocation && pendingDestination) {
+      fetchAndDisplayRoute(pendingDestination.lat, pendingDestination.lng);
+      setPendingDestination(null); // Clear pending destination
+    }
+  }, [userLocation, pendingDestination]);
+
   // Request user location for ETA calculation
-  const requestUserLocation = () => {
+  const requestUserLocation = (destinationLat?: number, destinationLng?: number) => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -188,6 +202,11 @@ function MapPage() {
           const userLng = position.coords.longitude;
           setUserLocation({ lat: userLat, lng: userLng });
           console.log('User location acquired:', userLat, userLng);
+          
+          // If destination was provided, store it to trigger route fetch
+          if (destinationLat !== undefined && destinationLng !== undefined) {
+            setPendingDestination({ lat: destinationLat, lng: destinationLng });
+          }
         },
         (err) => {
           console.log('Geolocation permission denied or unavailable:', err.message);
@@ -462,9 +481,9 @@ function MapPage() {
 
       {/* Hotspot Modal Popup */}
       {selectedHotspot && (
-        <div className="modal-overlay" onClick={() => setSelectedHotspot(null)}>
+        <div className={`modal-overlay ${isModalClosing ? 'closing' : ''}`} onClick={() => setSelectedHotspot(null)}>
           <div className="modal-wrapper">
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className={`modal-content ${isModalClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
               {/* Close button */}
               <button className="modal-close" onClick={() => setSelectedHotspot(null)}>
                 ✕
@@ -527,8 +546,8 @@ function MapPage() {
                                 // Show route on map
                                 fetchAndDisplayRoute(selectedHotspot.lat, selectedHotspot.lng);
                               } else {
-                                // Request location first
-                                requestUserLocation();
+                                // Request location and auto-fetch route after permission
+                                requestUserLocation(selectedHotspot.lat, selectedHotspot.lng);
                               }
                             }}
                             title={userLocation ? "Show route on map" : "Click to get ETA"}

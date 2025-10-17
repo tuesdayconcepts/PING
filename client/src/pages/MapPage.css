@@ -432,6 +432,35 @@
   }
 }
 
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+}
+
+/* Closing animation */
+.modal-content.closing {
+  animation: slideDown 0.3s ease forwards;
+}
+
+.modal-overlay.closing {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 /* Modal Close Button */
 .modal-close {
   position: absolute;
@@ -624,8 +653,9 @@
   font-weight: 600;
 }
 
-/* Pulsing gold animation for "Get ETA" text when location not available */
-.time-item.eta-inactive .time-value {
+/* Pulsing gold animation for "Get ETA" text and icon when location not available */
+.time-item.eta-inactive .time-value,
+.time-item.eta-inactive .time-icon {
   animation: etaPulse 2s ease-in-out infinite;
 }
 
