@@ -311,7 +311,7 @@ function AdminPage() {
 
   // Handle map click to set location and open form
   const handleMapClickOpen = (lat: number, lng: number) => {
-    setMarkerPosition({ lat, lng });
+    setMapCenter({ lat, lng });
     setFormData({ ...formData, lat, lng });
     
     // If form is not open, open it in create mode
