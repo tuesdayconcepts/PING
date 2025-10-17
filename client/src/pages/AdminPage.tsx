@@ -809,6 +809,7 @@ function AdminPage() {
                         step="0.01"
                         min="0"
                         placeholder="0.00"
+                        autoComplete="off"
                         required
                       />
                     </div>
@@ -822,7 +823,7 @@ function AdminPage() {
                         value={formData.privateKey}
                         onChange={handleInputChange}
                         placeholder={formMode === 'edit' ? 'Leave blank to keep existing key' : 'Enter private key (encrypted in database)'}
-                        autoComplete="off"
+                        autoComplete="new-password"
                         required={formMode === 'create'}
                       />
                       <small className="form-hint">
