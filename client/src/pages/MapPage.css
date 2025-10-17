@@ -957,8 +957,9 @@
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     flex-direction: column;
-    justify-content: flex-start;
-    padding: 80px 20px 20px;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
     gap: 20px;
     transition: right .3s ease;
     z-index: 165;
