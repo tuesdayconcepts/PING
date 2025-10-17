@@ -86,7 +86,7 @@
 .hamburger-menu {
   display: none;
   width: 50px;
-  height: 30px;
+  height: 25px;
   flex-direction: column;
   justify-content: space-between;
   background: none;
