@@ -827,7 +827,7 @@ function AdminPage() {
                             </div>
 
                             <div className="form-group">
-                              <label htmlFor="prize">Prize (SOL)</label>
+                              <label htmlFor="prize">Prize (SOL) (Optional)</label>
                               <input
                                 type="number"
                                 id="prize"
@@ -839,7 +839,6 @@ function AdminPage() {
                                 placeholder="0.00"
                                 autoComplete="off"
                                 data-form-type="other"
-                                required
                               />
                             </div>
 
