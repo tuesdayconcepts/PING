@@ -911,7 +911,7 @@ function AdminPage() {
                   <div className="plus-icon">+</div>
                   <span>Add New PING</span>
                 </div>
-              ) : formMode === 'create' ? (
+              ) : (
                 <div className="inline-form-container">
                   <h4>{formMode === 'edit' ? 'Edit PING' : 'Create New PING'}</h4>
                   <form onSubmit={handleSave}>
