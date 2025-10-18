@@ -13,7 +13,8 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, 
   useEffect(() => {
     if (!map) return;
 
-    const color = isActive ? 'gold' : '#95a5a6';
+    // Active markers: gold fill, inactive markers: gold stroke with no fill
+    const color = 'gold';
     const starPath = "M344.13,6.42l80.5,217.54c3.64,9.83,11.39,17.58,21.22,21.22l217.54,80.5c8.56,3.17,8.56,15.28,0,18.45l-217.54,80.5c-9.83,3.64-17.58,11.39-21.22,21.22l-80.5,217.54c-3.17,8.56-15.28,8.56-18.45,0l-80.5-217.54c-3.64-9.83-11.39-17.58-21.22-21.22L6.42,344.13c-8.56-3.17-8.56-15.28,0-18.45l217.54-80.5c9.83-3.64,17.58-11.39,21.22-21.22L325.68,6.42c3.17-8.56,15.28,8.56,18.45,0Z";
 
     // Create custom overlay
@@ -53,7 +54,17 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, 
         star.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
         star.setAttribute('viewBox', '0 0 669.82 669.82');
         const starPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        starPathEl.setAttribute('fill', color);
+        
+        // Active: gold fill, Inactive: gold stroke with no fill
+        if (isActive) {
+          starPathEl.setAttribute('fill', color);
+          starPathEl.setAttribute('stroke', 'none');
+        } else {
+          starPathEl.setAttribute('fill', 'none');
+          starPathEl.setAttribute('stroke', color);
+          starPathEl.setAttribute('stroke-width', '12');
+        }
+        
         starPathEl.setAttribute('fill-rule', 'evenodd');
         starPathEl.setAttribute('d', starPath);
         star.appendChild(starPathEl);
