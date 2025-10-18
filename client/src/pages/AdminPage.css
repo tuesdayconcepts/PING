@@ -202,9 +202,9 @@
   transition: none;
 }
 
-/* Enable transition after initial render */
+/* Enable transition after initial render - faster to sync with scroll */
 .tab-indicator.ready {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease-out;
 }
 
 /* Drag Handle - Hidden on Desktop */
