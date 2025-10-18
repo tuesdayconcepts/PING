@@ -194,9 +194,15 @@
   height: calc(100% - 16px);
   background: gold;
   border-radius: 20px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
   top: 8px;
+  /* No transition by default to prevent animation on initial load */
+  transition: none;
+}
+
+/* Enable transition after initial render */
+.tab-indicator.ready {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Drag Handle - Hidden on Desktop */

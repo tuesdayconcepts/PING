@@ -59,6 +59,7 @@ function AdminPage() {
   
   // State for sliding tab indicator
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const [indicatorReady, setIndicatorReady] = useState(false);
   
   // Access Control state
   const [adminUsers, setAdminUsers] = useState<Array<{id: string, username: string, role: 'admin' | 'editor', createdAt: string}>>([]);
@@ -89,21 +90,16 @@ function AdminPage() {
 
   // Calculate active tab position and width for sliding indicator
   useEffect(() => {
-    // Use setTimeout to ensure DOM is fully rendered
-    const calculateIndicator = () => {
-      const activeButton = tabsRef.current?.querySelector('.tab-btn.active');
-      if (activeButton) {
-        const { offsetLeft, offsetWidth } = activeButton as HTMLElement;
-        setIndicatorStyle({ left: offsetLeft, width: offsetWidth });
+    const activeButton = tabsRef.current?.querySelector('.tab-btn.active');
+    if (activeButton) {
+      const { offsetLeft, offsetWidth } = activeButton as HTMLElement;
+      setIndicatorStyle({ left: offsetLeft, width: offsetWidth });
+      // Enable transition after first calculation
+      if (!indicatorReady) {
+        setIndicatorReady(true);
       }
-    };
-
-    // Calculate immediately and after a short delay to catch late renders
-    calculateIndicator();
-    const timer = setTimeout(calculateIndicator, 100);
-
-    return () => clearTimeout(timer);
-  }, [activeTab, isAuthenticated]);
+    }
+  }, [activeTab, isAuthenticated, indicatorReady]);
 
   // Login handler
   const handleLogin = async (e: React.FormEvent) => {
@@ -689,7 +685,7 @@ function AdminPage() {
         {/* Tabs */}
         <div className="admin-tabs" ref={tabsRef}>
           <div 
-            className="tab-indicator" 
+            className={`tab-indicator ${indicatorReady ? 'ready' : ''}`}
             style={{
               left: `${indicatorStyle.left}px`,
               width: `${indicatorStyle.width}px`
