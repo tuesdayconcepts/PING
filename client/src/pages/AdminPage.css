@@ -207,8 +207,23 @@
   transition: all 0.3s ease-out;
 }
 
-/* Drag Handle - Hidden on Desktop */
+/* Mobile Footer - Hidden on Desktop */
+.mobile-footer {
+  display: none;
+}
+
+/* Desktop Drag Handle - Hidden */
 .drag-handle {
+  display: none;
+}
+
+/* Mobile Drag Handle - Hidden on Desktop */
+.mobile-drag-handle {
+  display: none;
+}
+
+/* Mobile Tabs - Hidden on Desktop */
+.mobile-tabs {
   display: none;
 }
 
@@ -1263,49 +1278,87 @@
     display: none;
   }
 
-  /* Tabs horizontal on mobile - keep same sliding pill design */
-  .admin-tabs {
-    margin: 0 16px 10px 16px;
-    padding: 11px 6px; /* Increased vertical padding for 10px more height */
-    flex-shrink: 0; /* Prevent tabs from being compressed */
+  /* Hide drag handle inside sidebar on mobile */
+  .admin-sidebar .drag-handle {
+    display: none !important;
   }
 
-  /* Hide indicator on mobile until clicked */
-  .tab-indicator:not(.ready) {
-    opacity: 0;
+  /* Hide tabs inside sidebar on mobile */
+  .admin-sidebar .admin-tabs {
+    display: none !important;
   }
 
-  .tab-btn {
-    flex: 1;
-    padding: 10px 12px;
-    font-size: 0.75rem;
-    text-align: center;
-    flex-shrink: 0; /* Prevent buttons from being compressed */
+  /* Show mobile footer */
+  .mobile-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, #0b28ff, transparent);
+    border-top: 1.5px solid #c0c0c021;
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(10px);
   }
 
-  .tab-btn.active {
-    color: #000;
-  }
-  
-  .tab-indicator {
-    flex-shrink: 0; /* Prevent indicator from being compressed */
-  }
-
-  /* Show drag handle on mobile */
-  .drag-handle {
+  /* Mobile Drag Handle */
+  .mobile-drag-handle {
     display: block;
     padding: 10px;
     cursor: pointer;
     text-align: center;
   }
 
-  .handle-bar {
+  .mobile-drag-handle .handle-bar {
     width: 40px;
     height: 4px;
     background: #ffffff63;
     border-radius: 2px;
     margin: 0 auto;
     backdrop-filter: blur(10px);
+  }
+
+  /* Mobile Tabs Styling */
+  .mobile-tabs {
+    display: flex !important;
+    flex-direction: row;
+    gap: 4px;
+    padding: 11px 6px;
+    background: #ffffff1a;
+    border-radius: 50px;
+    margin: 0 16px 10px 16px;
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+    flex-shrink: 0;
+  }
+
+  .mobile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide indicator on mobile until clicked */
+  .mobile-tabs .tab-indicator:not(.ready) {
+    opacity: 0;
+  }
+
+  .mobile-tabs .tab-btn {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 0.75rem;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .mobile-tabs .tab-btn.active {
+    color: #000;
+  }
+  
+  .mobile-tabs .tab-indicator {
+    flex-shrink: 0;
   }
 
   /* Sidebar content on mobile */

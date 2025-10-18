@@ -1290,6 +1290,57 @@ function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* Mobile Footer: Drag Handle + Tabs Combined */}
+      <div className="mobile-footer">
+        {/* Drag Handle */}
+        <div className="mobile-drag-handle" onClick={() => {
+          // If closing drawer, reset form state
+          if (drawerExpanded) {
+            handleCancel();
+          }
+          setDrawerExpanded(!drawerExpanded);
+        }}>
+          <div className="handle-bar"></div>
+        </div>
+
+        {/* Mobile Tabs */}
+        <div className="admin-tabs mobile-tabs">
+          <div 
+            className={`tab-indicator ${indicatorReady ? 'ready' : ''}`}
+            style={{
+              left: `${indicatorStyle.left}px`,
+              width: `${indicatorStyle.width}px`
+            }}
+          />
+          <button 
+            className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
+            onClick={(e) => handleTabClick('active', e)}
+          >
+            Active PINGs
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+            onClick={(e) => handleTabClick('history', e)}
+          >
+            Claimed History
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
+            onClick={(e) => handleTabClick('activity', e)}
+          >
+            Recent Activity
+          </button>
+          {currentUserRole === 'admin' && (
+            <button 
+              className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
+              onClick={(e) => handleTabClick('access', e)}
+            >
+              Access Control
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
