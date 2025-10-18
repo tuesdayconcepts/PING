@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
@@ -19,6 +19,9 @@ function AdminPage() {
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
+  // Ref for create form to enable auto-scroll
+  const createFormRef = useRef<HTMLDivElement>(null);
+  
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsernameInput] = useState('');
@@ -302,6 +305,11 @@ function AdminPage() {
     });
     setImagePreview(null);
     setHasExpiration(false);
+    
+    // Scroll to create form after state updates
+    setTimeout(() => {
+      createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   // Handle map click to set location and open form
@@ -314,6 +322,11 @@ function AdminPage() {
       setFormMode('create');
       setFormOpen(true);
       setSelectedHotspot(null);
+      
+      // Scroll to create form after state updates
+      setTimeout(() => {
+        createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
   };
 
@@ -926,7 +939,7 @@ function AdminPage() {
                   <span>Add New PING</span>
                 </div>
               ) : (
-                <div className="inline-form-container inline-create-form">
+                <div ref={createFormRef} className="inline-form-container inline-create-form">
                   <h4>Create New PING</h4>
                   <form onSubmit={handleSave}>
                     <div className="form-group">
