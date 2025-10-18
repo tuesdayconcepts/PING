@@ -692,13 +692,8 @@ function AdminPage() {
           </button>
         </div>
 
-        {/* Mobile drag handle */}
-        <div className="drag-handle" onClick={() => setDrawerExpanded(!drawerExpanded)}>
-          <div className="handle-bar"></div>
-        </div>
-
-        {/* Tabs */}
-        <div className="admin-tabs" ref={tabsRef}>
+        {/* Desktop Tabs */}
+        <div className="admin-tabs desktop-tabs" ref={tabsRef}>
           <div 
             className={`tab-indicator ${indicatorReady ? 'ready' : ''}`}
             style={{
@@ -1281,6 +1276,51 @@ function AdminPage() {
                 )}
               </div>
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Footer: Drag Handle + Tabs Combined */}
+      <div className="mobile-footer">
+        {/* Drag Handle */}
+        <div className="drag-handle" onClick={() => setDrawerExpanded(!drawerExpanded)}>
+          <div className="handle-bar"></div>
+        </div>
+
+        {/* Mobile Tabs */}
+        <div className="admin-tabs mobile-tabs">
+          <div 
+            className={`tab-indicator ${indicatorReady ? 'ready' : ''}`}
+            style={{
+              left: `${indicatorStyle.left}px`,
+              width: `${indicatorStyle.width}px`
+            }}
+          />
+          <button 
+            className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
+            onClick={(e) => handleTabClick('active', e)}
+          >
+            Active PINGs
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+            onClick={(e) => handleTabClick('history', e)}
+          >
+            Claimed History
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
+            onClick={(e) => handleTabClick('activity', e)}
+          >
+            Recent Activity
+          </button>
+          {currentUserRole === 'admin' && (
+            <button 
+              className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
+              onClick={(e) => handleTabClick('access', e)}
+            >
+              Access Control
+            </button>
           )}
         </div>
       </div>
