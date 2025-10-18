@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift } from 'lucide-react';
+import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -733,8 +733,19 @@ function AdminPage() {
                           {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}
                         </p>
                         <div className="hotspot-actions">
-                          <button onClick={() => handleEdit(hotspot)} className="action-icon-btn" aria-label="Edit PING">
-                            <SquarePen size={18} />
+                          <button 
+                            onClick={() => {
+                              // If this hotspot's form is open, close it; otherwise open it
+                              if (formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id) {
+                                handleCancel();
+                              } else {
+                                handleEdit(hotspot);
+                              }
+                            }} 
+                            className="action-icon-btn" 
+                            aria-label={formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id ? 'Close Edit Form' : 'Edit PING'}
+                          >
+                            {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id ? <X size={18} /> : <SquarePen size={18} />}
                           </button>
                           <button 
                             onClick={() => handleCopyUrl(hotspot.id, nfcUrl)} 
