@@ -1221,7 +1221,7 @@
     bottom: 0;
     width: 100%;
     height: auto;
-    max-height: 110px; /* Collapsed: show drag handle + tabs */
+    max-height: 120px; /* Collapsed: show drag handle + tabs */
     border-right: none;
     border-top: 1px solid #2a2a2a;
     transition: max-height 0.3s ease;
@@ -1246,7 +1246,7 @@
   /* Tabs horizontal on mobile - keep same sliding pill design */
   .admin-tabs {
     margin: 0 16px;
-    padding: 6px;
+    padding: 11px 6px; /* Increased vertical padding for 10px more height */
     flex-shrink: 0; /* Prevent tabs from being compressed */
   }
 
