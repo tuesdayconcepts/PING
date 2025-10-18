@@ -660,12 +660,17 @@
 /* Hotspot Prize */
 .hotspot-prize {
   color: #fff;
-  font-size: 1.2rem;
+  font-size: 0.95rem;
   margin: 0;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+}
+
+.hotspot-prize svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Add PING Card */
@@ -794,7 +799,7 @@
 
 .hotspot-actions {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -809,6 +814,11 @@
   align-items: center;
   justify-content: center;
   position: relative;
+}
+
+.action-icon-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .action-icon-btn svg {
