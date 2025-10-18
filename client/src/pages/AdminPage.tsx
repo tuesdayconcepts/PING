@@ -693,7 +693,13 @@ function AdminPage() {
         </div>
 
         {/* Mobile drag handle */}
-        <div className="drag-handle" onClick={() => setDrawerExpanded(!drawerExpanded)}>
+        <div className="drag-handle" onClick={() => {
+          // If closing drawer, reset form state
+          if (drawerExpanded) {
+            handleCancel();
+          }
+          setDrawerExpanded(!drawerExpanded);
+        }}>
           <div className="handle-bar"></div>
         </div>
 
