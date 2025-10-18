@@ -660,7 +660,7 @@
 /* Hotspot Prize */
 .hotspot-prize {
   color: #fff;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   margin: 0;
   font-weight: 600;
   display: flex;
@@ -669,8 +669,8 @@
 }
 
 .hotspot-prize svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 /* Add PING Card */
