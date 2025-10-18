@@ -1260,6 +1260,11 @@
     flex-shrink: 0; /* Prevent tabs from being compressed */
   }
 
+  /* Hide indicator on mobile until clicked */
+  .tab-indicator:not(.ready) {
+    opacity: 0;
+  }
+
   .tab-btn {
     flex: 1;
     padding: 10px 12px;
