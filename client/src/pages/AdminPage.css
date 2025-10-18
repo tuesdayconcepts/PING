@@ -1226,7 +1226,7 @@
   /* Map fills screen on mobile */
   .admin-map-container {
     left: 0;
-    top: 60px; /* Account for mobile top bar */
+    /* top: 60px; */
     right: 0;
     bottom: 0;
   }
