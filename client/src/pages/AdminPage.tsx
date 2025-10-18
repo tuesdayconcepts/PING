@@ -763,17 +763,155 @@ function AdminPage() {
                           </button>
                         </div>
                       )}
+                      
+                      {/* Inline Edit Form - Show under this hotspot if it's being edited */}
+                      {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id && (
+                        <div className="inline-form-container" style={{ marginTop: '15px' }}>
+                          <form onSubmit={handleSave}>
+                            <div className="form-group">
+                              <label htmlFor="title">Title *</label>
+                              <input
+                                type="text"
+                                id="title"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleInputChange}
+                                required
+                              />
+                            </div>
+
+                            <div className="form-row">
+                              <div className="form-group">
+                                <label htmlFor="lat">Latitude *</label>
+                                <input
+                                  type="number"
+                                  id="lat"
+                                  name="lat"
+                                  value={formData.lat}
+                                  onChange={handleInputChange}
+                                  step="0.000001"
+                                  min="-90"
+                                  max="90"
+                                  required
+                                />
+                              </div>
+                              <div className="form-group">
+                                <label htmlFor="lng">Longitude *</label>
+                                <input
+                                  type="number"
+                                  id="lng"
+                                  name="lng"
+                                  value={formData.lng}
+                                  onChange={handleInputChange}
+                                  step="0.000001"
+                                  min="-180"
+                                  max="180"
+                                  required
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="form-hint-map">
+                              Tip: Click on the map to select location
+                            </div>
+
+                            <div className="form-group">
+                              <label htmlFor="prize">Prize (SOL)</label>
+                              <input
+                                type="number"
+                                id="prize"
+                                name="prize"
+                                value={formData.prize}
+                                onChange={handleInputChange}
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                autoComplete="off"
+                                required
+                              />
+                            </div>
+
+                            <div className="form-group">
+                              <label htmlFor="privateKey">Solana Private Key (Optional)</label>
+                              <input
+                                type="password"
+                                id="privateKey"
+                                name="privateKey"
+                                value={formData.privateKey}
+                                onChange={handleInputChange}
+                                placeholder="Leave blank to keep existing key"
+                                autoComplete="new-password"
+                              />
+                              <small className="form-hint">
+                                Only enter a new key if you want to replace the existing one
+                              </small>
+                            </div>
+
+                            <div className="form-group checkbox">
+                              <label>
+                                <input
+                                  type="checkbox"
+                                  checked={hasExpiration}
+                                  onChange={(e) => setHasExpiration(e.target.checked)}
+                                />
+                                Set Expiration Date
+                              </label>
+                            </div>
+
+                            {hasExpiration && (
+                              <div className="form-group">
+                                <label htmlFor="endDate">Expiration Date & Time</label>
+                                <input
+                                  type="datetime-local"
+                                  id="endDate"
+                                  name="endDate"
+                                  value={formData.endDate}
+                                  onChange={handleInputChange}
+                                  required={hasExpiration}
+                                />
+                              </div>
+                            )}
+
+                            <div className="form-group">
+                              <label htmlFor="imageUrl">Image URL (Optional)</label>
+                              <input
+                                type="url"
+                                id="imageUrl"
+                                name="imageUrl"
+                                value={formData.imageUrl}
+                                onChange={handleInputChange}
+                                placeholder="https://example.com/image.jpg"
+                              />
+                            </div>
+
+                            {imagePreview && (
+                              <div className="image-preview">
+                                <img src={imagePreview} alt="Preview" />
+                              </div>
+                            )}
+
+                            <div className="form-actions">
+                              <button type="submit" className="save-btn">
+                                Save Changes
+                              </button>
+                              <button type="button" className="cancel-btn" onClick={handleCancelForm}>
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
 
-              {/* Add New PING Card / Inline Form */}
-              {!formOpen ? (
+              {/* Add New PING Card / Inline Form - Only show for create mode */}
+              {!formOpen || formMode === 'edit' ? (
                 <div className="add-ping-card" onClick={handleOpenForm}>
                   <div className="plus-icon">+</div>
                   <span>Add New PING</span>
                 </div>
-              ) : (
+              ) : formMode === 'create' ? (
                 <div className="inline-form-container">
                   <h4>{formMode === 'edit' ? 'Edit PING' : 'Create New PING'}</h4>
                   <form onSubmit={handleSave}>
