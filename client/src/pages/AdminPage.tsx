@@ -339,7 +339,7 @@ function AdminPage() {
       endDate: hasExpiry ? hotspot.endDate.slice(0, 16) : '',
       active: hotspot.active,
       imageUrl: hotspot.imageUrl || '',
-      privateKey: '', // Don't populate private key on edit for security
+      privateKey: hotspot.privateKey || '', // Show existing key (encrypted display from backend)
     });
     setImagePreview(hotspot.imageUrl || null);
     // Don't center map when editing - let user keep current view
@@ -827,7 +827,7 @@ function AdminPage() {
                             </div>
 
                             <div className="form-group">
-                              <label htmlFor="prize">Prize (SOL) (Optional)</label>
+                              <label htmlFor="prize">Prize (SOL) *</label>
                               <input
                                 type="number"
                                 id="prize"
@@ -839,20 +839,22 @@ function AdminPage() {
                                 placeholder="0.00"
                                 autoComplete="off"
                                 data-form-type="other"
+                                required
                               />
                             </div>
 
                             <div className="form-group">
-                              <label htmlFor="privateKey">Solana Private Key (Optional)</label>
+                              <label htmlFor="privateKey">Solana Private Key *</label>
                               <input
                                 type="text"
                                 id="privateKey"
                                 name="privateKey"
                                 value={formData.privateKey}
                                 onChange={handleInputChange}
-                                placeholder="Leave blank to keep existing key"
+                                placeholder="Current key will remain if not changed"
                                 autoComplete="off"
                                 data-form-type="other"
+                                required
                               />
                               <small className="form-hint">
                                 Only enter a new key if you want to replace the existing one
@@ -975,7 +977,7 @@ function AdminPage() {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="prize">Prize (SOL)</label>
+                      <label htmlFor="prize">Prize (SOL) *</label>
                       <input
                         type="number"
                         id="prize"
@@ -992,7 +994,7 @@ function AdminPage() {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="privateKey">Solana Private Key</label>
+                      <label htmlFor="privateKey">Solana Private Key *</label>
                       <input
                         type="text"
                         id="privateKey"
