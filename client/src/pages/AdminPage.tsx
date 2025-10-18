@@ -894,7 +894,7 @@ function AdminPage() {
                               <button type="submit" className="save-btn">
                                 Save Changes
                               </button>
-                              <button type="button" className="cancel-btn" onClick={handleCancelForm}>
+                              <button type="button" className="cancel-btn" onClick={handleCancel}>
                                 Cancel
                               </button>
                             </div>
@@ -913,7 +913,7 @@ function AdminPage() {
                 </div>
               ) : (
                 <div className="inline-form-container">
-                  <h4>{formMode === 'edit' ? 'Edit PING' : 'Create New PING'}</h4>
+                  <h4>Create New PING</h4>
                   <form onSubmit={handleSave}>
                     <div className="form-group">
                       <label htmlFor="title">Title *</label>
@@ -979,21 +979,19 @@ function AdminPage() {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="privateKey">Solana Private Key {formMode === 'edit' && '(Optional)'}</label>
+                      <label htmlFor="privateKey">Solana Private Key</label>
                       <input
                         type="password"
                         id="privateKey"
                         name="privateKey"
                         value={formData.privateKey}
                         onChange={handleInputChange}
-                        placeholder={formMode === 'edit' ? 'Leave blank to keep existing key' : 'Enter private key (encrypted in database)'}
+                        placeholder="Enter private key (encrypted in database)"
                         autoComplete="new-password"
-                        required={formMode === 'create'}
+                        required
                       />
                       <small className="form-hint">
-                        {formMode === 'edit' 
-                          ? 'Only enter a new key if you want to replace the existing one' 
-                          : 'This will be encrypted and revealed only when claim is approved'}
+                        This will be encrypted and revealed only when claim is approved
                       </small>
                     </div>
 
@@ -1063,7 +1061,7 @@ function AdminPage() {
 
                     <div className="form-actions">
                       <button type="submit" className="save-btn">
-                        {formMode === 'edit' ? 'Update' : 'Create'} PING
+                        Create PING
                       </button>
                       <button type="button" onClick={handleCancel} className="cancel-btn">
                         Cancel
