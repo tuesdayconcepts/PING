@@ -1202,6 +1202,7 @@
 
   .mobile-top-bar .admin-logo {
     height: 40px;
+    padding-top: 5px;
   }
 
   /* Map fills screen on mobile */
