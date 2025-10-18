@@ -628,7 +628,7 @@ function AdminPage() {
                   key={hotspot.id}
                   position={{ lat: hotspot.lat, lng: hotspot.lng }}
                   isActive={index === 0} // First in queue is active
-                  onClick={() => {}}
+                  onClick={() => handleEdit(hotspot)} // Open edit form on click
                   map={adminMapInstance || undefined}
                 />
               ))}
