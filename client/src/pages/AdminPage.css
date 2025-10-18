@@ -847,6 +847,11 @@
   cursor: inherit !important;
 }
 
+/* Show pointer cursor when hovering over pings */
+.admin-map .pulse-marker {
+  cursor: pointer !important;
+}
+
 /* Keep closed hand cursor while dragging */
 .admin-map:active {
   cursor: grabbing !important;
