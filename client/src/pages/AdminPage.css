@@ -1221,11 +1221,13 @@
     bottom: 0;
     width: 100%;
     height: auto;
-    max-height: 120px; /* Collapsed: show drag handle + tabs */
+    max-height: 130px; /* Collapsed: show drag handle + tabs */
     border-right: none;
     border-top: 1px solid #2a2a2a;
     transition: max-height 0.3s ease;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .admin-sidebar.expanded {
@@ -1245,6 +1247,7 @@
   .admin-tabs {
     margin: 15px;
     padding: 6px;
+    flex-shrink: 0; /* Prevent tabs from being compressed */
   }
 
   .tab-btn {
@@ -1252,10 +1255,15 @@
     padding: 10px 12px;
     font-size: 0.75rem;
     text-align: center;
+    flex-shrink: 0; /* Prevent buttons from being compressed */
   }
 
   .tab-btn.active {
     color: #000;
+  }
+  
+  .tab-indicator {
+    flex-shrink: 0; /* Prevent indicator from being compressed */
   }
 
   /* Show drag handle on mobile */
@@ -1279,6 +1287,8 @@
     padding: 16px;
     max-height: calc(100vh - 200px);
     overflow-y: auto;
+    flex: 1;
+    min-height: 0; /* Allow content to shrink when collapsed */
   }
 
   /* Form and content adjustments */
