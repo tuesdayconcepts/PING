@@ -767,12 +767,7 @@
 }
 
 .action-icon-btn:hover {
-  color: #3498db;
   transform: translateY(-1px);
-}
-
-.action-icon-btn:nth-child(2):hover {
-  color: #ffd700;
 }
 
 .action-icon-btn:nth-child(3):hover {
