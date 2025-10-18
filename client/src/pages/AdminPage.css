@@ -842,6 +842,20 @@
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="rgba(255,255,255,0.9)" stroke="rgba(0,0,0,0.5)" stroke-width="1"/><line x1="16" y1="8" x2="16" y2="24" stroke="rgba(0,0,0,0.7)" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="16" x2="24" y2="16" stroke="rgba(0,0,0,0.7)" stroke-width="2" stroke-linecap="round"/></svg>') 16 16, crosshair;
 }
 
+/* Override Google Maps default cursors */
+.admin-map div {
+  cursor: inherit !important;
+}
+
+/* Keep closed hand cursor while dragging */
+.admin-map:active {
+  cursor: grabbing !important;
+}
+
+.admin-map:active div {
+  cursor: grabbing !important;
+}
+
 /* Move Leaflet controls to bottom right in admin map */
 .admin-map .leaflet-top {
   top: auto;
