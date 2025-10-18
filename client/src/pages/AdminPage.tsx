@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Copy, Check, Trash2, MapPin } from 'lucide-react';
+import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -728,7 +728,10 @@ function AdminPage() {
                         </span>
                       </div>
                       <div className="hotspot-footer">
-                        <p className="hotspot-prize">Prize: {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}</p>
+                        <p className="hotspot-prize">
+                          <Gift size={16} />
+                          {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}
+                        </p>
                         <div className="hotspot-actions">
                           <button onClick={() => handleEdit(hotspot)} className="action-icon-btn" aria-label="Edit PING">
                             <SquarePen size={18} />

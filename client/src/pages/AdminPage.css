@@ -630,6 +630,9 @@
   font-size: 0.9rem;
   margin: 0;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Add PING Card */
