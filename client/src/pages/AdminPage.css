@@ -159,6 +159,7 @@
   overflow-y: hidden;
   scrollbar-width: none; /* Hide scrollbar */
   border: 2px solid #a6a6a612;
+  scroll-behavior: smooth; /* Smooth auto-scrolling */
 }
 
 .admin-tabs::-webkit-scrollbar {

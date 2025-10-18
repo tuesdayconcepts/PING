@@ -101,6 +101,20 @@ function AdminPage() {
     }
   }, [activeTab, isAuthenticated, indicatorReady]);
 
+  // Handle tab click with auto-scroll
+  const handleTabClick = (tab: 'active' | 'history' | 'activity' | 'access', event: React.MouseEvent<HTMLButtonElement>) => {
+    setActiveTab(tab);
+    setDrawerExpanded(true);
+    
+    // Scroll clicked tab into view
+    const button = event.currentTarget;
+    button.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center'
+    });
+  };
+
   // Login handler
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -693,38 +707,26 @@ function AdminPage() {
           />
           <button 
             className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('active');
-              setDrawerExpanded(true); // Expand on mobile when tab clicked
-            }}
+            onClick={(e) => handleTabClick('active', e)}
           >
             Active PINGs
           </button>
           <button 
             className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('history');
-              setDrawerExpanded(true);
-            }}
+            onClick={(e) => handleTabClick('history', e)}
           >
             Claimed History
           </button>
           <button 
             className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('activity');
-              setDrawerExpanded(true);
-            }}
+            onClick={(e) => handleTabClick('activity', e)}
           >
             Recent Activity
           </button>
           {currentUserRole === 'admin' && (
             <button 
               className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('access');
-                setDrawerExpanded(true);
-              }}
+              onClick={(e) => handleTabClick('access', e)}
             >
               Access Control
             </button>
