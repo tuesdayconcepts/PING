@@ -355,6 +355,7 @@ function AdminPage() {
       setFormMode('create');
       setFormOpen(true);
       setSelectedHotspot(null);
+      setDrawerExpanded(true); // Expand drawer on mobile
       
       // Scroll to create form after state updates
       setTimeout(() => {
