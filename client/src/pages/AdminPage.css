@@ -686,6 +686,22 @@
   margin-top: 0;
 }
 
+/* Create Form Specific Styles */
+.inline-create-form {
+  padding: 25px 25px;
+  border: 2px solid #d3d3d314;
+  border-radius: 25px;
+  background: #ffffff30;
+  /* transition: all .2s; */
+  /* display: flex; */
+  flex-direction: column;
+  /* gap: 15px; */
+}
+
+.inline-create-form h4 {
+  margin-top: 0;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
