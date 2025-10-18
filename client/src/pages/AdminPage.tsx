@@ -89,12 +89,21 @@ function AdminPage() {
 
   // Calculate active tab position and width for sliding indicator
   useEffect(() => {
-    const activeButton = tabsRef.current?.querySelector('.tab-btn.active');
-    if (activeButton) {
-      const { offsetLeft, offsetWidth } = activeButton as HTMLElement;
-      setIndicatorStyle({ left: offsetLeft, width: offsetWidth });
-    }
-  }, [activeTab]);
+    // Use setTimeout to ensure DOM is fully rendered
+    const calculateIndicator = () => {
+      const activeButton = tabsRef.current?.querySelector('.tab-btn.active');
+      if (activeButton) {
+        const { offsetLeft, offsetWidth } = activeButton as HTMLElement;
+        setIndicatorStyle({ left: offsetLeft, width: offsetWidth });
+      }
+    };
+
+    // Calculate immediately and after a short delay to catch late renders
+    calculateIndicator();
+    const timer = setTimeout(calculateIndicator, 100);
+
+    return () => clearTimeout(timer);
+  }, [activeTab, isAuthenticated]);
 
   // Login handler
   const handleLogin = async (e: React.FormEvent) => {
