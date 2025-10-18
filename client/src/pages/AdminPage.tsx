@@ -729,7 +729,7 @@ function AdminPage() {
                       </div>
                       <div className="hotspot-footer">
                         <p className="hotspot-prize">
-                          <Gift size={16} />
+                          <Gift size={20} />
                           {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}
                         </p>
                         <div className="hotspot-actions">
