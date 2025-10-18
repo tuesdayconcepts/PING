@@ -373,6 +373,12 @@
   width: 80px;
   height: 80px;
   z-index: 500;
+  transition: transform 0.3s ease;
+}
+
+.pulse-marker:hover {
+  transform: scale(1.2);
+  z-index: 501;
 }
 
 .pulse-marker-star {
