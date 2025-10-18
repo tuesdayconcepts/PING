@@ -60,6 +60,11 @@
   transition: all .3s;
 }
 
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #ffffff80;
+}
+
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;

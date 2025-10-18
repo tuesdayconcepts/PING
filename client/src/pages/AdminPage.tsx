@@ -851,7 +851,6 @@ function AdminPage() {
                                 value={formData.privateKey}
                                 onChange={handleInputChange}
                                 placeholder="Leave blank to keep existing key"
-                                autoComplete="new-password"
                               />
                               <small className="form-hint">
                                 Only enter a new key if you want to replace the existing one
@@ -998,7 +997,6 @@ function AdminPage() {
                         value={formData.privateKey}
                         onChange={handleInputChange}
                         placeholder="Enter private key (encrypted in database)"
-                        autoComplete="new-password"
                         required
                       />
                       <small className="form-hint">
