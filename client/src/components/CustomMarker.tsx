@@ -62,7 +62,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, 
         } else {
           starPathEl.setAttribute('fill', 'none');
           starPathEl.setAttribute('stroke', color);
-          starPathEl.setAttribute('stroke-width', '12');
+          starPathEl.setAttribute('stroke-width', '40');
         }
         
         starPathEl.setAttribute('fill-rule', 'evenodd');
