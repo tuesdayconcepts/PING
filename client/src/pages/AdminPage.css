@@ -480,7 +480,7 @@
   transition: all .2s;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 15px;
 }
 
 .hotspot-item.active-hotspot {
@@ -507,9 +507,11 @@
 
 .hotspot-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
+  border-bottom: solid 1.5px #ffffff12;
+  padding-bottom: 15px;
 }
 
 .header-title-section {
@@ -624,9 +626,10 @@
 
 /* Hotspot Prize */
 .hotspot-prize {
-  color: #ffffff;
-  font-size: .85rem;
+  color: #fff;
+  font-size: 0.9rem;
   margin: 0;
+  font-weight: 600;
 }
 
 /* Add PING Card */
