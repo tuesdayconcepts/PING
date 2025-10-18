@@ -622,11 +622,12 @@ function AdminPage() {
             {/* Show markers only for active and queued (unclaimed) hotspots */}
             {hotspots
               .filter(hotspot => hotspot.claimStatus !== 'claimed')
+              .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0)) // Sort by queue position
               .map((hotspot, index) => (
                 <CustomMarker
                   key={hotspot.id}
                   position={{ lat: hotspot.lat, lng: hotspot.lng }}
-                  isActive={index === 0} // First unclaimed hotspot is active
+                  isActive={index === 0} // First in queue is active
                   onClick={() => {}}
                   map={adminMapInstance || undefined}
                 />
