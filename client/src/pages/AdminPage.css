@@ -507,9 +507,15 @@
 
 .hotspot-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+}
+
+.header-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .hotspot-location {

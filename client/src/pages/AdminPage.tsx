@@ -714,17 +714,19 @@ function AdminPage() {
                       className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''}`}
                     >
                       <div className="hotspot-header">
-                        <strong>{hotspot.title}</strong>
+                        <div className="header-title-section">
+                          <strong>{hotspot.title}</strong>
+                          {locationNames[hotspot.id] && (
+                            <div className="hotspot-location">
+                              <MapPin size={12} />
+                              <span>{locationNames[hotspot.id]}</span>
+                            </div>
+                          )}
+                        </div>
                         <span className={`status-badge ${hasPendingClaim ? 'badge-pending' : (isActive ? 'badge-active' : 'badge-queued')}`}>
                           {hasPendingClaim ? 'Pending Claim' : (isActive ? 'Active' : `Queue #${displayPosition}`)}
                         </span>
                       </div>
-                      {locationNames[hotspot.id] && (
-                        <div className="hotspot-location">
-                          <MapPin size={12} />
-                          <span>{locationNames[hotspot.id]}</span>
-                        </div>
-                      )}
                       <p className="hotspot-prize">Prize: {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}</p>
                       <div className="hotspot-actions">
                         <button onClick={() => handleEdit(hotspot)} className="action-icon-btn" aria-label="Edit PING">
