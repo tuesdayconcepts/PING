@@ -846,13 +846,13 @@ function AdminPage() {
                             <div className="form-group">
                               <label htmlFor="privateKey">Solana Private Key (Optional)</label>
                               <input
-                                type="password"
+                                type="text"
                                 id="privateKey"
                                 name="privateKey"
                                 value={formData.privateKey}
                                 onChange={handleInputChange}
                                 placeholder="Leave blank to keep existing key"
-                                autoComplete="new-password"
+                                autoComplete="off"
                                 data-form-type="other"
                               />
                               <small className="form-hint">
@@ -995,13 +995,13 @@ function AdminPage() {
                     <div className="form-group">
                       <label htmlFor="privateKey">Solana Private Key</label>
                       <input
-                        type="password"
+                        type="text"
                         id="privateKey"
                         name="privateKey"
                         value={formData.privateKey}
                         onChange={handleInputChange}
                         placeholder="Enter private key (encrypted in database)"
-                        autoComplete="new-password"
+                        autoComplete="off"
                         data-form-type="other"
                         required
                       />
