@@ -70,6 +70,21 @@ function AdminPage() {
   const [locationNames, setLocationNames] = useState<Record<string, string>>({});
   const [adminMapInstance, setAdminMapInstance] = useState<google.maps.Map | null>(null);
 
+  // Set theme color for mobile Safari chrome
+  useEffect(() => {
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', '#000e82');
+    }
+    
+    // Reset to default on unmount
+    return () => {
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', '#000000');
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (getToken()) {
       setIsAuthenticated(true);
