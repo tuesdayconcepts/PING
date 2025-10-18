@@ -727,21 +727,23 @@ function AdminPage() {
                           {hasPendingClaim ? 'Pending Claim' : (isActive ? 'Active' : `Queue #${displayPosition}`)}
                         </span>
                       </div>
-                      <p className="hotspot-prize">Prize: {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}</p>
-                      <div className="hotspot-actions">
-                        <button onClick={() => handleEdit(hotspot)} className="action-icon-btn" aria-label="Edit PING">
-                          <SquarePen size={18} />
-                        </button>
-                        <button 
-                          onClick={() => handleCopyUrl(hotspot.id, nfcUrl)} 
-                          className="action-icon-btn"
-                          aria-label={copiedId === hotspot.id ? 'Copied!' : 'Copy PING URL'}
-                        >
-                          {copiedId === hotspot.id ? <Check size={18} /> : <Copy size={18} />}
-                        </button>
-                        <button onClick={() => handleDelete(hotspot.id)} className="action-icon-btn" aria-label="Delete PING">
-                          <Trash2 size={18} />
-                        </button>
+                      <div className="hotspot-footer">
+                        <p className="hotspot-prize">Prize: {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}</p>
+                        <div className="hotspot-actions">
+                          <button onClick={() => handleEdit(hotspot)} className="action-icon-btn" aria-label="Edit PING">
+                            <SquarePen size={18} />
+                          </button>
+                          <button 
+                            onClick={() => handleCopyUrl(hotspot.id, nfcUrl)} 
+                            className="action-icon-btn"
+                            aria-label={copiedId === hotspot.id ? 'Copied!' : 'Copy PING URL'}
+                          >
+                            {copiedId === hotspot.id ? <Check size={18} /> : <Copy size={18} />}
+                          </button>
+                          <button onClick={() => handleDelete(hotspot.id)} className="action-icon-btn" aria-label="Delete PING">
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
                       </div>
                       
                       {/* Inline Pending Claim Details */}

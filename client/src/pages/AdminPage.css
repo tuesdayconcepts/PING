@@ -515,7 +515,6 @@
 .header-title-section {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
 .hotspot-location {
@@ -524,11 +523,17 @@
   gap: 6px;
   color: #ffffffa3;
   font-size: 0.8rem;
-  margin: 4px 0;
 }
 
 .hotspot-location svg {
   flex-shrink: 0;
+}
+
+.hotspot-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .status-badge {
