@@ -1242,7 +1242,11 @@
   }
 
   .inline-form-container {
-    padding: 16px;
+    /* padding: 16px; */
+  }
+
+  .hotspot-item {
+    padding: 25px;
   }
 }
 
