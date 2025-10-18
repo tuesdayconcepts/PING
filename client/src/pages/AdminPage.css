@@ -677,11 +677,13 @@
 
 /* Inline Form Container */
 .inline-form-container {
-  padding: 25px;
-  border: 2px solid #d3d3d31f;
-  border-radius: 25px;
-  background: #ffffff30;
+  padding: 20px 0;
+  /* border: 2px solid #d3d3d31f; */
+  /* border-radius: 25px; */
+  /* background: #ffffff30; */
   animation: expandIn .3s ease;
+  border-top: dashed 1.5px #ffffff21;
+  margin-top: 0;
 }
 
 @keyframes fadeIn {
