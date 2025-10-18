@@ -342,8 +342,7 @@ function AdminPage() {
       privateKey: '', // Don't populate private key on edit for security
     });
     setImagePreview(hotspot.imageUrl || null);
-    const position = { lat: hotspot.lat, lng: hotspot.lng };
-    setMapCenter(position); // Center map on the hotspot being edited
+    // Don't center map when editing - let user keep current view
   };
 
   // Save hotspot (create or update)
