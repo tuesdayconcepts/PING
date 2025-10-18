@@ -1224,13 +1224,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background: linear-gradient(to bottom, #0b28ff, transparent);
+    background: linear-gradient(to bottom, #000e82, transparent);
     border-bottom: 1.5px solid #9d9d9d1c;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 110;
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
   }
 
@@ -1296,11 +1297,12 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(to top, #0b28ff, transparent);
+    background: linear-gradient(to top, #000e82, transparent);
     border-top: 1.5px solid #c0c0c021;
     z-index: 101;
     display: flex;
     flex-direction: column;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
   }
 
