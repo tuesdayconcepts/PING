@@ -777,7 +777,7 @@ function AdminPage() {
                       
                       {/* Inline Edit Form - Show under this hotspot if it's being edited */}
                       {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id && (
-                        <div className="inline-form-container" style={{ marginTop: '15px' }}>
+                        <div className="inline-form-container inline-edit-form" style={{ marginTop: '15px' }}>
                           <form onSubmit={handleSave}>
                             <div className="form-group">
                               <label htmlFor="title">Title *</label>
@@ -923,7 +923,7 @@ function AdminPage() {
                   <span>Add New PING</span>
                 </div>
               ) : (
-                <div className="inline-form-container">
+                <div className="inline-form-container inline-create-form">
                   <h4>Create New PING</h4>
                   <form onSubmit={handleSave}>
                     <div className="form-group">
