@@ -838,6 +838,7 @@ function AdminPage() {
                                 min="0"
                                 placeholder="0.00"
                                 autoComplete="off"
+                                data-form-type="other"
                                 required
                               />
                             </div>
@@ -851,6 +852,8 @@ function AdminPage() {
                                 value={formData.privateKey}
                                 onChange={handleInputChange}
                                 placeholder="Leave blank to keep existing key"
+                                autoComplete="new-password"
+                                data-form-type="other"
                               />
                               <small className="form-hint">
                                 Only enter a new key if you want to replace the existing one
@@ -984,6 +987,7 @@ function AdminPage() {
                         min="0"
                         placeholder="0.00"
                         autoComplete="off"
+                        data-form-type="other"
                         required
                       />
                     </div>
@@ -997,6 +1001,8 @@ function AdminPage() {
                         value={formData.privateKey}
                         onChange={handleInputChange}
                         placeholder="Enter private key (encrypted in database)"
+                        autoComplete="new-password"
+                        data-form-type="other"
                         required
                       />
                       <small className="form-hint">
