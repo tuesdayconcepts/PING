@@ -672,6 +672,11 @@ function AdminPage() {
           </button>
         </div>
 
+        {/* Mobile drag handle */}
+        <div className="drag-handle" onClick={() => setDrawerExpanded(!drawerExpanded)}>
+          <div className="handle-bar"></div>
+        </div>
+
         {/* Tabs */}
         <div className="admin-tabs" ref={tabsRef}>
           <div 
@@ -719,11 +724,6 @@ function AdminPage() {
               Access Control
             </button>
           )}
-        </div>
-
-        {/* Mobile drag handle */}
-        <div className="drag-handle" onClick={() => setDrawerExpanded(!drawerExpanded)}>
-          <div className="handle-bar"></div>
         </div>
 
         {/* Tab Content */}

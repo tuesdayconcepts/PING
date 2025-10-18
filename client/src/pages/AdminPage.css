@@ -1221,7 +1221,7 @@
     bottom: 0;
     width: 100%;
     height: auto;
-    max-height: 80px; /* Collapsed: just show tabs */
+    max-height: 120px; /* Collapsed: show drag handle + tabs */
     border-right: none;
     border-top: 1px solid #2a2a2a;
     transition: max-height 0.3s ease;
@@ -1261,10 +1261,9 @@
   /* Show drag handle on mobile */
   .drag-handle {
     display: block;
-    padding: 8px;
+    padding: 10px;
     cursor: pointer;
     text-align: center;
-    border-bottom: 1px solid #2a2a2a;
   }
 
   .handle-bar {
