@@ -21,6 +21,8 @@ function AdminPage() {
 
   // Ref for create form to enable auto-scroll
   const createFormRef = useRef<HTMLDivElement>(null);
+  // Ref for tabs container to track active tab position
+  const tabsRef = useRef<HTMLDivElement>(null);
   
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -55,6 +57,9 @@ function AdminPage() {
   const [drawerExpanded, setDrawerExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
+  // State for sliding tab indicator
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  
   // Access Control state
   const [adminUsers, setAdminUsers] = useState<Array<{id: string, username: string, role: 'admin' | 'editor', createdAt: string}>>([]);
   const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'editor' as 'admin' | 'editor' });
@@ -81,6 +86,15 @@ function AdminPage() {
       return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
+
+  // Calculate active tab position and width for sliding indicator
+  useEffect(() => {
+    const activeButton = tabsRef.current?.querySelector('.tab-btn.active');
+    if (activeButton) {
+      const { offsetLeft, offsetWidth } = activeButton as HTMLElement;
+      setIndicatorStyle({ left: offsetLeft, width: offsetWidth });
+    }
+  }, [activeTab]);
 
   // Login handler
   const handleLogin = async (e: React.FormEvent) => {
@@ -659,7 +673,14 @@ function AdminPage() {
         </div>
 
         {/* Tabs */}
-        <div className="admin-tabs">
+        <div className="admin-tabs" ref={tabsRef}>
+          <div 
+            className="tab-indicator" 
+            style={{
+              left: `${indicatorStyle.left}px`,
+              width: `${indicatorStyle.width}px`
+            }}
+          />
           <button 
             className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
             onClick={() => {

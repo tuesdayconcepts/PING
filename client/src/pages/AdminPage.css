@@ -149,34 +149,55 @@
 /* Tabs in Sidebar */
 .admin-tabs {
   display: flex;
-  flex-direction: column;
-  gap: 0;
-  border-bottom: 1px solid rgba(42, 42, 42, 0.6);
+  flex-direction: row;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  margin: 20px;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Hide scrollbar */
+}
+
+.admin-tabs::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for webkit browsers */
 }
 
 .tab-btn {
-  padding: 16px 24px;
+  padding: 12px 20px;
   background: transparent;
   border: none;
-  border-left: 3px solid transparent;
-  color: #808080;
-  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s;
-  text-align: left;
+  transition: color 0.3s ease;
+  text-align: center;
   white-space: nowrap;
+  border-radius: 20px;
+  z-index: 2;
+  position: relative;
 }
 
 .tab-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .tab-btn.active {
-  color: #ffd700;
-  background: rgba(255, 215, 0, 0.1);
-  border-left-color: #ffd700;
+  color: #000;
+}
+
+/* Sliding indicator */
+.tab-indicator {
+  position: absolute;
+  height: calc(100% - 16px);
+  background: gold;
+  border-radius: 20px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  top: 8px;
 }
 
 /* Drag Handle - Hidden on Desktop */
@@ -1220,24 +1241,21 @@
     display: none;
   }
 
-  /* Tabs horizontal on mobile */
+  /* Tabs horizontal on mobile - keep same sliding pill design */
   .admin-tabs {
-    flex-direction: row;
-    border-bottom: none;
+    margin: 15px;
+    padding: 6px;
   }
 
   .tab-btn {
     flex: 1;
-    padding: 20px 8px;
+    padding: 10px 12px;
     font-size: 0.75rem;
-    border-left: none;
-    border-bottom: 3px solid transparent;
     text-align: center;
   }
 
   .tab-btn.active {
-    border-left: none;
-    border-bottom-color: #ffd700;
+    color: #000;
   }
 
   /* Show drag handle on mobile */
