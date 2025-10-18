@@ -3,7 +3,6 @@
 .admin-page {
   width: 100%;
   min-height: 100vh;
-  background: #0a0a0a;
   color: #e0e0e0;
 }
 
@@ -1191,13 +1190,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background: #1a1a1a;
-    border-bottom: 1px solid #2a2a2a;
+    background: #000e82ad;
+    border-bottom: 1.5px solid #9d9d9d1c;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 110;
+    backdrop-filter: blur(8px);
   }
 
   .mobile-top-bar .admin-logo {
