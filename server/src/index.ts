@@ -391,14 +391,16 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
     // Encrypt private key if provided
     const encryptedPrivateKey = privateKey ? encrypt(sanitizeString(privateKey)) : null;
 
-    // Determine queue position: if there are active unclaimed hotspots, add to queue
-    const activeHotspots = await prisma.hotspot.findMany({
-      where: { queuePosition: 0, claimStatus: 'unclaimed' },
+    // Determine queue position: find the highest queue position and add 1
+    const unclaimedHotspots = await prisma.hotspot.findMany({
+      where: { claimStatus: 'unclaimed' },
+      orderBy: { queuePosition: 'desc' },
+      take: 1,
     });
 
-    const queuePosition = activeHotspots.length > 0 
-      ? (await prisma.hotspot.count()) + 1 
-      : 0;
+    const queuePosition = unclaimedHotspots.length > 0 
+      ? (unclaimedHotspots[0].queuePosition || 0) + 1 
+      : 1; // First hotspot gets position 1
 
     // Create hotspot
     const hotspot = await prisma.hotspot.create({
