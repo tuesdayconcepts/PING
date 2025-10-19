@@ -37,11 +37,11 @@ if [ $? -eq 0 ]; then
         echo ""
         echo "✅ Database setup complete!"
         echo ""
-        echo "🔐 Default admin credentials:"
-        echo "   Username: admin"
-        echo "   Password: admin123"
+        echo "📋 Next steps:"
+        echo "   - Create your first admin user through the admin panel"
+        echo "   - Or use the API to create admin users"
         echo ""
-        echo "🌐 Login at: https://solping.netlify.app/admin"
+        echo "🌐 Access admin panel at: https://solping.netlify.app/admin"
     else
         echo "❌ Seeding failed. Check the errors above."
     fi
