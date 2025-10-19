@@ -523,6 +523,20 @@ app.delete("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
     // Delete hotspot
     await prisma.hotspot.delete({ where: { id } });
 
+    // Reorder queue positions for remaining unclaimed hotspots
+    const unclaimedHotspots = await prisma.hotspot.findMany({
+      where: { claimStatus: 'unclaimed' },
+      orderBy: { queuePosition: 'asc' },
+    });
+
+    // Update queue positions to be sequential: 1, 2, 3...
+    for (let i = 0; i < unclaimedHotspots.length; i++) {
+      await prisma.hotspot.update({
+        where: { id: unclaimedHotspots[i].id },
+        data: { queuePosition: i + 1 },
+      });
+    }
+
     // Log action
     await logAdminAction(
       req.adminId,
