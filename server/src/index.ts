@@ -308,6 +308,14 @@ app.get("/api/hotspots", async (req, res) => {
       orderBy: { queuePosition: "asc" }, // Always order by queue position
     });
 
+    // Debug logging for public API
+    if (!includeInactive) {
+      console.log('Public API - Hotspots returned:', hotspots.length);
+      if (hotspots.length > 0) {
+        console.log('First hotspot:', { id: hotspots[0].id, queuePosition: hotspots[0].queuePosition, active: hotspots[0].active });
+      }
+    }
+
     res.json(hotspots);
   } catch (error) {
     console.error("Get hotspots error:", error);

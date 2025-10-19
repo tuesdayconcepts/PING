@@ -168,6 +168,10 @@ function MapPage() {
 
   useEffect(() => {
     fetchHotspots();
+    
+    // Poll for hotspot updates every 30 seconds
+    const interval = setInterval(fetchHotspots, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Expand certificate after 2 seconds
