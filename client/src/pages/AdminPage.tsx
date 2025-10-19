@@ -102,6 +102,11 @@ function AdminPage() {
         const { offsetLeft, offsetWidth } = desktopButton as HTMLElement;
         desktopTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
         desktopTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
+        
+        // Add ready class to enable transition after first calculation
+        if (!indicatorReady) {
+          desktopTabs.classList.add('indicator-ready');
+        }
       }
       
       // Update mobile tabs
@@ -109,6 +114,11 @@ function AdminPage() {
         const { offsetLeft, offsetWidth } = mobileButton as HTMLElement;
         mobileTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
         mobileTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
+        
+        // Add ready class to enable transition after first calculation
+        if (!indicatorReady) {
+          mobileTabs.classList.add('indicator-ready');
+        }
       }
       
       if (!indicatorReady) {
