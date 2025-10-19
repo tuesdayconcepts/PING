@@ -91,19 +91,28 @@ function AdminPage() {
 
   // Calculate active tab position and width for sliding indicator
   useEffect(() => {
-    // Check both desktop and mobile tabs
-    const desktopButton = tabsRef.current?.querySelector('.tab-btn.active');
-    const mobileButton = mobileTabsRef.current?.querySelector('.tab-btn.active');
-    const activeButton = desktopButton || mobileButton;
-    
-    if (activeButton) {
-      const { offsetLeft, offsetWidth } = activeButton as HTMLElement;
-      setIndicatorStyle({ left: offsetLeft, width: offsetWidth });
-      // Enable transition after first calculation
-      if (!indicatorReady) {
-        setIndicatorReady(true);
+    const calculateIndicator = () => {
+      // Check both desktop and mobile tabs
+      const desktopButton = tabsRef.current?.querySelector('.tab-btn.active');
+      const mobileButton = mobileTabsRef.current?.querySelector('.tab-btn.active');
+      const activeButton = desktopButton || mobileButton;
+      
+      if (activeButton) {
+        const { offsetLeft, offsetWidth } = activeButton as HTMLElement;
+        setIndicatorStyle({ left: offsetLeft, width: offsetWidth });
+        // Enable transition after first calculation
+        if (!indicatorReady) {
+          setIndicatorReady(true);
+        }
       }
-    }
+    };
+
+    // Calculate immediately
+    calculateIndicator();
+
+    // Also recalculate after a short delay to ensure DOM is ready (important for mobile)
+    const timer = setTimeout(calculateIndicator, 100);
+    return () => clearTimeout(timer);
   }, [activeTab, isAuthenticated, indicatorReady]);
 
   // Handle tab click with auto-scroll
