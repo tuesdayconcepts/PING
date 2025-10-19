@@ -911,6 +911,61 @@ app.delete("/api/admin/users/:id", authenticateAdmin, requireAdmin, async (req, 
   }
 });
 
+// ===== TEMPORARY FIX ENDPOINT =====
+// POST /api/admin/fix-queue - Fix queue positions for all unclaimed hotspots (TEMPORARY)
+app.post("/api/admin/fix-queue", authenticateAdmin, async (req: any, res) => {
+  try {
+    console.log('🔧 Fixing queue positions...');
+    
+    // Get all unclaimed hotspots ordered by current queue position
+    const unclaimedHotspots = await prisma.hotspot.findMany({
+      where: { claimStatus: 'unclaimed' },
+      orderBy: [
+        { queuePosition: 'asc' },
+        { createdAt: 'asc' }
+      ],
+    });
+
+    console.log(`Found ${unclaimedHotspots.length} unclaimed hotspots to reorder`);
+
+    // Update queue positions to be sequential: 1, 2, 3...
+    for (let i = 0; i < unclaimedHotspots.length; i++) {
+      const oldPosition = unclaimedHotspots[i].queuePosition;
+      const newPosition = i + 1;
+      
+      await prisma.hotspot.update({
+        where: { id: unclaimedHotspots[i].id },
+        data: { queuePosition: newPosition },
+      });
+      
+      console.log(`Updated ${unclaimedHotspots[i].title}: position ${oldPosition} → ${newPosition}`);
+    }
+
+    // Log action
+    await logAdminAction(
+      req.adminId,
+      "FIX_QUEUE",
+      "System",
+      "queue-positions",
+      `Fixed queue positions for ${unclaimedHotspots.length} hotspots`
+    );
+
+    res.json({ 
+      message: "Queue positions fixed successfully",
+      updated: unclaimedHotspots.length,
+      hotspots: unclaimedHotspots.map((h, i) => ({
+        id: h.id,
+        title: h.title,
+        oldPosition: h.queuePosition,
+        newPosition: i + 1
+      }))
+    });
+  } catch (error) {
+    console.error("Fix queue error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // Start server
 const port = process.env.PORT ? Number(process.env.PORT) : 8080;
 app.listen(port, () => {
