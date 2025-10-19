@@ -320,22 +320,6 @@ app.get("/api/hotspots", async (req, res) => {
       orderBy: { queuePosition: "asc" }, // Always order by queue position
     });
 
-    // Debug logging for public API
-    if (!includeInactive) {
-      console.log('Public API - Hotspots returned:', hotspots.length);
-      
-      // Also log ALL unclaimed hotspots to see what's in the database
-      const allUnclaimed = await prisma.hotspot.findMany({
-        where: { claimStatus: { not: 'claimed' } },
-        select: { id: true, title: true, queuePosition: true, active: true, claimStatus: true }
-      });
-      console.log('All unclaimed hotspots in DB:', JSON.stringify(allUnclaimed, null, 2));
-      
-      if (hotspots.length > 0) {
-        console.log('First hotspot:', { id: hotspots[0].id, queuePosition: hotspots[0].queuePosition, active: hotspots[0].active });
-      }
-    }
-
     res.json(hotspots);
   } catch (error) {
     console.error("Get hotspots error:", error);
@@ -919,61 +903,6 @@ app.delete("/api/admin/users/:id", authenticateAdmin, requireAdmin, async (req, 
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Delete user error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// ===== TEMPORARY FIX ENDPOINT =====
-// POST /api/admin/fix-queue - Fix queue positions for all unclaimed hotspots (TEMPORARY)
-app.post("/api/admin/fix-queue", authenticateAdmin, async (req: any, res) => {
-  try {
-    console.log('🔧 Fixing queue positions...');
-    
-    // Get all unclaimed hotspots ordered by current queue position
-    const unclaimedHotspots = await prisma.hotspot.findMany({
-      where: { claimStatus: 'unclaimed' },
-      orderBy: [
-        { queuePosition: 'asc' },
-        { createdAt: 'asc' }
-      ],
-    });
-
-    console.log(`Found ${unclaimedHotspots.length} unclaimed hotspots to reorder`);
-
-    // Update queue positions to be sequential: 1, 2, 3...
-    for (let i = 0; i < unclaimedHotspots.length; i++) {
-      const oldPosition = unclaimedHotspots[i].queuePosition;
-      const newPosition = i + 1;
-      
-      await prisma.hotspot.update({
-        where: { id: unclaimedHotspots[i].id },
-        data: { queuePosition: newPosition },
-      });
-      
-      console.log(`Updated ${unclaimedHotspots[i].title}: position ${oldPosition} → ${newPosition}`);
-    }
-
-    // Log action
-    await logAdminAction(
-      req.adminId,
-      "FIX_QUEUE",
-      "System",
-      "queue-positions",
-      `Fixed queue positions for ${unclaimedHotspots.length} hotspots`
-    );
-
-    res.json({ 
-      message: "Queue positions fixed successfully",
-      updated: unclaimedHotspots.length,
-      hotspots: unclaimedHotspots.map((h, i) => ({
-        id: h.id,
-        title: h.title,
-        oldPosition: h.queuePosition,
-        newPosition: i + 1
-      }))
-    });
-  } catch (error) {
-    console.error("Fix queue error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
