@@ -1345,9 +1345,9 @@
     display: none;
   }
 
-  /* Hide indicator on mobile until clicked */
-  .mobile-tabs .tab-indicator:not(.ready) {
-    opacity: 0;
+  /* Show indicator on mobile (remove hiding rule) */
+  .mobile-tabs .tab-indicator {
+    opacity: 1;
   }
 
   .mobile-tabs .tab-btn {
