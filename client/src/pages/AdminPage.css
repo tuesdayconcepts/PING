@@ -190,21 +190,23 @@
   color: #000;
 }
 
-/* Sliding indicator */
-.tab-indicator {
+/* Tabs container needs position relative for ::before positioning */
+.admin-tabs {
+  position: relative;
+}
+
+/* Sliding indicator using ::before pseudo-element */
+.admin-tabs::before {
+  content: '';
   position: absolute;
   height: calc(100% - 16px);
   background: gold;
   border-radius: 20px;
   z-index: 1;
   top: 8px;
-  /* No transition by default to prevent animation on initial load */
-  transition: none;
-}
-
-/* Enable transition after initial render - faster to sync with scroll */
-.tab-indicator.ready {
-  transition: all 0.3s ease-out;
+  left: var(--indicator-left, 0);
+  width: var(--indicator-width, 0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Mobile Footer - Hidden on Desktop */

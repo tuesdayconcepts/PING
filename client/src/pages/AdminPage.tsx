@@ -59,7 +59,6 @@ function AdminPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
   // State for sliding tab indicator
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const [indicatorReady, setIndicatorReady] = useState(false);
   
   // Access Control state
@@ -93,17 +92,27 @@ function AdminPage() {
   useEffect(() => {
     const calculateIndicator = () => {
       // Check both desktop and mobile tabs
-      const desktopButton = tabsRef.current?.querySelector('.tab-btn.active');
-      const mobileButton = mobileTabsRef.current?.querySelector('.tab-btn.active');
-      const activeButton = desktopButton || mobileButton;
+      const desktopTabs = tabsRef.current;
+      const mobileTabs = mobileTabsRef.current;
+      const desktopButton = desktopTabs?.querySelector('.tab-btn.active');
+      const mobileButton = mobileTabs?.querySelector('.tab-btn.active');
       
-      if (activeButton) {
-        const { offsetLeft, offsetWidth } = activeButton as HTMLElement;
-        setIndicatorStyle({ left: offsetLeft, width: offsetWidth });
-        // Enable transition after first calculation
-        if (!indicatorReady) {
-          setIndicatorReady(true);
-        }
+      // Update desktop tabs
+      if (desktopTabs && desktopButton) {
+        const { offsetLeft, offsetWidth } = desktopButton as HTMLElement;
+        desktopTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
+        desktopTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
+      }
+      
+      // Update mobile tabs
+      if (mobileTabs && mobileButton) {
+        const { offsetLeft, offsetWidth } = mobileButton as HTMLElement;
+        mobileTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
+        mobileTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
+      }
+      
+      if (!indicatorReady) {
+        setIndicatorReady(true);
       }
     };
 
@@ -719,13 +728,6 @@ function AdminPage() {
 
         {/* Tabs */}
         <div className="admin-tabs" ref={tabsRef}>
-          <div 
-            className={`tab-indicator ${indicatorReady ? 'ready' : ''}`}
-            style={{
-              left: `${indicatorStyle.left}px`,
-              width: `${indicatorStyle.width}px`
-            }}
-          />
           <button 
             className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('active', e)}
@@ -1320,13 +1322,6 @@ function AdminPage() {
 
         {/* Mobile Tabs */}
         <div className="admin-tabs mobile-tabs" ref={mobileTabsRef}>
-          <div 
-            className={`tab-indicator ${indicatorReady ? 'ready' : ''}`}
-            style={{
-              left: `${indicatorStyle.left}px`,
-              width: `${indicatorStyle.width}px`
-            }}
-          />
           <button 
             className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('active', e)}
