@@ -1279,9 +1279,23 @@
     display: none;
   }
 
-  /* Hide drag handle inside sidebar on mobile */
+  /* Show drag handle inside sidebar on mobile - it moves with sidebar */
   .admin-sidebar .drag-handle {
-    display: none !important;
+    display: block !important;
+    order: -1; /* Put handle at the top */
+    padding: 10px;
+    cursor: pointer;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .admin-sidebar .handle-bar {
+    width: 40px;
+    height: 4px;
+    background: #ffffff63;
+    border-radius: 2px;
+    margin: 0 auto;
+    backdrop-filter: blur(10px);
   }
 
   /* Hide tabs inside sidebar on mobile */
@@ -1303,21 +1317,9 @@
     backdrop-filter: blur(10px);
   }
 
-  /* Mobile Drag Handle */
+  /* Hide mobile-footer drag handle - using sidebar's handle instead */
   .mobile-drag-handle {
-    display: block;
-    padding: 10px;
-    cursor: pointer;
-    text-align: center;
-  }
-
-  .mobile-drag-handle .handle-bar {
-    width: 40px;
-    height: 4px;
-    background: #ffffff63;
-    border-radius: 2px;
-    margin: 0 auto;
-    backdrop-filter: blur(10px);
+    display: none !important;
   }
 
   /* Mobile Tabs Styling */
