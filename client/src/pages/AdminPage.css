@@ -1262,7 +1262,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    background: #0b28ff;
+    background: #0b28ff00;
   }
 
   .admin-sidebar.expanded {
