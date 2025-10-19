@@ -115,21 +115,20 @@ function AdminPage() {
     // Calculate immediately
     calculateIndicator();
 
-    // Enable transitions after first render
+    // Enable transitions after first render using requestAnimationFrame
     if (!indicatorReady) {
-      const timer = setTimeout(() => {
+      requestAnimationFrame(() => {
         const desktopTabs = tabsRef.current;
         const mobileTabs = mobileTabsRef.current;
         if (desktopTabs) desktopTabs.classList.add('indicator-ready');
         if (mobileTabs) mobileTabs.classList.add('indicator-ready');
         setIndicatorReady(true);
-      }, 50);
+      });
+    } else {
+      // Recalculate for mobile DOM timing - only if needed
+      const timer = setTimeout(calculateIndicator, 100);
       return () => clearTimeout(timer);
     }
-
-    // Recalculate for mobile DOM timing
-    const timer = setTimeout(calculateIndicator, 100);
-    return () => clearTimeout(timer);
   }, [activeTab, isAuthenticated, indicatorReady]);
 
   // Handle tab click with auto-scroll
@@ -194,10 +193,12 @@ function AdminPage() {
         const data = await response.json();
         setHotspots(data);
         
-        // Fetch location names for all hotspots
+        // Fetch location names only for hotspots we don't have yet
         data.forEach(async (hotspot: Hotspot) => {
-          const name = await getLocationName(hotspot.lat, hotspot.lng);
-          setLocationNames(prev => ({ ...prev, [hotspot.id]: name }));
+          if (!locationNames[hotspot.id]) {
+            const name = await getLocationName(hotspot.lat, hotspot.lng);
+            setLocationNames(prev => ({ ...prev, [hotspot.id]: name }));
+          }
         });
       }
     } catch (err) {
