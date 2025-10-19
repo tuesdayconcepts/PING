@@ -295,17 +295,17 @@ app.get("/api/hotspots", async (req, res) => {
       }
     }
 
-    // For public: only show queuePosition = 0 and claimStatus != "claimed"
-    // For admin: show all hotspots
+    // For public: only show queuePosition = 1 (active ping) and claimStatus != "claimed"
+    // For admin: show all hotspots ordered by queue position
     const hotspots = await prisma.hotspot.findMany({
       where: includeInactive 
         ? {} 
         : { 
             active: true, 
-            queuePosition: 0,
+            queuePosition: 1, // Active ping is position 1
             claimStatus: { not: "claimed" }
           },
-      orderBy: includeInactive ? { createdAt: "desc" } : { queuePosition: "asc" },
+      orderBy: { queuePosition: "asc" }, // Always order by queue position
     });
 
     res.json(hotspots);
