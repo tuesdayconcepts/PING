@@ -401,6 +401,7 @@ function AdminPage() {
     setFormMode('edit');
     setFormOpen(true);
     setActiveTab('active'); // Switch to active tab to show form
+    setDrawerExpanded(true); // Expand drawer on mobile
     
     // Check if endDate is far in future (>50 years = no expiration)
     const endDate = new Date(hotspot.endDate);
@@ -420,7 +421,14 @@ function AdminPage() {
       privateKey: hotspot.privateKey || '', // Show existing key (encrypted display from backend)
     });
     setImagePreview(hotspot.imageUrl || null);
-    // Don't center map when editing - let user keep current view
+    
+    // Scroll to the hotspot item after state updates
+    setTimeout(() => {
+      const hotspotElement = document.getElementById(`hotspot-${hotspot.id}`);
+      if (hotspotElement) {
+        hotspotElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   // Save hotspot (create or update)
@@ -782,7 +790,8 @@ function AdminPage() {
                   
                   return (
                     <div 
-                      key={hotspot.id} 
+                      key={hotspot.id}
+                      id={`hotspot-${hotspot.id}`}
                       className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''}`}
                     >
                       <div className="hotspot-header">
