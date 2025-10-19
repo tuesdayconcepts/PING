@@ -1345,11 +1345,6 @@
     display: none;
   }
 
-  /* Show indicator on mobile (remove hiding rule) */
-  .mobile-tabs .tab-indicator {
-    opacity: 1;
-  }
-
   .mobile-tabs .tab-btn {
     flex: 1;
     padding: 10px 12px;
@@ -1360,10 +1355,6 @@
 
   .mobile-tabs .tab-btn.active {
     color: #000;
-  }
-  
-  .mobile-tabs .tab-indicator {
-    flex-shrink: 0;
   }
 
   /* Sidebar content on mobile */
