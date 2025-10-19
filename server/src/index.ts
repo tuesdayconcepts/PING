@@ -123,17 +123,19 @@ const sanitizeString = (input: string): string => {
   return input.trim();
 };
 
-// Promote next hotspot in queue
+// Reorder queue positions after a claim is approved
 const promoteNextHotspot = async () => {
-  const nextHotspot = await prisma.hotspot.findFirst({
-    where: { queuePosition: { gt: 0 }, claimStatus: 'unclaimed' },
+  // Get all unclaimed hotspots ordered by current queue position
+  const unclaimedHotspots = await prisma.hotspot.findMany({
+    where: { claimStatus: 'unclaimed' },
     orderBy: { queuePosition: 'asc' },
   });
 
-  if (nextHotspot) {
+  // Update queue positions to be sequential: 1, 2, 3...
+  for (let i = 0; i < unclaimedHotspots.length; i++) {
     await prisma.hotspot.update({
-      where: { id: nextHotspot.id },
-      data: { queuePosition: 0 },
+      where: { id: unclaimedHotspots[i].id },
+      data: { queuePosition: i + 1 },
     });
   }
 };
