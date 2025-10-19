@@ -1266,7 +1266,7 @@
   }
 
   .admin-sidebar.expanded {
-    max-height: calc(100dvh - 80px); /* Expanded to top */
+    max-height: calc(100dvh - 70px); /* Expanded to top */
     /* bottom: -20px; */
   }
 
