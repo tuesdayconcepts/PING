@@ -912,6 +912,14 @@ app.delete("/api/admin/users/:id", authenticateAdmin, requireAdmin, async (req, 
 });
 
 // ===== TEMPORARY FIX ENDPOINT =====
+// Handle OPTIONS preflight for fix-queue endpoint
+app.options("/api/admin/fix-queue", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.sendStatus(200);
+});
+
 // POST /api/admin/fix-queue - Fix queue positions for all unclaimed hotspots (TEMPORARY)
 app.post("/api/admin/fix-queue", authenticateAdmin, async (req: any, res) => {
   try {
