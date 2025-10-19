@@ -1,24 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Create admin user with hashed password
-  const hashedPassword = await bcrypt.hash('admin123', 10);
-  
-  const admin = await prisma.admin.upsert({
-    where: { username: 'admin' },
-    update: {},
-    create: {
-      username: 'admin',
-      password: hashedPassword,
-    },
-  });
-
-  console.log('✅ Created admin user:', admin.username);
+  // Note: No default admin user created for security reasons
+  // Create your first admin user through the admin panel or API
 
   // Create sample hotspots in NYC area
   const hotspot1 = await prisma.hotspot.upsert({
@@ -75,9 +63,9 @@ async function main() {
   console.log(`   - ${hotspot3.title}`);
   
   console.log('\n🎉 Database seeded successfully!');
-  console.log('\n📋 Default admin credentials:');
-  console.log('   Username: admin');
-  console.log('   Password: admin123');
+  console.log('\n📋 Next steps:');
+  console.log('   - Create your first admin user through the admin panel');
+  console.log('   - Or use the API to create admin users');
 }
 
 main()

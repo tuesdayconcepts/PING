@@ -114,7 +114,7 @@ cp .env.example .env
 # Run Prisma migrations
 npm run prisma:migrate
 
-# Seed database with admin user and sample data
+# Seed database with sample data (no default admin user)
 npm run prisma:seed
 ```
 
@@ -144,13 +144,9 @@ npm run dev
 # Client runs on http://localhost:5173
 ```
 
-## 🔐 Default Admin Credentials
+## 🔐 Admin User Setup
 
-After seeding the database:
-- **Username:** `admin`
-- **Password:** `admin123`
-
-⚠️ **Change these credentials in production!**
+After seeding the database, you'll need to create your first admin user through the admin panel or by using the API endpoints. No default credentials are provided for security reasons.
 
 ## 📡 API Endpoints
 
