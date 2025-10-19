@@ -1255,7 +1255,7 @@
     bottom: 0;
     width: 100%;
     height: auto;
-    max-height: 95px; /* Collapsed: show drag handle + tabs */
+    max-height: 110px; /* Collapsed: show drag handle + tabs */
     border-right: none;
     border-top: 1.5px solid #c0c0c021;
     transition: max-height 0.3s ease;
@@ -1267,7 +1267,7 @@
 
   .admin-sidebar.expanded {
     max-height: calc(100vh - 80px); /* Expanded to top */
-    bottom: 95px;
+    bottom: 80px;
   }
 
   /* Hide desktop elements */
@@ -1290,11 +1290,12 @@
   }
 
   .admin-sidebar .handle-bar {
-    width: 40px;
+    width: 50px;
     height: 4px;
-    background: #ffffff63;
+    background: #ffffff87;
     border-radius: 2px;
     margin: 0 auto;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
   }
 
@@ -1330,7 +1331,7 @@
     padding: 11px 6px;
     background: #ffffff1a;
     border-radius: 50px;
-    margin: 0 16px 10px 16px;
+    margin: 10px 16px 10px;
     position: relative;
     overflow-x: auto;
     overflow-y: hidden;
