@@ -90,45 +90,40 @@ function AdminPage() {
 
   // Calculate active tab position and width for sliding indicator
   useEffect(() => {
+    // Use requestAnimationFrame to avoid forced reflow
     const calculateIndicator = () => {
-      // Check both desktop and mobile tabs
-      const desktopTabs = tabsRef.current;
-      const mobileTabs = mobileTabsRef.current;
-      const desktopButton = desktopTabs?.querySelector('.tab-btn.active');
-      const mobileButton = mobileTabs?.querySelector('.tab-btn.active');
-      
-      // Update desktop tabs
-      if (desktopTabs && desktopButton) {
-        const { offsetLeft, offsetWidth } = desktopButton as HTMLElement;
-        desktopTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
-        desktopTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
-      }
-      
-      // Update mobile tabs
-      if (mobileTabs && mobileButton) {
-        const { offsetLeft, offsetWidth } = mobileButton as HTMLElement;
-        mobileTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
-        mobileTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
-      }
-    };
-
-    // Calculate immediately
-    calculateIndicator();
-
-    // Enable transitions after first render using requestAnimationFrame
-    if (!indicatorReady) {
       requestAnimationFrame(() => {
+        // Check both desktop and mobile tabs
         const desktopTabs = tabsRef.current;
         const mobileTabs = mobileTabsRef.current;
-        if (desktopTabs) desktopTabs.classList.add('indicator-ready');
-        if (mobileTabs) mobileTabs.classList.add('indicator-ready');
-        setIndicatorReady(true);
+        const desktopButton = desktopTabs?.querySelector('.tab-btn.active');
+        const mobileButton = mobileTabs?.querySelector('.tab-btn.active');
+        
+        // Update desktop tabs
+        if (desktopTabs && desktopButton) {
+          const { offsetLeft, offsetWidth } = desktopButton as HTMLElement;
+          desktopTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
+          desktopTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
+        }
+        
+        // Update mobile tabs
+        if (mobileTabs && mobileButton) {
+          const { offsetLeft, offsetWidth } = mobileButton as HTMLElement;
+          mobileTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
+          mobileTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
+        }
+
+        // Enable transitions after first render
+        if (!indicatorReady) {
+          if (desktopTabs) desktopTabs.classList.add('indicator-ready');
+          if (mobileTabs) mobileTabs.classList.add('indicator-ready');
+          setIndicatorReady(true);
+        }
       });
-    } else {
-      // Recalculate for mobile DOM timing - only if needed
-      const timer = setTimeout(calculateIndicator, 100);
-      return () => clearTimeout(timer);
-    }
+    };
+
+    // Calculate on next frame
+    calculateIndicator();
   }, [activeTab, isAuthenticated, indicatorReady]);
 
   // Handle tab click with auto-scroll
@@ -193,13 +188,22 @@ function AdminPage() {
         const data = await response.json();
         setHotspots(data);
         
-        // Fetch location names only for hotspots we don't have yet
-        data.forEach(async (hotspot: Hotspot) => {
-          if (!locationNames[hotspot.id]) {
-            const name = await getLocationName(hotspot.lat, hotspot.lng);
-            setLocationNames(prev => ({ ...prev, [hotspot.id]: name }));
+        // Fetch location names only for hotspots we don't have yet - sequentially to avoid overwhelming the API
+        const fetchLocationNames = async () => {
+          for (const hotspot of data) {
+            if (!locationNames[hotspot.id]) {
+              try {
+                const name = await getLocationName(hotspot.lat, hotspot.lng);
+                setLocationNames(prev => ({ ...prev, [hotspot.id]: name }));
+              } catch (err) {
+                console.error('Failed to fetch location name:', err);
+              }
+            }
           }
-        });
+        };
+        
+        // Run in background without blocking
+        fetchLocationNames();
       }
     } catch (err) {
       console.error('Failed to fetch hotspots:', err);
@@ -371,10 +375,12 @@ function AdminPage() {
     setImagePreview(null);
     setHasExpiration(false);
     
-    // Scroll to create form after state updates
-    setTimeout(() => {
-      createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+    // Scroll to create form after state updates - use requestAnimationFrame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
   };
 
   // Handle map click to set location and open form
@@ -389,10 +395,12 @@ function AdminPage() {
       setSelectedHotspot(null);
       setDrawerExpanded(true); // Expand drawer on mobile
       
-      // Scroll to create form after state updates
-      setTimeout(() => {
-        createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      // Scroll to create form after state updates - use requestAnimationFrame
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
     }
   };
 
@@ -423,13 +431,15 @@ function AdminPage() {
     });
     setImagePreview(hotspot.imageUrl || null);
     
-    // Scroll to the hotspot item after state updates
-    setTimeout(() => {
-      const hotspotElement = document.getElementById(`hotspot-${hotspot.id}`);
-      if (hotspotElement) {
-        hotspotElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
+    // Scroll to the hotspot item after state updates - use requestAnimationFrame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const hotspotElement = document.getElementById(`hotspot-${hotspot.id}`);
+        if (hotspotElement) {
+          hotspotElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
   };
 
   // Save hotspot (create or update)
