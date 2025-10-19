@@ -554,7 +554,7 @@ function MapPage() {
 
             <div className="modal-sections">
               {/* Check if hotspot is queued (not active yet) */}
-              {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 0 ? (
+              {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 1 ? (
                 <div className="modal-section modal-queued">
                   <h3>INACTIVE PING</h3>
                   <p>This PING is currently in queue. It will become active in the future.</p>
@@ -568,7 +568,7 @@ function MapPage() {
               ) : (
                 <>
                   {/* Show congratulations for claim flow (unique URLs), otherwise show all sections */}
-                  {claimStatus === 'unclaimed' && id && (!selectedHotspot.queuePosition || selectedHotspot.queuePosition === 0) ? (
+                  {claimStatus === 'unclaimed' && id && selectedHotspot.queuePosition === 1 ? (
                     <div className="modal-section modal-claim-intro">
                       <h3>GREAT JOB!</h3>
                       <p>You found the PING! That means you are almost <span className="prize-amount">{selectedHotspot.prize} SOL</span> richer!</p>
@@ -663,7 +663,7 @@ function MapPage() {
 
               {/* Action section - Different states */}
               {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not queued */}
-              {claimStatus === 'unclaimed' && id && (!selectedHotspot.queuePosition || selectedHotspot.queuePosition === 0) && (
+              {claimStatus === 'unclaimed' && id && selectedHotspot.queuePosition === 1 && (
                 <div className="modal-section modal-actions">
                   {claimError && (
                     <p className="claim-error">{claimError}</p>
