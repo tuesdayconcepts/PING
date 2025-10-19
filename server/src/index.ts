@@ -311,6 +311,14 @@ app.get("/api/hotspots", async (req, res) => {
     // Debug logging for public API
     if (!includeInactive) {
       console.log('Public API - Hotspots returned:', hotspots.length);
+      
+      // Also log ALL unclaimed hotspots to see what's in the database
+      const allUnclaimed = await prisma.hotspot.findMany({
+        where: { claimStatus: { not: 'claimed' } },
+        select: { id: true, title: true, queuePosition: true, active: true, claimStatus: true }
+      });
+      console.log('All unclaimed hotspots in DB:', JSON.stringify(allUnclaimed, null, 2));
+      
       if (hotspots.length > 0) {
         console.log('First hotspot:', { id: hotspots[0].id, queuePosition: hotspots[0].queuePosition, active: hotspots[0].active });
       }
