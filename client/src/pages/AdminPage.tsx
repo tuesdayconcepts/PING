@@ -21,8 +21,9 @@ function AdminPage() {
 
   // Ref for create form to enable auto-scroll
   const createFormRef = useRef<HTMLDivElement>(null);
-  // Ref for tabs container to track active tab position
-  const tabsRef = useRef<HTMLDivElement>(null);
+  // Refs for tabs containers to track active tab position
+  const tabsRef = useRef<HTMLDivElement>(null); // Desktop tabs
+  const mobileTabsRef = useRef<HTMLDivElement>(null); // Mobile tabs
   
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -90,7 +91,11 @@ function AdminPage() {
 
   // Calculate active tab position and width for sliding indicator
   useEffect(() => {
-    const activeButton = tabsRef.current?.querySelector('.tab-btn.active');
+    // Check both desktop and mobile tabs
+    const desktopButton = tabsRef.current?.querySelector('.tab-btn.active');
+    const mobileButton = mobileTabsRef.current?.querySelector('.tab-btn.active');
+    const activeButton = desktopButton || mobileButton;
+    
     if (activeButton) {
       const { offsetLeft, offsetWidth } = activeButton as HTMLElement;
       setIndicatorStyle({ left: offsetLeft, width: offsetWidth });
@@ -1305,7 +1310,7 @@ function AdminPage() {
         </div>
 
         {/* Mobile Tabs */}
-        <div className="admin-tabs mobile-tabs">
+        <div className="admin-tabs mobile-tabs" ref={mobileTabsRef}>
           <div 
             className={`tab-indicator ${indicatorReady ? 'ready' : ''}`}
             style={{
