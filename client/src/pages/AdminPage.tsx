@@ -110,22 +110,24 @@ function AdminPage() {
         mobileTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
         mobileTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
       }
-      
-      // Add ready class to enable transition (only once)
-      if (!indicatorReady) {
-        if (desktopTabs) desktopTabs.classList.add('indicator-ready');
-        if (mobileTabs) mobileTabs.classList.add('indicator-ready');
-      }
-      
-      if (!indicatorReady) {
-        setIndicatorReady(true);
-      }
     };
 
     // Calculate immediately
     calculateIndicator();
 
-    // Also recalculate after a short delay to ensure DOM is ready (important for mobile)
+    // Enable transitions after first render
+    if (!indicatorReady) {
+      const timer = setTimeout(() => {
+        const desktopTabs = tabsRef.current;
+        const mobileTabs = mobileTabsRef.current;
+        if (desktopTabs) desktopTabs.classList.add('indicator-ready');
+        if (mobileTabs) mobileTabs.classList.add('indicator-ready');
+        setIndicatorReady(true);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+
+    // Recalculate for mobile DOM timing
     const timer = setTimeout(calculateIndicator, 100);
     return () => clearTimeout(timer);
   }, [activeTab, isAuthenticated, indicatorReady]);
