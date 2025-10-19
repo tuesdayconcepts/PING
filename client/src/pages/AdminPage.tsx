@@ -1173,7 +1173,6 @@ function AdminPage() {
           {/* Claimed History Tab */}
           {activeTab === 'history' && (
             <div className="history-content">
-              <h3>📜 Claimed PINGs History</h3>
               {hotspots
                 .filter(h => h.claimStatus === 'claimed')
                 .map((hotspot) => (
@@ -1202,7 +1201,6 @@ function AdminPage() {
           {/* Recent Activity Tab */}
           {activeTab === 'activity' && (
             <div className="activity-content">
-              <h3>Recent Activity</h3>
               {logs.map((log) => (
                 <div key={log.id} className="log-item">
                   <span className="log-action">{log.action}</span>
@@ -1219,20 +1217,9 @@ function AdminPage() {
           {/* Access Control Tab */}
           {activeTab === 'access' && currentUserRole === 'admin' && (
             <div className="access-control-content">
-              <h3>Access Control</h3>
-              
-              {/* Add New User Button */}
-              {!showNewUserForm && (
-                <div className="add-user-card" onClick={() => setShowNewUserForm(true)}>
-                  <div className="plus-icon">+</div>
-                  <span>Add New Admin User</span>
-                </div>
-              )}
-
               {/* New User Form */}
               {showNewUserForm && (
                 <div className="new-user-form">
-                  <h4>Create New Admin User</h4>
                   <form onSubmit={handleCreateUser}>
                     <div className="form-group">
                       <label htmlFor="new-username">Username *</label>
@@ -1281,7 +1268,6 @@ function AdminPage() {
 
               {/* Admin Users List */}
               <div className="admin-users-list">
-                <h4>Admin Users</h4>
                 {adminUsers.map((user) => (
                   <div key={user.id} className="user-item">
                     <div className="user-info">
@@ -1294,29 +1280,40 @@ function AdminPage() {
                       {user.role === 'editor' ? (
                         <button 
                           onClick={() => handleUpdateRole(user.id, 'admin')} 
-                          className="action-btn promote-btn"
+                          className="action-icon-btn"
+                          aria-label="Promote to Admin"
                         >
-                          Promote to Admin
+                          <SquarePen size={18} />
                         </button>
                       ) : (
                         <button 
                           onClick={() => handleUpdateRole(user.id, 'editor')} 
-                          className="action-btn demote-btn"
+                          className="action-icon-btn"
+                          aria-label="Demote to Editor"
                         >
-                          Demote to Editor
+                          <SquarePen size={18} />
                         </button>
                       )}
                       <button 
                         onClick={() => handleDeleteUser(user.id)} 
-                        className="action-btn delete-btn"
+                        className="action-icon-btn"
+                        aria-label="Delete User"
                       >
-                        Delete
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </div>
                 ))}
                 {adminUsers.length === 0 && (
                   <p className="empty-message">No users found.</p>
+                )}
+                
+                {/* Add New User Card - At Bottom */}
+                {!showNewUserForm && (
+                  <div className="add-user-card" onClick={() => setShowNewUserForm(true)}>
+                    <h3>+ Add New User</h3>
+                    <p>Click to create a new admin user</p>
+                  </div>
                 )}
               </div>
             </div>
