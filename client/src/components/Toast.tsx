@@ -33,11 +33,6 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const newToast: Toast = { id, message, type, duration };
     
     setToasts(prev => [...prev, newToast]);
-
-    // Auto-dismiss after duration
-    setTimeout(() => {
-      hideToast(id);
-    }, duration);
   }, []);
 
   const hideToast = useCallback((id: string) => {
@@ -80,6 +75,7 @@ interface ToastItemProps {
 
 const ToastItem: React.FC<ToastItemProps> = ({ toast, index, onHide }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     // Trigger slide-in animation
@@ -87,7 +83,19 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, index, onHide }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Auto-dismiss with smooth transition
+  useEffect(() => {
+    if (toast.duration) {
+      const timer = setTimeout(() => {
+        handleClose();
+      }, toast.duration);
+      return () => clearTimeout(timer);
+    }
+  }, [toast.duration]);
+
   const handleClose = () => {
+    if (isClosing) return; // Prevent multiple calls
+    setIsClosing(true);
     setIsVisible(false);
     setTimeout(() => onHide(toast.id), 300); // Wait for slide-out animation
   };
