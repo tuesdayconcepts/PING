@@ -49,7 +49,6 @@ function AdminPage() {
     privateKey: '',
   });
 
-  const [hasExpiration, setHasExpiration] = useState(false);
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
   const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access'>('active');
   const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'editor'>('editor'); // Default to editor, will be updated by API
@@ -460,7 +459,7 @@ function AdminPage() {
       };
 
       // Only include endDate if expiration toggle is enabled
-      if (hasExpiration && formData.endDate) {
+      if (formData.endDate) {
         payload.endDate = formData.endDate;
       }
 
@@ -1012,30 +1011,16 @@ function AdminPage() {
                               </small>
                             </div>
 
-                            <div className="form-group checkbox">
-                              <label>
-                                <input
-                                  type="checkbox"
-                                  checked={hasExpiration}
-                                  onChange={(e) => setHasExpiration(e.target.checked)}
-                                />
-                                Set Expiration Date
-                              </label>
+                            <div className="form-group">
+                              <label htmlFor="endDate">Expiration Date & Time (Optional)</label>
+                              <input
+                                type="datetime-local"
+                                id="endDate"
+                                name="endDate"
+                                value={formData.endDate}
+                                onChange={handleInputChange}
+                              />
                             </div>
-
-                            {hasExpiration && (
-                              <div className="form-group">
-                                <label htmlFor="endDate">Expiration Date & Time</label>
-                                <input
-                                  type="datetime-local"
-                                  id="endDate"
-                                  name="endDate"
-                                  value={formData.endDate}
-                                  onChange={handleInputChange}
-                                  required={hasExpiration}
-                                />
-                              </div>
-                            )}
 
                             <div className="form-group">
                               <label htmlFor="image-edit">PING Image</label>
@@ -1195,30 +1180,16 @@ function AdminPage() {
                       </small>
                     </div>
 
-                    <div className="form-group checkbox">
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={hasExpiration}
-                          onChange={(e) => setHasExpiration(e.target.checked)}
-                        />
-                        <span>Set expiration date</span>
-                      </label>
+                    <div className="form-group">
+                      <label htmlFor="endDate">Expiration Date & Time (Optional)</label>
+                      <input
+                        type="datetime-local"
+                        id="endDate"
+                        name="endDate"
+                        value={formData.endDate}
+                        onChange={handleInputChange}
+                      />
                     </div>
-
-                    {hasExpiration && (
-                      <div className="form-group">
-                        <label htmlFor="endDate">Expiration Date & Time *</label>
-                        <input
-                          type="datetime-local"
-                          id="endDate"
-                          name="endDate"
-                          value={formData.endDate}
-                          onChange={handleInputChange}
-                          required={hasExpiration}
-                        />
-                      </div>
-                    )}
 
                     <div className="form-group">
                       <label htmlFor="image">PING Image</label>
