@@ -1139,10 +1139,31 @@
   border-radius: 6px;
 }
 
-.remove-image-btn {
+.image-actions {
   position: absolute;
   top: 15px;
   right: 15px;
+  display: flex;
+  gap: 8px;
+}
+
+.replace-image-btn {
+  background: rgba(52, 152, 219, 0.9);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.replace-image-btn:hover {
+  background: #2980b9;
+}
+
+.remove-image-btn {
   background: rgba(231, 76, 60, 0.9);
   color: white;
   border: none;

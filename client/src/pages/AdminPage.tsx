@@ -1038,30 +1038,52 @@ function AdminPage() {
                             )}
 
                             <div className="form-group">
-                              <label htmlFor="image">PING Image</label>
-                              <input
-                                type="file"
-                                id="image"
-                                accept="image/*"
-                                onChange={handleImageChange}
-                                className="file-input"
-                              />
-                              {imagePreview && (
+                              <label htmlFor="image-edit">PING Image</label>
+                              {!imagePreview ? (
+                                <>
+                                  <input
+                                    type="file"
+                                    id="image-edit"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="file-input"
+                                  />
+                                  <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
+                                </>
+                              ) : (
                                 <div className="image-preview">
                                   <img src={imagePreview} alt="Preview" />
-                                  <button 
-                                    type="button" 
-                                    onClick={() => {
-                                      setImagePreview(null);
-                                      setFormData({ ...formData, imageUrl: '' });
-                                    }}
-                                    className="remove-image-btn"
-                                  >
-                                    ✕ Remove
-                                  </button>
+                                  <div className="image-actions">
+                                    <button 
+                                      type="button" 
+                                      onClick={() => {
+                                        const fileInput = document.getElementById('image-edit-replace') as HTMLInputElement;
+                                        fileInput?.click();
+                                      }}
+                                      className="replace-image-btn"
+                                    >
+                                      Replace
+                                    </button>
+                                    <button 
+                                      type="button" 
+                                      onClick={() => {
+                                        setImagePreview(null);
+                                        setFormData({ ...formData, imageUrl: '' });
+                                      }}
+                                      className="remove-image-btn"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                  <input
+                                    type="file"
+                                    id="image-edit-replace"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    style={{ display: 'none' }}
+                                  />
                                 </div>
                               )}
-                              <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
                             </div>
 
                             <div className="form-actions">
@@ -1198,29 +1220,51 @@ function AdminPage() {
 
                     <div className="form-group">
                       <label htmlFor="image">PING Image</label>
-                      <input
-                        type="file"
-                        id="image"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="file-input"
-                      />
-                      {imagePreview && (
+                      {!imagePreview ? (
+                        <>
+                          <input
+                            type="file"
+                            id="image"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="file-input"
+                          />
+                          <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
+                        </>
+                      ) : (
                         <div className="image-preview">
                           <img src={imagePreview} alt="Preview" />
-                          <button 
-                            type="button" 
-                            onClick={() => {
-                              setImagePreview(null);
-                              setFormData({ ...formData, imageUrl: '' });
-                            }}
-                            className="remove-image-btn"
-                          >
-                            ✕ Remove
-                          </button>
+                          <div className="image-actions">
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                const fileInput = document.getElementById('image-replace') as HTMLInputElement;
+                                fileInput?.click();
+                              }}
+                              className="replace-image-btn"
+                            >
+                              Replace
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                setImagePreview(null);
+                                setFormData({ ...formData, imageUrl: '' });
+                              }}
+                              className="remove-image-btn"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          <input
+                            type="file"
+                            id="image-replace"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            style={{ display: 'none' }}
+                          />
                         </div>
                       )}
-                      <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
                     </div>
 
 
