@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X } from 'lucide-react';
+import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X, ImageUp } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -1061,8 +1061,9 @@ function AdminPage() {
                                         fileInput?.click();
                                       }}
                                       className="replace-image-btn"
+                                      aria-label="Replace image"
                                     >
-                                      Replace
+                                      <ImageUp size={60} />
                                     </button>
                                     <button 
                                       type="button" 
@@ -1071,8 +1072,9 @@ function AdminPage() {
                                         setFormData({ ...formData, imageUrl: '' });
                                       }}
                                       className="remove-image-btn"
+                                      aria-label="Remove image"
                                     >
-                                      Remove
+                                      <Trash2 size={60} />
                                     </button>
                                   </div>
                                   <input
@@ -1242,8 +1244,9 @@ function AdminPage() {
                                 fileInput?.click();
                               }}
                               className="replace-image-btn"
+                              aria-label="Replace image"
                             >
-                              Replace
+                              <ImageUp size={60} />
                             </button>
                             <button 
                               type="button" 
@@ -1252,8 +1255,9 @@ function AdminPage() {
                                 setFormData({ ...formData, imageUrl: '' });
                               }}
                               className="remove-image-btn"
+                              aria-label="Remove image"
                             >
-                              Remove
+                              <Trash2 size={60} />
                             </button>
                           </div>
                           <input

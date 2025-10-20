@@ -1126,58 +1126,63 @@
 .image-preview {
   margin-top: 15px;
   position: relative;
-  /* border: 2px solid #2a2a2a; */
-  border-radius: 8px;
-  /* padding: 10px; */
-  /* background: #ffffff08; */
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 .image-preview img {
   width: 100%;
   aspect-ratio: 16 / 9;
-  object-fit: cover; /* Crop to fill 16:9 ratio */
+  object-fit: cover;
   border-radius: 20px;
-  border: solid #ffffff54;
+  border: solid 2px #ffffff54;
+  transition: filter 0.3s ease;
+}
+
+.image-preview:hover img {
+  filter: blur(4px);
 }
 
 .image-actions {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
-  gap: 8px;
+  gap: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
-.replace-image-btn {
-  background: rgba(52, 152, 219, 0.9);
+.image-preview:hover .image-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.replace-image-btn,
+.remove-image-btn {
+  background: rgba(0, 0, 0, 0.7);
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 15px;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .replace-image-btn:hover {
-  background: #2980b9;
-}
-
-.remove-image-btn {
-  background: rgba(231, 76, 60, 0.9);
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background 0.3s;
+  background: rgba(52, 152, 219, 0.9);
+  transform: scale(1.1);
 }
 
 .remove-image-btn:hover {
-  background: #c0392b;
+  background: rgba(231, 76, 60, 0.9);
+  transform: scale(1.1);
 }
 
 /* Pending Claims Section */
