@@ -539,8 +539,8 @@
 }
 
 .hotspot-item.claimed-hotspot {
-  background: #00000063;
-  opacity: 0.7;
+  background: #88888863;
+  /* opacity: .7; */
 }
 
 .hotspot-item.pending-claim {
