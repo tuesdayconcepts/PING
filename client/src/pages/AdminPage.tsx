@@ -59,6 +59,7 @@ function AdminPage() {
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [drawerExpanded, setDrawerExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [formClosing, setFormClosing] = useState(false);
   
   // State for sliding tab indicator
   const [indicatorReady, setIndicatorReady] = useState(false);
@@ -525,24 +526,30 @@ function AdminPage() {
     }
   };
 
-  // Cancel editing
+  // Cancel editing with smooth closing animation
   const handleCancel = () => {
-    setSelectedHotspot(null);
-    setFormOpen(false);
-    setFormMode('create');
-    setHasExpiration(false);
-    setImagePreview(null);
-    setFormData({
-      title: '',
-      lat: 40.7128,
-      lng: -74.0060,
-      prize: '',
-      endDate: '',
-      active: true,
-      imageUrl: '',
-      privateKey: '',
-    });
-    setMapCenter({ lat: 40.7128, lng: -74.0060 });
+    setFormClosing(true);
+    
+    // Wait for animation to complete before clearing state
+    setTimeout(() => {
+      setSelectedHotspot(null);
+      setFormOpen(false);
+      setFormMode('create');
+      setHasExpiration(false);
+      setImagePreview(null);
+      setFormData({
+        title: '',
+        lat: 40.7128,
+        lng: -74.0060,
+        prize: '',
+        endDate: '',
+        active: true,
+        imageUrl: '',
+        privateKey: '',
+      });
+      setMapCenter({ lat: 40.7128, lng: -74.0060 });
+      setFormClosing(false);
+    }, 300); // Match animation duration
   };
 
   // Copy PING URL to clipboard
@@ -881,7 +888,7 @@ function AdminPage() {
                       
                       {/* Inline Edit Form - Show under this hotspot if it's being edited */}
                       {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id && (
-                        <div className="inline-form-container inline-edit-form" style={{ marginTop: '15px' }}>
+                        <div className={`inline-form-container inline-edit-form ${formClosing ? 'closing' : ''}`} style={{ marginTop: '15px' }}>
                           <form onSubmit={handleSave}>
                             <div className="form-group">
                               <label htmlFor="title">Title *</label>
@@ -1030,7 +1037,7 @@ function AdminPage() {
                   <span>Add New PING</span>
                 </div>
               ) : (
-                <div ref={createFormRef} className="inline-form-container inline-create-form">
+                <div ref={createFormRef} className={`inline-form-container inline-create-form ${formClosing ? 'closing' : ''}`}>
                   <h4>Create New PING</h4>
                   <form onSubmit={handleSave}>
                     <div className="form-group">

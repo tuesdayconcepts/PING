@@ -755,6 +755,10 @@
   margin-top: 0;
 }
 
+.inline-form-container.closing {
+  animation: collapseOut .3s ease forwards;
+}
+
 /* Create Form Specific Styles */
 .inline-create-form {
   padding: 25px 25px;
@@ -792,6 +796,19 @@
     opacity: 1;
     transform: scale(1);
     max-height: 2000px;
+  }
+}
+
+@keyframes collapseOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    max-height: 2000px;
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+    max-height: 0;
   }
 }
 
