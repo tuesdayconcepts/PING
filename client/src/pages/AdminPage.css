@@ -1105,16 +1105,6 @@
 .file-input-wrapper {
   position: relative;
   cursor: pointer;
-  animation: fadeInSmooth 0.3s ease-out;
-}
-
-@keyframes fadeInSmooth {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 .file-input {
