@@ -45,7 +45,6 @@ function AdminPage() {
     lng: -74.0060,
     prize: '' as string | number, // Number for prize amount in SOL
     endDate: '',
-    active: true,
     imageUrl: '',
     privateKey: '',
   });
@@ -368,7 +367,6 @@ function AdminPage() {
       lng: mapCenter.lng,
       prize: '',
       endDate: '',
-      active: true,
       imageUrl: '',
       privateKey: '',
     });
@@ -458,7 +456,6 @@ function AdminPage() {
         lat: parseFloat(formData.lat.toString()),
         lng: parseFloat(formData.lng.toString()),
         prize: formData.prize,
-        active: formData.active,
         imageUrl: formData.imageUrl,
         privateKey: formData.privateKey,
       };
@@ -561,7 +558,6 @@ function AdminPage() {
         lng: -74.0060,
         prize: '',
         endDate: '',
-        active: true,
         imageUrl: '',
         privateKey: '',
       });
@@ -1219,17 +1215,6 @@ function AdminPage() {
                       <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
                     </div>
 
-                    <div className="form-group checkbox">
-                      <label>
-                        <input
-                          type="checkbox"
-                          name="active"
-                          checked={formData.active}
-                          onChange={handleInputChange}
-                        />
-                        <span>Active</span>
-                      </label>
-                    </div>
 
                     <div className="form-actions">
                       <button type="submit" className="save-btn">
