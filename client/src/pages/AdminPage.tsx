@@ -521,6 +521,7 @@ function AdminPage() {
           if (selectedHotspot?.id === id) {
             handleCancel();
           }
+          showToast('PING deleted successfully', 'success');
         }, 500);
       } else {
         // If element not found, update immediately
@@ -530,6 +531,7 @@ function AdminPage() {
         if (selectedHotspot?.id === id) {
           handleCancel();
         }
+        showToast('PING deleted successfully', 'success');
       }
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to delete hotspot', 'error');
