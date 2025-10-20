@@ -645,7 +645,7 @@ function AdminPage() {
         imageUrl: '',
         privateKey: '',
       });
-      setMapCenter({ lat: 40.7128, lng: -74.0060 });
+      // Don't reset map center - let user keep their current view
       setFormClosing(false);
     }, 300); // Match animation duration
   };
