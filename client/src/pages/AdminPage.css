@@ -1465,55 +1465,46 @@
 }
 
 .delete-confirmation-content {
-  background: #ff4444;
-  padding: 20px;
-  border-radius: 15px;
   margin-top: 10px;
-  text-align: center;
-}
-
-.delete-confirmation-content p {
-  color: #fff;
-  margin: 0 0 15px 0;
-  font-weight: 600;
 }
 
 .delete-confirmation-buttons {
   display: flex;
   gap: 10px;
-  justify-content: center;
+  width: 100%;
 }
 
 .delete-confirm-btn {
-  background: #fff;
-  color: #ff4444;
+  background: #ff4444;
+  color: #fff;
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 12px 20px;
+  border-radius: 50px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  flex: 1;
 }
 
 .delete-confirm-btn:hover {
-  background: #f0f0f0;
-  transform: scale(1.05);
+  background: #e33333;
+  transform: scale(1.02);
 }
 
 .delete-cancel-btn {
-  background: transparent;
+  background: #ffffff30;
   color: #fff;
-  border: 2px solid #fff;
-  padding: 8px 16px;
-  border-radius: 8px;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  flex: 1;
 }
 
 .delete-cancel-btn:hover {
-  background: #fff;
-  color: #ff4444;
-  transform: scale(1.05);
+  background: #ffffff50;
+  transform: scale(1.02);
 }
 

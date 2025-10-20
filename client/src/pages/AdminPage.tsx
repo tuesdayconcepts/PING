@@ -892,17 +892,16 @@ function AdminPage() {
                         </div>
                       </div>
 
-                      {/* Delete Confirmation - Slides in from right */}
+                      {/* Delete Confirmation - Pops in from center */}
                       {deletingHotspotId === hotspot.id && (
                         <div className="delete-confirmation">
                           <div className="delete-confirmation-content">
-                            <p>Are you sure you want to delete this ping?</p>
                             <div className="delete-confirmation-buttons">
                               <button 
                                 onClick={() => handleDeleteConfirm(hotspot.id)}
                                 className="delete-confirm-btn"
                               >
-                                Yes, Delete
+                                Confirm Deletion
                               </button>
                               <button 
                                 onClick={handleDeleteCancel}
