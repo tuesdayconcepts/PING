@@ -80,6 +80,19 @@ function AdminPage() {
   const [approvingClaimId, setApprovingClaimId] = useState<string | null>(null);
   const [deletingHotspotId, setDeletingHotspotId] = useState<string | null>(null);
 
+  // Long-press handlers
+  const createApproveLongPress = (hotspotId: string) => useLongPress({
+    onLongPress: () => handleApprove(hotspotId),
+    onStart: () => setApprovingClaimId(hotspotId),
+    onEnd: () => setApprovingClaimId(null),
+  });
+
+  const createDeleteLongPress = (hotspotId: string) => useLongPress({
+    onLongPress: () => handleDelete(hotspotId),
+    onStart: () => setDeletingHotspotId(hotspotId),
+    onEnd: () => setDeletingHotspotId(null),
+  });
+
   useEffect(() => {
     if (getToken()) {
       setIsAuthenticated(true);
@@ -868,11 +881,7 @@ function AdminPage() {
                             {copiedId === hotspot.id ? <Check size={18} /> : <Copy size={18} />}
                           </button>
                           <button 
-                            {...useLongPress({
-                              onLongPress: () => handleDelete(hotspot.id),
-                              onStart: () => setDeletingHotspotId(hotspot.id),
-                              onEnd: () => setDeletingHotspotId(null),
-                            })}
+                            {...createDeleteLongPress(hotspot.id)}
                             className={`action-icon-btn ${deletingHotspotId === hotspot.id ? 'deleting' : ''}`}
                             aria-label="Delete PING"
                           >
@@ -888,11 +897,7 @@ function AdminPage() {
                           <p><strong>Claimed at:</strong> {formatDate(pendingClaim.claimedAt || '')}</p>
                           {pendingClaim.tweetUrl && <p><strong>Tweet:</strong> Posted</p>}
                           <button
-                            {...useLongPress({
-                              onLongPress: () => handleApprove(pendingClaim.id),
-                              onStart: () => setApprovingClaimId(pendingClaim.id),
-                              onEnd: () => setApprovingClaimId(null),
-                            })}
+                            {...createApproveLongPress(pendingClaim.id)}
                             className={`approve-btn ${approvingClaimId === pendingClaim.id ? 'approve-btn-loading' : ''}`}
                             disabled={approvingClaimId === pendingClaim.id}
                           >
