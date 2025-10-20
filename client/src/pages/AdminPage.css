@@ -677,7 +677,6 @@
   text-decoration: none;
   /* Improve touch targets on mobile */
   display: inline-block;
-  touch-action: auto; /* Allow links to be clickable independently */
 }
 
 .claim-details a:hover {
