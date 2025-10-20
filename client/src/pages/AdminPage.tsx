@@ -829,7 +829,7 @@ function AdminPage() {
       <div className="mobile-top-bar">
         <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
         <div className="header-actions">
-          <button onClick={centerOnActivePing} className="logout-btn" aria-label="Center on Active PING">
+          <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
             <LocateFixed size={24} />
           </button>
           <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
@@ -901,7 +901,7 @@ function AdminPage() {
         <div className="sidebar-header">
           <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
           <div className="header-actions">
-            <button onClick={centerOnActivePing} className="logout-btn" aria-label="Center on Active PING">
+            <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
               <LocateFixed size={24} />
             </button>
             <button onClick={handleLogout} className="logout-btn" aria-label="Logout">

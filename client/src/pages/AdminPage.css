@@ -158,8 +158,25 @@
 
 .header-actions {
   display: flex;
-  gap: 8px;
+  gap: 19px;
   align-items: flex-start;
+}
+
+.center-btn {
+  padding: 0;
+  background: #e74c3c00;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.center-btn:hover {
+  color: #ffd700;
+  transform: translateY(-1px);
 }
 
 /* Tabs in Sidebar */
