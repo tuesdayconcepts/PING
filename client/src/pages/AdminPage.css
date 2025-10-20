@@ -1230,12 +1230,12 @@
   padding: 10px 20px;
   background: linear-gradient(135deg, #27ae60, #2ecc71);
   border: none;
-  border-radius: 6px;
-  color: white;
+  border-radius: 50px;
+  color: #fff;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all .3s;
 }
 
 .approve-btn:hover {
