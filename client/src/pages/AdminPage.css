@@ -1162,8 +1162,8 @@
 
 .replace-image-btn,
 .remove-image-btn {
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
+  background: #0000003b;
+  color: #fff;
   border: none;
   padding: 15px;
   border-radius: 50%;
@@ -1172,6 +1172,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 

@@ -1063,7 +1063,7 @@ function AdminPage() {
                                       className="replace-image-btn"
                                       aria-label="Replace image"
                                     >
-                                      <ImageUp size={60} />
+                                      <ImageUp size={40} />
                                     </button>
                                     <button 
                                       type="button" 
@@ -1074,7 +1074,7 @@ function AdminPage() {
                                       className="remove-image-btn"
                                       aria-label="Remove image"
                                     >
-                                      <Trash2 size={60} />
+                                      <Trash2 size={40} />
                                     </button>
                                   </div>
                                   <input
@@ -1246,7 +1246,7 @@ function AdminPage() {
                               className="replace-image-btn"
                               aria-label="Replace image"
                             >
-                              <ImageUp size={60} />
+                              <ImageUp size={40} />
                             </button>
                             <button 
                               type="button" 
@@ -1257,7 +1257,7 @@ function AdminPage() {
                               className="remove-image-btn"
                               aria-label="Remove image"
                             >
-                              <Trash2 size={60} />
+                              <Trash2 size={40} />
                             </button>
                           </div>
                           <input
