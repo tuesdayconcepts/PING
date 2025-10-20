@@ -8,6 +8,7 @@ import { Hotspot } from '../types';
 import { getHotspotStatus, getTimeUntilExpiration, calculateETA } from '../utils/time';
 import { getLocationName } from '../utils/geocoding';
 import { GoldenTicket } from '../components/GoldenTicket';
+import { HintModal } from '../components/HintModal';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import './MapPage.css';
@@ -79,6 +80,7 @@ function MapPage() {
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
   const [locationName, setLocationName] = useState<string>('');
+  const [showHintModal, setShowHintModal] = useState(false);
 
   // Extract Twitter handle from tweet URL
   const extractTwitterHandle = (tweetUrl: string): string => {
@@ -647,7 +649,7 @@ function MapPage() {
                                 <Gift className="prize-icon" />
                                 <span className="prize-text">{selectedHotspot.prize} SOL</span>
                               </div>
-                              <button className="hint-cta">
+                              <button className="hint-cta" onClick={() => setShowHintModal(true)}>
                                 GET A HINT!
                               </button>
                             </div>
@@ -762,6 +764,14 @@ function MapPage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Hint Modal */}
+      {showHintModal && selectedHotspot && (
+        <HintModal
+          hotspotId={selectedHotspot.id}
+          onClose={() => setShowHintModal(false)}
+        />
       )}
     </div>
   );
