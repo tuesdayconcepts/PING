@@ -15,8 +15,8 @@ export const useLongPress = ({
 }: UseLongPressOptions) => {
   const [isPressed, setIsPressed] = useState(false);
   const [progress, setProgress] = useState(0);
-  const timeoutRef = useRef<number | null>(null);
-  const intervalRef = useRef<number | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number | null>(null);
 
   const start = useCallback(() => {

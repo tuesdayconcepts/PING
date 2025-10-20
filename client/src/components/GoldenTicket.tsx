@@ -17,7 +17,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
   const [isAnimated, setIsAnimated] = useState(false); // Start false, enable after image loads
   const [imageLoaded, setImageLoaded] = useState(false); // Track image load state
   const [transform, setTransform] = useState('');
-  const animationTimeoutRef = useRef<number>();
+  const animationTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   
   // Final optimized positions for new certificate (817×529px)
   const textX1 = 378; // Claimant X

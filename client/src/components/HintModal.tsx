@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { Lock, Unlock, Gift, X } from 'lucide-react';
+import { Lock, Unlock, X } from 'lucide-react';
 import { usePingPrice } from '../hooks/usePingPrice';
 import { sendHintPayment } from '../utils/solana';
 import './HintModal.css';
@@ -27,7 +27,7 @@ interface PurchasedHints {
 export function HintModal({ hotspotId, onClose }: HintModalProps) {
   const wallet = useWallet();
   const { publicKey, connected } = wallet;
-  const { pingPrice, settings, usdToPing, formatPingAmount } = usePingPrice();
+  const { settings, usdToPing, formatPingAmount } = usePingPrice();
   
   const [purchasedHints, setPurchasedHints] = useState<PurchasedHints | null>(null);
   const [loading, setLoading] = useState(true);
