@@ -513,17 +513,23 @@ function AdminPage() {
       const hotspotElement = document.querySelector(`[data-hotspot-id="${id}"]`) as HTMLElement;
       if (hotspotElement) {
         hotspotElement.style.animation = 'slideOutLeft 0.5s ease-out forwards';
-        // Remove the item after animation completes
+        // Wait for animation to complete, then refresh list with updated queue positions
         setTimeout(() => {
-          hotspotElement.remove();
+          setDeletingHotspotId(null);
+          fetchHotspots();
+          fetchLogs();
+          if (selectedHotspot?.id === id) {
+            handleCancel();
+          }
         }, 500);
-      }
-
-      setDeletingHotspotId(null);
-      fetchHotspots();
-      fetchLogs();
-      if (selectedHotspot?.id === id) {
-        handleCancel();
+      } else {
+        // If element not found, update immediately
+        setDeletingHotspotId(null);
+        fetchHotspots();
+        fetchLogs();
+        if (selectedHotspot?.id === id) {
+          handleCancel();
+        }
       }
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to delete hotspot', 'error');
