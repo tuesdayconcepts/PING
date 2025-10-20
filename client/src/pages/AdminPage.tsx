@@ -854,7 +854,7 @@ function AdminPage() {
                           )}
                         </div>
                         <span className={`status-badge ${hasPendingClaim ? 'badge-pending' : (isActive ? 'badge-active' : 'badge-queued')}`}>
-                          {hasPendingClaim ? 'Pending Claim' : (isActive ? 'Active' : `Queue #${displayPosition}`)}
+                          {hasPendingClaim ? 'Pending' : (isActive ? 'Active' : `Queue #${displayPosition}`)}
                         </span>
                       </div>
                       <div className="hotspot-footer">
