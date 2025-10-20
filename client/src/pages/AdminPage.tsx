@@ -862,10 +862,6 @@ function AdminPage() {
 
         {/* Mobile drag handle */}
         <div className="drag-handle" onClick={() => {
-          // If closing drawer, reset form state
-          if (drawerExpanded) {
-            handleCancel();
-          }
           setDrawerExpanded(!drawerExpanded);
         }}>
           <div className="handle-bar"></div>
@@ -1523,10 +1519,6 @@ function AdminPage() {
       <div className="mobile-footer">
         {/* Drag Handle */}
         <div className="mobile-drag-handle" onClick={() => {
-          // If closing drawer, reset form state
-          if (drawerExpanded) {
-            handleCancel();
-          }
           setDrawerExpanded(!drawerExpanded);
         }}>
           <div className="handle-bar"></div>
