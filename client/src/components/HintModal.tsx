@@ -25,7 +25,8 @@ interface PurchasedHints {
 }
 
 export function HintModal({ hotspotId, onClose }: HintModalProps) {
-  const { publicKey, connected } = useWallet();
+  const wallet = useWallet();
+  const { publicKey, connected } = wallet;
   const { pingPrice, settings, usdToPing, formatPingAmount } = usePingPrice();
   
   const [purchasedHints, setPurchasedHints] = useState<PurchasedHints | null>(null);
@@ -113,7 +114,7 @@ export function HintModal({ hotspotId, onClose }: HintModalProps) {
 
         // Send transaction
         txSignature = await sendHintPayment(
-          useWallet(),
+          wallet,
           settings.treasuryWallet,
           settings.burnWallet,
           pingAmount,
