@@ -39,7 +39,7 @@ export async function getLocationName(lat: number, lng: number): Promise<string 
       } else if (component.types.includes('administrative_area_level_1')) {
         state = component.short_name; // Use short name for state (e.g., "NY" instead of "New York")
       } else if (component.types.includes('country')) {
-        country = component.long_name;
+        country = component.short_name; // Use short name for country (e.g., "US" instead of "United States")
       }
     }
     
