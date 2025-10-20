@@ -60,6 +60,7 @@ function AdminPage() {
   const [drawerExpanded, setDrawerExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [formClosing, setFormClosing] = useState(false);
+  const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
   
   // State for sliding tab indicator
   const [indicatorReady, setIndicatorReady] = useState(false);
@@ -327,6 +328,15 @@ function AdminPage() {
       [name]: type === 'checkbox' ? checked : value,
     });
 
+    // Update preview marker when lat/lng changes manually
+    if (name === 'lat' || name === 'lng') {
+      const lat = name === 'lat' ? parseFloat(value) : formData.lat;
+      const lng = name === 'lng' ? parseFloat(value) : formData.lng;
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setPreviewMarker({ lat, lng });
+      }
+    }
+
     // Don't auto-center map when manually typing coordinates
     // (removed to prevent unwanted map jumping)
   };
@@ -436,6 +446,9 @@ function AdminPage() {
 
   // Handle map click to set location and open form
   const handleMapClickOpen = (lat: number, lng: number) => {
+    // Show preview marker immediately
+    setPreviewMarker({ lat, lng });
+    
     // Only update form data, don't move the map center
     setFormData({ ...formData, lat, lng });
     
@@ -462,6 +475,9 @@ function AdminPage() {
     setFormOpen(true);
     setActiveTab('active'); // Switch to active tab to show form
     setDrawerExpanded(true); // Expand drawer on mobile
+    
+    // Show preview marker at hotspot location
+    setPreviewMarker({ lat: hotspot.lat, lng: hotspot.lng });
     
     // Check if endDate is far in future (>50 years = no expiration)
     const endDate = new Date(hotspot.endDate);
@@ -530,7 +546,8 @@ function AdminPage() {
         throw new Error(data.error || 'Failed to save hotspot');
       }
 
-      // Reset form and refresh
+      // Clear preview marker and reset form
+      setPreviewMarker(null);
       handleCancel();
       fetchHotspots();
       fetchLogs();
@@ -595,6 +612,9 @@ function AdminPage() {
   // Cancel editing with smooth closing animation
   const handleCancel = () => {
     setFormClosing(true);
+    
+    // Clear preview marker immediately
+    setPreviewMarker(null);
     
     // Wait for animation to complete before clearing state
     setTimeout(() => {
@@ -816,6 +836,16 @@ function AdminPage() {
                   map={adminMapInstance || undefined}
                 />
               ))}
+            
+            {/* Preview marker for create/edit mode */}
+            {previewMarker && (
+              <CustomMarker
+                position={previewMarker}
+                isActive={false}
+                onClick={() => {}} // No action on preview marker
+                map={adminMapInstance || undefined}
+              />
+            )}
           </GoogleMap>
         )}
       </div>
