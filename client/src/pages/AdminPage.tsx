@@ -474,12 +474,15 @@ function AdminPage() {
     // Only update form data, don't move the map center
     setFormData({ ...formData, lat, lng });
     
+    // Always switch to active tab and expand drawer (map click works from any tab)
+    setActiveTab('active');
+    setDrawerExpanded(true);
+    
     // If form is not open, open it in create mode
     if (!formOpen) {
       setFormMode('create');
       setFormOpen(true);
       setSelectedHotspot(null);
-      setDrawerExpanded(true); // Expand drawer on mobile
       
       // Scroll to create form after state updates - use requestAnimationFrame
       requestAnimationFrame(() => {
