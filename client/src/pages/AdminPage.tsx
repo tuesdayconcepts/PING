@@ -1068,10 +1068,10 @@ function AdminPage() {
                         <div className={`inline-form-container inline-edit-form ${formClosing ? 'closing' : ''}`} style={{ marginTop: '15px' }}>
                           <form onSubmit={handleSave}>
                             <div className="form-group">
-                              <label htmlFor="title">Title *</label>
+                              <label htmlFor="edit-title">Title *</label>
                               <input
                                 type="text"
-                                id="title"
+                                id="edit-title"
                                 name="title"
                                 value={formData.title}
                                 onChange={handleInputChange}
@@ -1081,10 +1081,10 @@ function AdminPage() {
 
                             <div className="form-row">
                               <div className="form-group">
-                                <label htmlFor="lat">Latitude *</label>
+                                <label htmlFor="edit-lat">Latitude *</label>
                                 <input
                                   type="number"
-                                  id="lat"
+                                  id="edit-lat"
                                   name="lat"
                                   value={formData.lat}
                                   onChange={handleInputChange}
@@ -1095,10 +1095,10 @@ function AdminPage() {
                                 />
                               </div>
                               <div className="form-group">
-                                <label htmlFor="lng">Longitude *</label>
+                                <label htmlFor="edit-lng">Longitude *</label>
                                 <input
                                   type="number"
-                                  id="lng"
+                                  id="edit-lng"
                                   name="lng"
                                   value={formData.lng}
                                   onChange={handleInputChange}
@@ -1115,10 +1115,10 @@ function AdminPage() {
                             </div>
 
                             <div className="form-group">
-                              <label htmlFor="prize">Prize (SOL) *</label>
+                              <label htmlFor="edit-prize">Prize (SOL) *</label>
                               <input
                                 type="number"
-                                id="prize"
+                                id="edit-prize"
                                 name="prize"
                                 value={formData.prize}
                                 onChange={handleInputChange}
@@ -1132,10 +1132,10 @@ function AdminPage() {
                             </div>
 
                             <div className="form-group">
-                              <label htmlFor="privateKey">Solana Private Key *</label>
+                              <label htmlFor="edit-privateKey">Solana Private Key *</label>
                               <input
                                 type="text"
-                                id="privateKey"
+                                id="edit-privateKey"
                                 name="privateKey"
                                 value={formData.privateKey}
                                 onChange={handleInputChange}
@@ -1150,10 +1150,10 @@ function AdminPage() {
                             </div>
 
                             <div className="form-group">
-                              <label htmlFor="endDate">Expiration Date & Time (Optional)</label>
+                              <label htmlFor="edit-endDate">Expiration Date & Time (Optional)</label>
                               <input
                                 type="datetime-local"
-                                id="endDate"
+                                id="edit-endDate"
                                 name="endDate"
                                 value={formData.endDate}
                                 onChange={handleInputChange}
