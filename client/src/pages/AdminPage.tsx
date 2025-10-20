@@ -8,6 +8,8 @@ import { formatDate } from '../utils/time';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import { HotspotSkeletonList } from '../components/HotspotSkeleton';
+import { ToastProvider, useToast } from '../components/Toast';
+import { useLongPress } from '../hooks/useLongPress';
 import './AdminPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -70,6 +72,13 @@ function AdminPage() {
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
   const [adminMapInstance, setAdminMapInstance] = useState<google.maps.Map | null>(null);
+
+  // Toast functionality
+  const { showToast } = useToast();
+  
+  // Long-press state
+  const [approvingClaimId, setApprovingClaimId] = useState<string | null>(null);
+  const [deletingHotspotId, setDeletingHotspotId] = useState<string | null>(null);
 
   useEffect(() => {
     if (getToken()) {
@@ -229,10 +238,6 @@ function AdminPage() {
 
   // Approve a claim
   const handleApprove = async (hotspotId: string) => {
-    if (!confirm('Approve this claim? The private key will be revealed to the user.')) {
-      return;
-    }
-
     try {
       const response = await fetch(`${API_URL}/api/hotspots/${hotspotId}/approve`, {
         method: 'POST',
@@ -243,11 +248,21 @@ function AdminPage() {
         throw new Error('Failed to approve claim');
       }
 
-      alert('Claim approved! Private key revealed to user.');
+      // Add checkmark animation to the hotspot item
+      const hotspotElement = document.querySelector(`[data-hotspot-id="${hotspotId}"]`);
+      if (hotspotElement) {
+        hotspotElement.classList.add('approving-complete');
+        // Remove the item after animation completes
+        setTimeout(() => {
+          hotspotElement.remove();
+        }, 1000);
+      }
+
+      showToast('Claim approved! Private key revealed to user.', 'success');
       fetchPendingClaims();
       fetchHotspots();
     } catch (err) {
-      alert(`Error: ${err instanceof Error ? err.message : 'Failed to approve claim'}`);
+      showToast(`Error: ${err instanceof Error ? err.message : 'Failed to approve claim'}`, 'error');
     }
   };
 
@@ -339,7 +354,7 @@ function AdminPage() {
       });
       setImagePreview(compressed);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to process image');
+      showToast(error instanceof Error ? error.message : 'Failed to process image', 'error');
     }
   };
 
@@ -473,18 +488,14 @@ function AdminPage() {
       handleCancel();
       fetchHotspots();
       fetchLogs();
-      alert(selectedHotspot ? 'Hotspot updated!' : 'Hotspot created!');
+      showToast(selectedHotspot ? 'Hotspot updated!' : 'Hotspot created!', 'success');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to save hotspot');
+      showToast(err instanceof Error ? err.message : 'Failed to save hotspot', 'error');
     }
   };
 
   // Delete hotspot
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this hotspot?')) {
-      return;
-    }
-
     try {
       const response = await fetch(`${API_URL}/api/hotspots/${id}`, {
         method: 'DELETE',
@@ -495,14 +506,24 @@ function AdminPage() {
         throw new Error('Failed to delete hotspot');
       }
 
+      // Add fade-out animation to the hotspot item
+      const hotspotElement = document.querySelector(`[data-hotspot-id="${id}"]`);
+      if (hotspotElement) {
+        hotspotElement.style.animation = 'fadeOut 0.5s ease-out forwards';
+        // Remove the item after animation completes
+        setTimeout(() => {
+          hotspotElement.remove();
+        }, 500);
+      }
+
       fetchHotspots();
       fetchLogs();
       if (selectedHotspot?.id === id) {
         handleCancel();
       }
-      alert('Hotspot deleted!');
+      // No toast needed - visual feedback handled by animation
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete hotspot');
+      showToast(err instanceof Error ? err.message : 'Failed to delete hotspot', 'error');
     }
   };
 
@@ -573,12 +594,12 @@ function AdminPage() {
         throw new Error(data.error || 'Failed to create user');
       }
 
-      alert('User created successfully!');
+      showToast('User created successfully!', 'success');
       setNewUserForm({ username: '', password: '', role: 'editor' });
       setShowNewUserForm(false);
       fetchAdminUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to create user');
+      showToast(err instanceof Error ? err.message : 'Failed to create user', 'error');
     }
   };
 
@@ -598,10 +619,10 @@ function AdminPage() {
         throw new Error('Failed to update role');
       }
 
-      alert('Role updated successfully!');
+      showToast('Role updated successfully!', 'success');
       fetchAdminUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update role');
+      showToast(err instanceof Error ? err.message : 'Failed to update role', 'error');
     }
   };
 
@@ -621,10 +642,10 @@ function AdminPage() {
         throw new Error('Failed to delete user');
       }
 
-      alert('User deleted successfully!');
+      showToast('User deleted successfully!', 'success');
       fetchAdminUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete user');
+      showToast(err instanceof Error ? err.message : 'Failed to delete user', 'error');
     }
   };
 
@@ -801,6 +822,7 @@ function AdminPage() {
                     <div 
                       key={hotspot.id}
                       id={`hotspot-${hotspot.id}`}
+                      data-hotspot-id={hotspot.id}
                       className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''}`}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
@@ -845,7 +867,15 @@ function AdminPage() {
                           >
                             {copiedId === hotspot.id ? <Check size={18} /> : <Copy size={18} />}
                           </button>
-                          <button onClick={() => handleDelete(hotspot.id)} className="action-icon-btn" aria-label="Delete PING">
+                          <button 
+                            {...useLongPress({
+                              onLongPress: () => handleDelete(hotspot.id),
+                              onStart: () => setDeletingHotspotId(hotspot.id),
+                              onEnd: () => setDeletingHotspotId(null),
+                            })}
+                            className={`action-icon-btn ${deletingHotspotId === hotspot.id ? 'deleting' : ''}`}
+                            aria-label="Delete PING"
+                          >
                             <Trash2 size={18} />
                           </button>
                         </div>
@@ -858,10 +888,15 @@ function AdminPage() {
                           <p><strong>Claimed at:</strong> {formatDate(pendingClaim.claimedAt || '')}</p>
                           {pendingClaim.tweetUrl && <p><strong>Tweet:</strong> Posted</p>}
                           <button
-                            onClick={() => handleApprove(pendingClaim.id)}
-                            className="approve-btn"
+                            {...useLongPress({
+                              onLongPress: () => handleApprove(pendingClaim.id),
+                              onStart: () => setApprovingClaimId(pendingClaim.id),
+                              onEnd: () => setApprovingClaimId(null),
+                            })}
+                            className={`approve-btn ${approvingClaimId === pendingClaim.id ? 'approve-btn-loading' : ''}`}
+                            disabled={approvingClaimId === pendingClaim.id}
                           >
-                            Approve Claim
+                            {approvingClaimId === pendingClaim.id ? 'Approving...' : 'Approve Claim'}
                           </button>
                         </div>
                       )}
@@ -1191,7 +1226,7 @@ function AdminPage() {
                 hotspots
                   .filter(h => h.claimStatus === 'claimed')
                   .map((hotspot, index) => (
-                  <div key={hotspot.id} className="hotspot-item claimed-hotspot" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div key={hotspot.id} data-hotspot-id={hotspot.id} className="hotspot-item claimed-hotspot" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="hotspot-header">
                       <span className="status-badge badge-claimed">CLAIMED</span>
                       <strong>{hotspot.title}</strong>
@@ -1384,5 +1419,14 @@ function AdminPage() {
   );
 }
 
-export default AdminPage;
+// Wrap AdminPage with ToastProvider
+const AdminPageWithToast = () => {
+  return (
+    <ToastProvider>
+      <AdminPage />
+    </ToastProvider>
+  );
+};
+
+export default AdminPageWithToast;
 
