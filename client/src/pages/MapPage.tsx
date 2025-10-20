@@ -509,14 +509,6 @@ function MapPage() {
             e.stop();
           }}
         >
-          {/* Loading pill overlay */}
-          {!markersLoaded && hotspots.length > 0 && (
-            <div className="map-loading-pill">
-              <span className="loading-icon">🔍</span>
-              <span className="loading-text">Searching for active PING...</span>
-            </div>
-          )}
-
           {/* Render custom markers for each hotspot with slide-up animation */}
           {markersLoaded && hotspots.map((hotspot) => {
             // Check if hotspot is active/expired
