@@ -501,23 +501,37 @@
   font-size: 1rem;
 }
 
-.role-badge {
-  padding: 4px 12px;
+/* Role Toggle Switch */
+.role-toggle {
+  display: flex;
+  background: #ffffff1a;
   border-radius: 50px;
-  font-size: 0.7rem;
+  padding: 4px;
+  gap: 4px;
+}
+
+.role-option {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
 }
 
-.role-admin {
+.role-option.active {
   background: #ffd700;
   color: #000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.role-editor {
-  background: #3498db;
-  color: white;
+.role-option:not(.active):hover {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .user-actions {

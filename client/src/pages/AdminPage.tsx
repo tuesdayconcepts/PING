@@ -1440,28 +1440,22 @@ function AdminPage() {
                   <div key={user.id} className="user-item">
                     <div className="user-info">
                       <strong>{user.username}</strong>
-                      <span className={`role-badge role-${user.role}`}>
-                        {user.role === 'admin' ? 'Admin' : 'Editor'}
-                      </span>
+                      <div className="role-toggle">
+                        <button
+                          className={`role-option ${user.role === 'editor' ? 'active' : ''}`}
+                          onClick={() => handleUpdateRole(user.id, 'editor')}
+                        >
+                          Editor
+                        </button>
+                        <button
+                          className={`role-option ${user.role === 'admin' ? 'active' : ''}`}
+                          onClick={() => handleUpdateRole(user.id, 'admin')}
+                        >
+                          Admin
+                        </button>
+                      </div>
                     </div>
                     <div className="user-actions">
-                      {user.role === 'editor' ? (
-                        <button 
-                          onClick={() => handleUpdateRole(user.id, 'admin')} 
-                          className="action-icon-btn"
-                          aria-label="Promote to Admin"
-                        >
-                          <SquarePen size={18} />
-                        </button>
-                      ) : (
-                        <button 
-                          onClick={() => handleUpdateRole(user.id, 'editor')} 
-                          className="action-icon-btn"
-                          aria-label="Demote to Editor"
-                        >
-                          <SquarePen size={18} />
-                        </button>
-                      )}
                       <button 
                         onClick={() => handleDeleteUser(user.id)} 
                         className="action-icon-btn"
