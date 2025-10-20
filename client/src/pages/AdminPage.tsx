@@ -783,7 +783,7 @@ function AdminPage() {
             <div className="active-pings-content">
               {/* Show skeleton while loading */}
               {hotspotsLoading ? (
-                <HotspotSkeletonList count={3} />
+                <HotspotSkeletonList count={1} />
               ) : (
                 <>
                   {/* Active/Queued PINGs List */}
@@ -1186,7 +1186,7 @@ function AdminPage() {
           {activeTab === 'history' && (
             <div className="history-content">
               {hotspotsLoading ? (
-                <HotspotSkeletonList count={3} />
+                <HotspotSkeletonList count={1} />
               ) : (
                 hotspots
                   .filter(h => h.claimStatus === 'claimed')
