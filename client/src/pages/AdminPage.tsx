@@ -25,6 +25,8 @@ function AdminPage() {
   // Refs for tabs containers to track active tab position
   const tabsRef = useRef<HTMLDivElement>(null); // Desktop tabs
   const mobileTabsRef = useRef<HTMLDivElement>(null); // Mobile tabs
+  // Ref to prevent double-firing on mobile (touch + click)
+  const lastTabChangeRef = useRef<number>(0);
   
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -147,8 +149,12 @@ function AdminPage() {
 
   // Handle tab click with auto-scroll
   const handleTabClick = (tab: 'active' | 'history' | 'activity' | 'access', event: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
-    // Prevent both touch and click from firing
-    event.preventDefault();
+    // Prevent double-firing on mobile (touch event followed by click event)
+    const now = Date.now();
+    if (now - lastTabChangeRef.current < 300) {
+      return; // Ignore if called within 300ms (touch+click both fire)
+    }
+    lastTabChangeRef.current = now;
     
     setActiveTab(tab);
     setDrawerExpanded(true);
