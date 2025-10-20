@@ -57,6 +57,15 @@
   background: #ffffff26;
   color: #e0e0e0;
   transition: all .3s;
+  max-width: 100%; /* Fix Safari datetime-local overflow */
+}
+
+/* Fix Safari datetime-local input width */
+.form-group input[type="datetime-local"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  max-width: 100%;
 }
 
 .form-group input::placeholder,

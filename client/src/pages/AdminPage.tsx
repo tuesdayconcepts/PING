@@ -150,10 +150,10 @@ function AdminPage() {
     setActiveTab(tab);
     setDrawerExpanded(true);
     
-    // Scroll clicked tab into view
+    // Scroll clicked tab into view - use 'auto' instead of 'smooth' for Safari touch compatibility
     const button = event.currentTarget;
     button.scrollIntoView({
-      behavior: 'smooth',
+      behavior: 'auto', // Changed from 'smooth' to fix Safari touch blocking
       block: 'nearest',
       inline: 'center'
     });
