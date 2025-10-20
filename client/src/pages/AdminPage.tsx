@@ -146,7 +146,10 @@ function AdminPage() {
   }, [activeTab, isAuthenticated, indicatorReady]);
 
   // Handle tab click with auto-scroll
-  const handleTabClick = (tab: 'active' | 'history' | 'activity' | 'access', event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleTabClick = (tab: 'active' | 'history' | 'activity' | 'access', event: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
+    // Prevent both touch and click from firing
+    event.preventDefault();
+    
     setActiveTab(tab);
     setDrawerExpanded(true);
     
@@ -837,18 +840,21 @@ function AdminPage() {
           <button 
             className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('active', e)}
+            onTouchStart={(e) => handleTabClick('active', e)}
           >
             Active PINGs
           </button>
           <button 
             className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('history', e)}
+            onTouchStart={(e) => handleTabClick('history', e)}
           >
             Claimed History
           </button>
           <button 
             className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('activity', e)}
+            onTouchStart={(e) => handleTabClick('activity', e)}
           >
             Recent Activity
           </button>
@@ -856,6 +862,7 @@ function AdminPage() {
             <button 
               className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
               onClick={(e) => handleTabClick('access', e)}
+              onTouchStart={(e) => handleTabClick('access', e)}
             >
               Access Control
             </button>
@@ -1500,18 +1507,21 @@ function AdminPage() {
           <button 
             className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('active', e)}
+            onTouchStart={(e) => handleTabClick('active', e)}
           >
             Active PINGs
           </button>
           <button 
             className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('history', e)}
+            onTouchStart={(e) => handleTabClick('history', e)}
           >
             Claimed History
           </button>
           <button 
             className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('activity', e)}
+            onTouchStart={(e) => handleTabClick('activity', e)}
           >
             Recent Activity
           </button>
@@ -1519,6 +1529,7 @@ function AdminPage() {
             <button 
               className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
               onClick={(e) => handleTabClick('access', e)}
+              onTouchStart={(e) => handleTabClick('access', e)}
             >
               Access Control
             </button>
