@@ -463,6 +463,11 @@ function AdminPage() {
     // Show preview marker immediately
     setPreviewMarker({ lat, lng });
     
+    // Center map on clicked location with smooth animation
+    if (adminMapInstance) {
+      adminMapInstance.panTo({ lat, lng });
+    }
+    
     // Only update form data, don't move the map center
     setFormData({ ...formData, lat, lng });
     
@@ -492,6 +497,11 @@ function AdminPage() {
     
     // Show preview marker at hotspot location
     setPreviewMarker({ lat: hotspot.lat, lng: hotspot.lng });
+    
+    // Center map on the ping being edited with smooth animation
+    if (adminMapInstance) {
+      adminMapInstance.panTo({ lat: hotspot.lat, lng: hotspot.lng });
+    }
     
     // Check if endDate is far in future (>50 years = no expiration)
     const endDate = new Date(hotspot.endDate);
