@@ -2,9 +2,9 @@ import fetch from 'node-fetch';
 
 export async function getLocationName(lat: number, lng: number): Promise<string | null> {
   try {
-    const apiKey = process.env.GOOGLE_GEOCODING_API_KEY;
+    const apiKey = process.env.GOOGLE_GEOCODING_API_KEY || process.env.VITE_GOOGLE_GEOCODING_API_KEY;
     if (!apiKey) {
-      console.warn('GOOGLE_GEOCODING_API_KEY not found in environment variables');
+      console.warn('Neither GOOGLE_GEOCODING_API_KEY nor VITE_GOOGLE_GEOCODING_API_KEY found in environment variables');
       return null;
     }
 
