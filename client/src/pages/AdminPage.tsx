@@ -370,7 +370,6 @@ function AdminPage() {
       privateKey: '',
     });
     setImagePreview(null);
-    setHasExpiration(false);
     
     // Scroll to create form after state updates - use requestAnimationFrame
     requestAnimationFrame(() => {
@@ -415,7 +414,6 @@ function AdminPage() {
     const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
     const hasExpiry = yearsDiff < 50;
     
-    setHasExpiration(hasExpiry);
     setFormData({
       title: hotspot.title,
       lat: hotspot.lat,
@@ -548,7 +546,6 @@ function AdminPage() {
       setSelectedHotspot(null);
       setFormOpen(false);
       setFormMode('create');
-      setHasExpiration(false);
       setImagePreview(null);
       setFormData({
         title: '',
