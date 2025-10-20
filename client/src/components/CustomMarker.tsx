@@ -29,7 +29,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, 
 
       onAdd() {
         const div = document.createElement('div');
-        div.className = `pulse-marker ${isActive ? '' : 'inactive'}`;
+        div.className = `pulse-marker ${isActive ? '' : 'inactive'} marker-slide-up`;
         div.style.cssText = 'cursor: pointer; width: 80px; height: 80px; position: absolute;';
         
         // Add SVGs

@@ -8,6 +8,7 @@ import { formatDate } from '../utils/time';
 import { getLocationName } from '../utils/geocoding';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
+import { HotspotSkeletonList } from '../components/HotspotSkeleton';
 import './AdminPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -35,6 +36,7 @@ function AdminPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [logs, setLogs] = useState<AdminLog[]>([]);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
+  const [hotspotsLoading, setHotspotsLoading] = useState(true);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -180,6 +182,7 @@ function AdminPage() {
 
   // Fetch hotspots (all, including inactive)
   const fetchHotspots = async () => {
+    setHotspotsLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/hotspots?admin=true`, {
         headers: getAuthHeaders(),
@@ -207,6 +210,8 @@ function AdminPage() {
       }
     } catch (err) {
       console.error('Failed to fetch hotspots:', err);
+    } finally {
+      setHotspotsLoading(false);
     }
   };
 
@@ -788,11 +793,16 @@ function AdminPage() {
           {/* Active PINGs Tab */}
           {activeTab === 'active' && (
             <div className="active-pings-content">
-              {/* Active/Queued PINGs List */}
-              {hotspots
-                .filter(h => h.claimStatus !== 'claimed')
-                .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0))
-                .map((hotspot, index) => {
+              {/* Show skeleton while loading */}
+              {hotspotsLoading ? (
+                <HotspotSkeletonList count={3} />
+              ) : (
+                <>
+                  {/* Active/Queued PINGs List */}
+                  {hotspots
+                    .filter(h => h.claimStatus !== 'claimed')
+                    .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0))
+                    .map((hotspot, index) => {
                   const nfcUrl = `${window.location.origin}/ping/${hotspot.id}`;
                   const isActive = index === 0; // First item is active
                   const displayPosition = index + 1; // Display position: 1, 2, 3, etc.
@@ -1178,15 +1188,20 @@ function AdminPage() {
                   </form>
                 </div>
               )}
+                </>
+              )}
             </div>
           )}
 
           {/* Claimed History Tab */}
           {activeTab === 'history' && (
             <div className="history-content">
-              {hotspots
-                .filter(h => h.claimStatus === 'claimed')
-                .map((hotspot) => (
+              {hotspotsLoading ? (
+                <HotspotSkeletonList count={3} />
+              ) : (
+                hotspots
+                  .filter(h => h.claimStatus === 'claimed')
+                  .map((hotspot) => (
                   <div key={hotspot.id} className="hotspot-item claimed-hotspot">
                     <div className="hotspot-header">
                       <span className="status-badge badge-claimed">CLAIMED</span>
@@ -1202,8 +1217,9 @@ function AdminPage() {
                       )}
                     </div>
                   </div>
-                ))}
-              {hotspots.filter(h => h.claimStatus === 'claimed').length === 0 && (
+                ))
+              )}
+              {!hotspotsLoading && hotspots.filter(h => h.claimStatus === 'claimed').length === 0 && (
                 <p className="empty-message">No claimed PINGs yet.</p>
               )}
             </div>

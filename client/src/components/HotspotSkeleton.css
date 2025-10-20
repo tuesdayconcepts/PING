@@ -1,0 +1,95 @@
+.hotspot-skeleton {
+  padding: 20px 25px;
+  border: 2px solid #d3d3d314;
+  border-radius: 25px;
+  background: #ffffff1a;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 15px;
+  border-bottom: solid 1.5px #ffffff12;
+}
+
+.skeleton-title {
+  height: 20px;
+  width: 60%;
+  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff30 50%, #ffffff1a 100%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: shimmer 2s infinite;
+}
+
+.skeleton-badge {
+  height: 24px;
+  width: 70px;
+  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff30 50%, #ffffff1a 100%);
+  background-size: 200% 100%;
+  border-radius: 20px;
+  animation: shimmer 2s infinite;
+}
+
+.skeleton-location {
+  height: 14px;
+  width: 50%;
+  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff30 50%, #ffffff1a 100%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: shimmer 2s infinite;
+}
+
+.skeleton-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.skeleton-prize {
+  height: 16px;
+  width: 100px;
+  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff30 50%, #ffffff1a 100%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: shimmer 2s infinite;
+}
+
+.skeleton-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.skeleton-icon {
+  height: 32px;
+  width: 32px;
+  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff30 50%, #ffffff1a 100%);
+  background-size: 200% 100%;
+  border-radius: 50%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+

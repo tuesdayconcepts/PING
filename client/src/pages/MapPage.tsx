@@ -56,6 +56,7 @@ function MapPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [markersLoaded, setMarkersLoaded] = useState(false);
   const [center, setCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 }); // Default: NYC
   const [zoom, setZoom] = useState(13);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -239,7 +240,11 @@ function MapPage() {
           setCenter({ lat: activeHotspot.lat, lng: activeHotspot.lng });
           setZoom(14);
         }
+        
+        // Small delay to show loading pill before marker appears with slide-up animation
+        setTimeout(() => setMarkersLoaded(true), 500);
       } else {
+        setMarkersLoaded(true);
         // Try to get user's geolocation for map centering
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
@@ -261,6 +266,7 @@ function MapPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
+      setMarkersLoaded(true);
     }
   };
 
@@ -503,8 +509,16 @@ function MapPage() {
             e.stop();
           }}
         >
-          {/* Render custom markers for each hotspot */}
-          {hotspots.map((hotspot) => {
+          {/* Loading pill overlay */}
+          {!markersLoaded && hotspots.length > 0 && (
+            <div className="map-loading-pill">
+              <span className="loading-icon">🔍</span>
+              <span className="loading-text">Searching for active PING...</span>
+            </div>
+          )}
+
+          {/* Render custom markers for each hotspot with slide-up animation */}
+          {markersLoaded && hotspots.map((hotspot) => {
             // Check if hotspot is active/expired
             const now = new Date();
             const endDate = new Date(hotspot.endDate);
