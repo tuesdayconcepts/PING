@@ -531,6 +531,7 @@ function MapPage() {
                 isActive={isActive}
                 onClick={() => setSelectedHotspot(hotspot)}
                 map={mapInstance || undefined}
+                animate={true}
               />
             );
           })}
