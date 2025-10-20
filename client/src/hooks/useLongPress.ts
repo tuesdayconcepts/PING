@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
 
 interface UseLongPressOptions {
-  onLongPress: (id?: string) => void;
+  onLongPress: () => void;
   duration?: number;
-  onStart?: (id?: string) => void;
+  onStart?: () => void;
   onEnd?: () => void;
 }
 

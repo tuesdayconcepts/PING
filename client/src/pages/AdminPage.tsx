@@ -9,7 +9,6 @@ import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import { HotspotSkeletonList } from '../components/HotspotSkeleton';
 import { ToastProvider, useToast } from '../components/Toast';
-import { useLongPress } from '../hooks/useLongPress';
 import './AdminPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -76,22 +75,8 @@ function AdminPage() {
   // Toast functionality
   const { showToast } = useToast();
   
-  // Long-press state
-  const [approvingClaimId, setApprovingClaimId] = useState<string | null>(null);
+  // Delete confirmation state
   const [deletingHotspotId, setDeletingHotspotId] = useState<string | null>(null);
-
-  // Long-press handlers
-  const createApproveLongPress = (hotspotId: string) => useLongPress({
-    onLongPress: () => handleApprove(hotspotId),
-    onStart: () => setApprovingClaimId(hotspotId),
-    onEnd: () => setApprovingClaimId(null),
-  });
-
-  const createDeleteLongPress = (hotspotId: string) => useLongPress({
-    onLongPress: () => handleDelete(hotspotId),
-    onStart: () => setDeletingHotspotId(hotspotId),
-    onEnd: () => setDeletingHotspotId(null),
-  });
 
   useEffect(() => {
     if (getToken()) {
@@ -507,8 +492,13 @@ function AdminPage() {
     }
   };
 
-  // Delete hotspot
-  const handleDelete = async (id: string) => {
+  // Show delete confirmation
+  const handleDeleteClick = (id: string) => {
+    setDeletingHotspotId(id);
+  };
+
+  // Confirm delete
+  const handleDeleteConfirm = async (id: string) => {
     try {
       const response = await fetch(`${API_URL}/api/hotspots/${id}`, {
         method: 'DELETE',
@@ -519,25 +509,31 @@ function AdminPage() {
         throw new Error('Failed to delete hotspot');
       }
 
-      // Add fade-out animation to the hotspot item
+      // Add slide-out animation to the hotspot item
       const hotspotElement = document.querySelector(`[data-hotspot-id="${id}"]`) as HTMLElement;
       if (hotspotElement) {
-        hotspotElement.style.animation = 'fadeOut 0.5s ease-out forwards';
+        hotspotElement.style.animation = 'slideOutLeft 0.5s ease-out forwards';
         // Remove the item after animation completes
         setTimeout(() => {
           hotspotElement.remove();
         }, 500);
       }
 
+      setDeletingHotspotId(null);
       fetchHotspots();
       fetchLogs();
       if (selectedHotspot?.id === id) {
         handleCancel();
       }
-      // No toast needed - visual feedback handled by animation
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to delete hotspot', 'error');
+      setDeletingHotspotId(null);
     }
+  };
+
+  // Cancel delete
+  const handleDeleteCancel = () => {
+    setDeletingHotspotId(null);
   };
 
   // Cancel editing with smooth closing animation
@@ -881,14 +877,37 @@ function AdminPage() {
                             {copiedId === hotspot.id ? <Check size={18} /> : <Copy size={18} />}
                           </button>
                           <button 
-                            {...createDeleteLongPress(hotspot.id)}
-                            className={`action-icon-btn ${deletingHotspotId === hotspot.id ? 'deleting' : ''}`}
+                            onClick={() => handleDeleteClick(hotspot.id)}
+                            className="action-icon-btn"
                             aria-label="Delete PING"
                           >
                             <Trash2 size={18} />
                           </button>
                         </div>
                       </div>
+
+                      {/* Delete Confirmation - Slides in from right */}
+                      {deletingHotspotId === hotspot.id && (
+                        <div className="delete-confirmation">
+                          <div className="delete-confirmation-content">
+                            <p>Are you sure you want to delete this ping?</p>
+                            <div className="delete-confirmation-buttons">
+                              <button 
+                                onClick={() => handleDeleteConfirm(hotspot.id)}
+                                className="delete-confirm-btn"
+                              >
+                                Yes, Delete
+                              </button>
+                              <button 
+                                onClick={handleDeleteCancel}
+                                className="delete-cancel-btn"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       
                       {/* Inline Pending Claim Details */}
                       {hasPendingClaim && pendingClaim && (
@@ -897,11 +916,10 @@ function AdminPage() {
                           <p><strong>Claimed at:</strong> {formatDate(pendingClaim.claimedAt || '')}</p>
                           {pendingClaim.tweetUrl && <p><strong>Tweet:</strong> Posted</p>}
                           <button
-                            {...createApproveLongPress(pendingClaim.id)}
-                            className={`approve-btn ${approvingClaimId === pendingClaim.id ? 'approve-btn-loading' : ''}`}
-                            disabled={approvingClaimId === pendingClaim.id}
+                            onClick={() => handleApprove(pendingClaim.id)}
+                            className="approve-btn"
                           >
-                            {approvingClaimId === pendingClaim.id ? 'Approving...' : 'Approve Claim'}
+                            Approve Claim
                           </button>
                         </div>
                       )}

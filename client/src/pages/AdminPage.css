@@ -1426,58 +1426,85 @@
   }
 }
 
-/* Long-press animations */
-.approve-btn-loading {
-  background: linear-gradient(135deg, #27ae6054, #2ecc7169) !important;
-  background-size: 0% 100% !important;
-  background-repeat: no-repeat !important;
-  animation: approveGradientFill 3s ease-out forwards !important;
+/* Delete confirmation sliding animation */
+.delete-confirmation {
   position: relative;
   overflow: hidden;
+  animation: slideInFromRight 0.3s ease-out;
 }
 
-@keyframes approveGradientFill {
+@keyframes slideInFromRight {
   0% {
-    background-size: 0% 100%;
+    transform: translateX(100%);
+    opacity: 0;
   }
   100% {
-    background-size: 100% 100%;
-  }
-}
-
-.hotspot-item.deleting {
-  background: #ff000030 !important;
-  transition: background-color 3s ease-out;
-}
-
-.hotspot-item.approving-complete {
-  background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
-  animation: approveComplete 1s ease-out forwards;
-}
-
-@keyframes approveComplete {
-  0% {
-    transform: scale(1);
+    transform: translateX(0);
     opacity: 1;
   }
-  50% {
-    transform: scale(1.02);
-    opacity: 0.9;
+}
+
+@keyframes slideOutLeft {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
   }
   100% {
-    transform: scale(0.95);
+    transform: translateX(-100%);
     opacity: 0;
   }
 }
 
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.95);
-  }
+.delete-confirmation-content {
+  background: #ff4444;
+  padding: 20px;
+  border-radius: 15px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.delete-confirmation-content p {
+  color: #fff;
+  margin: 0 0 15px 0;
+  font-weight: 600;
+}
+
+.delete-confirmation-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.delete-confirm-btn {
+  background: #fff;
+  color: #ff4444;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-confirm-btn:hover {
+  background: #f0f0f0;
+  transform: scale(1.05);
+}
+
+.delete-cancel-btn {
+  background: transparent;
+  color: #fff;
+  border: 2px solid #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-cancel-btn:hover {
+  background: #fff;
+  color: #ff4444;
+  transform: scale(1.05);
 }
 
