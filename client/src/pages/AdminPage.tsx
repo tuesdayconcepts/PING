@@ -224,6 +224,12 @@ function AdminPage() {
       if (response.ok) {
         const data = await response.json();
         setHotspots(data);
+        
+        // Auto-center map on active ping (first unclaimed hotspot)
+        const activePing = data.find((h: Hotspot) => h.claimStatus === 'unclaimed' && h.queuePosition === 1);
+        if (activePing) {
+          setMapCenter({ lat: activePing.lat, lng: activePing.lng });
+        }
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
@@ -643,6 +649,17 @@ function AdminPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // Center map on active ping
+  const centerOnActivePing = () => {
+    const activePing = hotspots.find(h => h.claimStatus === 'unclaimed' && h.queuePosition === 1);
+    if (activePing) {
+      setMapCenter({ lat: activePing.lat, lng: activePing.lng });
+      if (adminMapInstance) {
+        adminMapInstance.setZoom(15); // Zoom in for better view
+      }
+    }
+  };
+
   // Fetch admin users
   const fetchAdminUsers = async () => {
     try {
@@ -855,9 +872,14 @@ function AdminPage() {
         {/* Desktop: Logo and Logout */}
         <div className="sidebar-header">
           <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
-          <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
-            <LogOut size={24} />
-          </button>
+          <div className="header-actions">
+            <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
+              <MapPin size={20} />
+            </button>
+            <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
+              <LogOut size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Mobile drag handle */}
