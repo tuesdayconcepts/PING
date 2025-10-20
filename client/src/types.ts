@@ -18,6 +18,14 @@ export interface Hotspot {
   tweetUrl?: string | null;
   queuePosition?: number;
   locationName?: string | null;
+  // Hint system fields
+  hint1?: string | null;
+  hint2?: string | null;
+  hint3?: string | null;
+  hint1PriceUsd?: number | null;
+  hint2PriceUsd?: number | null;
+  hint3PriceUsd?: number | null;
+  firstHintFree?: boolean;
   createdAt: string;
   updatedAt?: string;
 }

@@ -423,6 +423,34 @@
   font-size: 1rem;
 }
 
+/* Hint Settings Section */
+.hint-settings-section {
+  background: rgba(255, 215, 0, 0.05);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 15px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.hint-settings-section h3 {
+  color: #ffd700;
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+}
+
+.hint-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .hint-pricing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Add User Card - Same style as add-ping-card */
 .add-user-card {
   padding: 24px;
@@ -1265,6 +1293,123 @@
 .remove-image-btn:hover {
   background: rgba(231, 76, 60, 0.9);
   transform: scale(1.1);
+}
+
+/* Hints Section - Collapsible */
+.hints-section {
+  margin-top: 20px;
+  border: 2px solid rgba(255, 215, 0, 0.2);
+  border-radius: 15px;
+  overflow: hidden;
+  background: rgba(255, 215, 0, 0.03);
+}
+
+.hints-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.3s;
+  user-select: none;
+}
+
+.hints-header:hover {
+  background: rgba(255, 215, 0, 0.08);
+}
+
+.hints-header h4 {
+  margin: 0;
+  color: #ffd700;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.expand-icon {
+  font-size: 1.5rem;
+  color: #ffd700;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.hints-content {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+  animation: expandDown 0.3s ease-out;
+}
+
+@keyframes expandDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.hint-group {
+  margin-bottom: 20px;
+}
+
+.hint-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.hint-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #e0e0e0;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s;
+}
+
+.hint-group textarea:focus {
+  outline: none;
+  border-color: #ffd700;
+}
+
+.hint-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+}
+
+.hint-price-input {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hint-price-input label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.hint-price-input input {
+  width: 150px;
+  padding: 8px 12px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.hint-price-input input:focus {
+  outline: none;
+  border-color: #ffd700;
 }
 
 /* Pending Claims Section */

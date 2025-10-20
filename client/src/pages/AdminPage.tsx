@@ -49,6 +49,13 @@ function AdminPage() {
     endDate: '',
     imageUrl: '',
     privateKey: '',
+    hint1: '',
+    hint2: '',
+    hint3: '',
+    hint1PriceUsd: '' as string | number,
+    hint2PriceUsd: '' as string | number,
+    hint3PriceUsd: '' as string | number,
+    firstHintFree: false,
   });
 
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
@@ -61,6 +68,7 @@ function AdminPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [formClosing, setFormClosing] = useState(false);
   const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
+  const [hintsExpanded, setHintsExpanded] = useState(false);
   
   // State for sliding tab indicator
   const [indicatorReady, setIndicatorReady] = useState(false);
@@ -69,6 +77,16 @@ function AdminPage() {
   const [adminUsers, setAdminUsers] = useState<Array<{id: string, username: string, role: 'admin' | 'editor', createdAt: string}>>([]);
   const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'editor' as 'admin' | 'editor' });
   const [showNewUserForm, setShowNewUserForm] = useState(false);
+  
+  // Hint Settings state
+  const [hintSettings, setHintSettings] = useState({
+    treasuryWallet: '',
+    burnWallet: '',
+    defaultHint1Usd: 1.00,
+    defaultHint2Usd: 5.00,
+    defaultHint3Usd: 10.00,
+    pingTokenMint: '',
+  });
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
   const [adminMapInstance, setAdminMapInstance] = useState<google.maps.Map | null>(null);
@@ -92,7 +110,8 @@ function AdminPage() {
         // 2. Load secondary data in parallel
         await Promise.all([
           fetchLogs(),
-          fetchAdminUsers()
+          fetchAdminUsers(),
+          fetchHintSettings()
         ]);
         
         // 3. Load polling data last (will refresh via interval anyway)
@@ -447,8 +466,16 @@ function AdminPage() {
       endDate: '',
       imageUrl: '',
       privateKey: '',
+      hint1: '',
+      hint2: '',
+      hint3: '',
+      hint1PriceUsd: '',
+      hint2PriceUsd: '',
+      hint3PriceUsd: '',
+      firstHintFree: false,
     });
     setImagePreview(null);
+    setHintsExpanded(false);
     
     // Scroll to create form after state updates - use requestAnimationFrame
     requestAnimationFrame(() => {
@@ -526,8 +553,20 @@ function AdminPage() {
       endDate: hasExpiry ? hotspot.endDate.slice(0, 16) : '',
       imageUrl: hotspot.imageUrl || '',
       privateKey: hotspot.privateKey || '', // Show existing key (encrypted display from backend)
+      hint1: hotspot.hint1 || '',
+      hint2: hotspot.hint2 || '',
+      hint3: hotspot.hint3 || '',
+      hint1PriceUsd: hotspot.hint1PriceUsd || '',
+      hint2PriceUsd: hotspot.hint2PriceUsd || '',
+      hint3PriceUsd: hotspot.hint3PriceUsd || '',
+      firstHintFree: hotspot.firstHintFree || false,
     });
     setImagePreview(hotspot.imageUrl || null);
+    
+    // Expand hints section if any hints exist
+    if (hotspot.hint1 || hotspot.hint2 || hotspot.hint3) {
+      setHintsExpanded(true);
+    }
     
     // Scroll to the hotspot item after state updates - use requestAnimationFrame
     requestAnimationFrame(() => {
@@ -558,6 +597,14 @@ function AdminPage() {
         prize: formData.prize,
         imageUrl: formData.imageUrl,
         privateKey: formData.privateKey,
+        // Hint system fields
+        hint1: formData.hint1 || null,
+        hint2: formData.hint2 || null,
+        hint3: formData.hint3 || null,
+        hint1PriceUsd: formData.hint1PriceUsd || null,
+        hint2PriceUsd: formData.hint2PriceUsd || null,
+        hint3PriceUsd: formData.hint3PriceUsd || null,
+        firstHintFree: formData.firstHintFree,
       };
 
       // Only include endDate if expiration toggle is enabled
@@ -663,9 +710,17 @@ function AdminPage() {
         endDate: '',
         imageUrl: '',
         privateKey: '',
+        hint1: '',
+        hint2: '',
+        hint3: '',
+        hint1PriceUsd: '',
+        hint2PriceUsd: '',
+        hint3PriceUsd: '',
+        firstHintFree: false,
       });
       // Don't reset map center - let user keep their current view
       setFormClosing(false);
+      setHintsExpanded(false); // Collapse hints section
     }, 300); // Match animation duration
   };
 
@@ -683,6 +738,63 @@ function AdminPage() {
       // Use smooth pan animation
       adminMapInstance.panTo({ lat: activePing.lat, lng: activePing.lng });
       adminMapInstance.setZoom(15); // Zoom in for better view
+    }
+  };
+
+  // Fetch hint settings
+  const fetchHintSettings = async () => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      
+      const response = await fetch(`${API_URL}/api/admin/hints/settings`, {
+        headers: getAuthHeaders(),
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setHintSettings({
+          treasuryWallet: data.treasuryWallet || '',
+          burnWallet: data.burnWallet || '',
+          defaultHint1Usd: data.defaultHint1Usd || 1.00,
+          defaultHint2Usd: data.defaultHint2Usd || 5.00,
+          defaultHint3Usd: data.defaultHint3Usd || 10.00,
+          pingTokenMint: data.pingTokenMint || '',
+        });
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Hint settings fetch timed out');
+      } else {
+        console.error('Failed to fetch hint settings:', err);
+      }
+    }
+  };
+
+  // Save hint settings
+  const handleSaveHintSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_URL}/api/admin/hints/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(hintSettings),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save hint settings');
+      }
+
+      showToast('Hint settings updated successfully!', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to save hint settings', 'error');
     }
   };
 
@@ -1223,6 +1335,110 @@ function AdminPage() {
                               )}
                             </div>
 
+                            {/* Hints Section - Collapsible */}
+                            <div className="hints-section">
+                              <div className="hints-header" onClick={() => setHintsExpanded(!hintsExpanded)}>
+                                <h4>Hints (Optional)</h4>
+                                <span className="expand-icon">{hintsExpanded ? '−' : '+'}</span>
+                              </div>
+                              
+                              {hintsExpanded && (
+                                <div className="hints-content">
+                                  {/* First Hint Free Toggle */}
+                                  <div className="form-group checkbox">
+                                    <label>
+                                      <input
+                                        type="checkbox"
+                                        checked={formData.firstHintFree}
+                                        onChange={(e) => setFormData({ ...formData, firstHintFree: e.target.checked })}
+                                      />
+                                      <span>First Hint Free</span>
+                                    </label>
+                                  </div>
+
+                                  {/* Hint 1 */}
+                                  <div className="hint-group">
+                                    <label htmlFor="edit-hint1">Hint 1 (General Area)</label>
+                                    <textarea
+                                      id="edit-hint1"
+                                      name="hint1"
+                                      value={formData.hint1}
+                                      onChange={handleInputChange}
+                                      placeholder="e.g., Near the downtown library"
+                                      rows={2}
+                                    />
+                                    {!formData.firstHintFree && (
+                                      <div className="hint-price-input">
+                                        <label htmlFor="edit-hint1Price">Price (USD)</label>
+                                        <input
+                                          type="number"
+                                          id="edit-hint1Price"
+                                          name="hint1PriceUsd"
+                                          value={formData.hint1PriceUsd}
+                                          onChange={handleInputChange}
+                                          placeholder="Leave empty for default"
+                                          step="0.01"
+                                          min="0"
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Hint 2 */}
+                                  <div className="hint-group">
+                                    <label htmlFor="edit-hint2">Hint 2 (Specific Location)</label>
+                                    <textarea
+                                      id="edit-hint2"
+                                      name="hint2"
+                                      value={formData.hint2}
+                                      onChange={handleInputChange}
+                                      placeholder="e.g., Third floor reading room"
+                                      rows={2}
+                                    />
+                                    <div className="hint-price-input">
+                                      <label htmlFor="edit-hint2Price">Price (USD)</label>
+                                      <input
+                                        type="number"
+                                        id="edit-hint2Price"
+                                        name="hint2PriceUsd"
+                                        value={formData.hint2PriceUsd}
+                                        onChange={handleInputChange}
+                                        placeholder="Leave empty for default"
+                                        step="0.01"
+                                        min="0"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Hint 3 */}
+                                  <div className="hint-group">
+                                    <label htmlFor="edit-hint3">Hint 3 (Exact Spot)</label>
+                                    <textarea
+                                      id="edit-hint3"
+                                      name="hint3"
+                                      value={formData.hint3}
+                                      onChange={handleInputChange}
+                                      placeholder="e.g., Behind the encyclopedias, section D"
+                                      rows={2}
+                                    />
+                                    <div className="hint-price-input">
+                                      <label htmlFor="edit-hint3Price">Price (USD)</label>
+                                      <input
+                                        type="number"
+                                        id="edit-hint3Price"
+                                        name="hint3PriceUsd"
+                                        value={formData.hint3PriceUsd}
+                                        onChange={handleInputChange}
+                                        placeholder="Leave empty for default"
+                                        step="0.01"
+                                        min="0"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
                             <div className="form-actions">
                               <button type="submit" className="save-btn">
                                 Save Changes
@@ -1396,6 +1612,109 @@ function AdminPage() {
                       )}
                     </div>
 
+                    {/* Hints Section - Collapsible */}
+                    <div className="hints-section">
+                      <div className="hints-header" onClick={() => setHintsExpanded(!hintsExpanded)}>
+                        <h4>Hints (Optional)</h4>
+                        <span className="expand-icon">{hintsExpanded ? '−' : '+'}</span>
+                      </div>
+                      
+                      {hintsExpanded && (
+                        <div className="hints-content">
+                          {/* First Hint Free Toggle */}
+                          <div className="form-group checkbox">
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={formData.firstHintFree}
+                                onChange={(e) => setFormData({ ...formData, firstHintFree: e.target.checked })}
+                              />
+                              <span>First Hint Free</span>
+                            </label>
+                          </div>
+
+                          {/* Hint 1 */}
+                          <div className="hint-group">
+                            <label htmlFor="hint1">Hint 1 (General Area)</label>
+                            <textarea
+                              id="hint1"
+                              name="hint1"
+                              value={formData.hint1}
+                              onChange={handleInputChange}
+                              placeholder="e.g., Near the downtown library"
+                              rows={2}
+                            />
+                            {!formData.firstHintFree && (
+                              <div className="hint-price-input">
+                                <label htmlFor="hint1Price">Price (USD)</label>
+                                <input
+                                  type="number"
+                                  id="hint1Price"
+                                  name="hint1PriceUsd"
+                                  value={formData.hint1PriceUsd}
+                                  onChange={handleInputChange}
+                                  placeholder="Leave empty for default"
+                                  step="0.01"
+                                  min="0"
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Hint 2 */}
+                          <div className="hint-group">
+                            <label htmlFor="hint2">Hint 2 (Specific Location)</label>
+                            <textarea
+                              id="hint2"
+                              name="hint2"
+                              value={formData.hint2}
+                              onChange={handleInputChange}
+                              placeholder="e.g., Third floor reading room"
+                              rows={2}
+                            />
+                            <div className="hint-price-input">
+                              <label htmlFor="hint2Price">Price (USD)</label>
+                              <input
+                                type="number"
+                                id="hint2Price"
+                                name="hint2PriceUsd"
+                                value={formData.hint2PriceUsd}
+                                onChange={handleInputChange}
+                                placeholder="Leave empty for default"
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Hint 3 */}
+                          <div className="hint-group">
+                            <label htmlFor="hint3">Hint 3 (Exact Spot)</label>
+                            <textarea
+                              id="hint3"
+                              name="hint3"
+                              value={formData.hint3}
+                              onChange={handleInputChange}
+                              placeholder="e.g., Behind the encyclopedias, section D"
+                              rows={2}
+                            />
+                            <div className="hint-price-input">
+                              <label htmlFor="hint3Price">Price (USD)</label>
+                              <input
+                                type="number"
+                                id="hint3Price"
+                                name="hint3PriceUsd"
+                                value={formData.hint3PriceUsd}
+                                onChange={handleInputChange}
+                                placeholder="Leave empty for default"
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     <div className="form-actions">
                       <button type="submit" className="save-btn">
@@ -1470,6 +1789,87 @@ function AdminPage() {
           {/* Access Control Tab */}
           {activeTab === 'access' && currentUserRole === 'admin' && (
             <div className="access-control-content">
+              {/* Hint Settings Section */}
+              <div className="hint-settings-section">
+                <h3>Hint System Configuration</h3>
+                <form onSubmit={handleSaveHintSettings}>
+                  <div className="form-group">
+                    <label htmlFor="treasury-wallet">Treasury Wallet Address</label>
+                    <input
+                      type="text"
+                      id="treasury-wallet"
+                      value={hintSettings.treasuryWallet}
+                      onChange={(e) => setHintSettings({ ...hintSettings, treasuryWallet: e.target.value })}
+                      placeholder="Solana wallet address (receives 50%)"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="burn-wallet">Burn Wallet Address</label>
+                    <input
+                      type="text"
+                      id="burn-wallet"
+                      value={hintSettings.burnWallet}
+                      onChange={(e) => setHintSettings({ ...hintSettings, burnWallet: e.target.value })}
+                      placeholder="Solana wallet address (receives 50% for manual burning)"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="ping-token-mint">$PING Token Mint Address</label>
+                    <input
+                      type="text"
+                      id="ping-token-mint"
+                      value={hintSettings.pingTokenMint}
+                      onChange={(e) => setHintSettings({ ...hintSettings, pingTokenMint: e.target.value })}
+                      placeholder="SPL Token mint address for $PING"
+                    />
+                  </div>
+
+                  <div className="hint-pricing-grid">
+                    <div className="form-group">
+                      <label htmlFor="hint1-price">Default Hint 1 Price (USD)</label>
+                      <input
+                        type="number"
+                        id="hint1-price"
+                        value={hintSettings.defaultHint1Usd}
+                        onChange={(e) => setHintSettings({ ...hintSettings, defaultHint1Usd: parseFloat(e.target.value) })}
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="hint2-price">Default Hint 2 Price (USD)</label>
+                      <input
+                        type="number"
+                        id="hint2-price"
+                        value={hintSettings.defaultHint2Usd}
+                        onChange={(e) => setHintSettings({ ...hintSettings, defaultHint2Usd: parseFloat(e.target.value) })}
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="hint3-price">Default Hint 3 Price (USD)</label>
+                      <input
+                        type="number"
+                        id="hint3-price"
+                        value={hintSettings.defaultHint3Usd}
+                        onChange={(e) => setHintSettings({ ...hintSettings, defaultHint3Usd: parseFloat(e.target.value) })}
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  <button type="submit" className="save-btn">
+                    Save Hint Settings
+                  </button>
+                </form>
+              </div>
+
               {/* New User Form */}
               {showNewUserForm && (
                 <div className="new-user-form">
