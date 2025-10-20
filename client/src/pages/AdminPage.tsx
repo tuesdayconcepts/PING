@@ -828,9 +828,14 @@ function AdminPage() {
       {/* Mobile Top Bar (logo + logout) */}
       <div className="mobile-top-bar">
         <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
-        <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
-          <LogOut size={24} />
-        </button>
+        <div className="header-actions">
+          <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
+            <MapPin size={20} />
+          </button>
+          <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
+            <LogOut size={24} />
+          </button>
+        </div>
       </div>
 
       {/* Full viewport map */}
