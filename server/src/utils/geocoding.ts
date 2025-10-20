@@ -24,25 +24,35 @@ export async function getLocationName(lat: number, lng: number): Promise<string 
       return null;
     }
 
-    // Extract the most relevant location name
+    // Extract detailed location name in "City, State, Country" format
     const result = data.results[0];
     const addressComponents = result.address_components || [];
     
-    // Try to get a city-level location name
-    let locationName = null;
+    let city = null;
+    let state = null;
+    let country = null;
     
-    // Look for locality, administrative_area_level_1, or country
+    // Extract city, state, and country from address components
     for (const component of addressComponents) {
-      if (component.types.includes('locality') || 
-          component.types.includes('administrative_area_level_1') ||
-          component.types.includes('country')) {
-        locationName = component.long_name;
-        break;
+      if (component.types.includes('locality')) {
+        city = component.long_name;
+      } else if (component.types.includes('administrative_area_level_1')) {
+        state = component.short_name; // Use short name for state (e.g., "NY" instead of "New York")
+      } else if (component.types.includes('country')) {
+        country = component.long_name;
       }
     }
     
-    // Fallback to formatted address if no specific component found
-    if (!locationName) {
+    // Build location name in "City, State, Country" format
+    let locationName = null;
+    if (city && state && country) {
+      locationName = `${city}, ${state}, ${country}`;
+    } else if (city && state) {
+      locationName = `${city}, ${state}`;
+    } else if (city) {
+      locationName = city;
+    } else {
+      // Fallback to formatted address if no specific components found
       locationName = result.formatted_address;
     }
 
