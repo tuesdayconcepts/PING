@@ -191,6 +191,9 @@
   border-radius: 20px;
   z-index: 2;
   position: relative;
+  /* Fix Safari touch delay issues */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* Disable double-tap zoom, improve response */
 }
 
 .tab-btn:hover {
@@ -357,6 +360,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* Fix Safari touch responsiveness issues with links */
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y; /* Allow vertical scrolling, improve touch response */
 }
 
 .history-content h3 {
@@ -669,6 +675,9 @@
 .claim-details a {
   color: #3498db;
   text-decoration: none;
+  /* Improve touch targets on mobile */
+  display: inline-block;
+  touch-action: auto; /* Allow links to be clickable independently */
 }
 
 .claim-details a:hover {
