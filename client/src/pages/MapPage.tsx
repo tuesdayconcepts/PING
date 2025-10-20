@@ -245,21 +245,8 @@ function MapPage() {
         setTimeout(() => setMarkersLoaded(true), 500);
       } else {
         setMarkersLoaded(true);
-        // Try to get user's geolocation for map centering
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const userLat = position.coords.latitude;
-              const userLng = position.coords.longitude;
-              setCenter({ lat: userLat, lng: userLng });
-              setZoom(13);
-            },
-            (err) => {
-              console.log('Geolocation not available:', err.message);
-              // Keep default NYC location
-            }
-          );
-        }
+        // Keep default NYC location when no hotspots
+        // Geolocation will only be requested when user clicks "Get My Location" button
       }
 
       setLoading(false);
