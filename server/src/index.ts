@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
+import { getLocationName } from "./utils/geocoding.js";
 
 // Extend Express Request type to include adminId
 declare global {
@@ -414,6 +415,9 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
       ? (unclaimedHotspots[0].queuePosition || 0) + 1 
       : 1; // First hotspot gets position 1
 
+    // Fetch location name for the coordinates
+    const locationName = await getLocationName(roundedLat, roundedLng);
+
     // Create hotspot
     const hotspot = await prisma.hotspot.create({
       data: {
@@ -429,6 +433,7 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
         privateKey: encryptedPrivateKey,
         queuePosition,
         claimStatus: 'unclaimed',
+        locationName,
       },
     });
 
@@ -490,6 +495,12 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
     const roundedLat = lat !== undefined ? roundCoordinate(parseFloat(lat)) : undefined;
     const roundedLng = lng !== undefined ? roundCoordinate(parseFloat(lng)) : undefined;
 
+    // Fetch location name if coordinates changed
+    let locationName = undefined;
+    if (roundedLat !== undefined && roundedLng !== undefined) {
+      locationName = await getLocationName(roundedLat, roundedLng);
+    }
+
     // Update hotspot
     const hotspot = await prisma.hotspot.update({
       where: { id },
@@ -502,6 +513,7 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
         ...(endDate && { endDate: new Date(endDate) }),
         ...(active !== undefined && { active }),
         ...(imageUrl !== undefined && { imageUrl: imageUrl ? sanitizeString(imageUrl) : null }),
+        ...(locationName !== undefined && { locationName }),
       },
     });
 

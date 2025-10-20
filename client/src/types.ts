@@ -17,6 +17,7 @@ export interface Hotspot {
   claimedAt?: string | null;
   tweetUrl?: string | null;
   queuePosition?: number;
+  locationName?: string | null;
   createdAt: string;
   updatedAt?: string;
 }

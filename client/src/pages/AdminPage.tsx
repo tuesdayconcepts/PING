@@ -5,7 +5,6 @@ import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X } from 'lucide-
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
-import { getLocationName } from '../utils/geocoding';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import { HotspotSkeletonList } from '../components/HotspotSkeleton';
@@ -70,7 +69,6 @@ function AdminPage() {
   const [showNewUserForm, setShowNewUserForm] = useState(false);
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
-  const [locationNames, setLocationNames] = useState<Record<string, string>>({});
   const [adminMapInstance, setAdminMapInstance] = useState<google.maps.Map | null>(null);
 
   useEffect(() => {
@@ -191,25 +189,7 @@ function AdminPage() {
       if (response.ok) {
         const data = await response.json();
         setHotspots(data);
-        
-        // Fetch location names - keep loading until all are fetched
-        const fetchLocationNames = async () => {
-          for (const hotspot of data) {
-            if (!locationNames[hotspot.id]) {
-              try {
-                const name = await getLocationName(hotspot.lat, hotspot.lng);
-                setLocationNames(prev => ({ ...prev, [hotspot.id]: name }));
-              } catch (err) {
-                console.error('Failed to fetch location name:', err);
-              }
-            }
-          }
-          // Only stop loading after all location names are fetched
-          setHotspotsLoading(false);
-        };
-        
-        // Fetch location names sequentially
-        fetchLocationNames();
+        setHotspotsLoading(false);
       }
     } catch (err) {
       console.error('Failed to fetch hotspots:', err);
@@ -827,10 +807,10 @@ function AdminPage() {
                       <div className="hotspot-header">
                         <div className="header-title-section">
                           <strong>{hotspot.title}</strong>
-                          {locationNames[hotspot.id] && (
+                          {hotspot.locationName && (
                             <div className="hotspot-location">
                               <MapPin size={12} />
-                              <span>{locationNames[hotspot.id]}</span>
+                              <span>{hotspot.locationName}</span>
                             </div>
                           )}
                         </div>
