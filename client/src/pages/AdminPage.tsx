@@ -1022,7 +1022,7 @@ function AdminPage() {
                             <div className="form-group">
                               <label htmlFor="image-edit">PING Image</label>
                               {!imagePreview ? (
-                                <>
+                                <div className="file-input-wrapper">
                                   <input
                                     type="file"
                                     id="image-edit"
@@ -1030,8 +1030,12 @@ function AdminPage() {
                                     onChange={handleImageChange}
                                     className="file-input"
                                   />
-                                  <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
-                                </>
+                                  <div className="file-input-card">
+                                    <div className="plus-icon">+</div>
+                                    <span>Add Image</span>
+                                    <small className="form-hint">Max 2MB • JPG, PNG, GIF, WebP</small>
+                                  </div>
+                                </div>
                               ) : (
                                 <div className="image-preview">
                                   <img src={imagePreview} alt="Preview" />
@@ -1191,7 +1195,7 @@ function AdminPage() {
                     <div className="form-group">
                       <label htmlFor="image">PING Image</label>
                       {!imagePreview ? (
-                        <>
+                        <div className="file-input-wrapper">
                           <input
                             type="file"
                             id="image"
@@ -1199,8 +1203,12 @@ function AdminPage() {
                             onChange={handleImageChange}
                             className="file-input"
                           />
-                          <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
-                        </>
+                          <div className="file-input-card">
+                            <div className="plus-icon">+</div>
+                            <span>Add Image</span>
+                            <small className="form-hint">Max 2MB • JPG, PNG, GIF, WebP</small>
+                          </div>
+                        </div>
                       ) : (
                         <div className="image-preview">
                           <img src={imagePreview} alt="Preview" />
