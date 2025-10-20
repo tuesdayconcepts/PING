@@ -95,21 +95,6 @@
   color: #ffffff;
 }
 
-/* Success toast specific styling */
-.toast-success {
-  border-left: 4px solid #27ae60;
-}
-
-/* Error toast specific styling */
-.toast-error {
-  border-left: 4px solid #e74c3c;
-}
-
-/* Info toast specific styling */
-.toast-info {
-  border-left: 4px solid #3498db;
-}
-
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .toast-container {
