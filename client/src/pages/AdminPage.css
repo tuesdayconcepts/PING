@@ -1136,7 +1136,7 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover; /* Crop to fill 16:9 ratio */
-  border-radius: 6px;
+  border-radius: 20px;
 }
 
 .image-actions {
