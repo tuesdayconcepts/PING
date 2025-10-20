@@ -1126,10 +1126,10 @@
 .image-preview {
   margin-top: 15px;
   position: relative;
-  border: 2px solid #2a2a2a;
+  /* border: 2px solid #2a2a2a; */
   border-radius: 8px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  /* padding: 10px; */
+  /* background: #ffffff08; */
 }
 
 .image-preview img {
@@ -1137,6 +1137,7 @@
   aspect-ratio: 16 / 9;
   object-fit: cover; /* Crop to fill 16:9 ratio */
   border-radius: 20px;
+  border: solid #ffffff54;
 }
 
 .image-actions {
