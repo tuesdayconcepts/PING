@@ -78,6 +78,7 @@ function AdminPage() {
   
   // Delete confirmation state
   const [deletingHotspotId, setDeletingHotspotId] = useState<string | null>(null);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
 
   useEffect(() => {
     if (getToken()) {
@@ -225,10 +226,17 @@ function AdminPage() {
         const data = await response.json();
         setHotspots(data);
         
-        // Auto-center map on active ping (first unclaimed hotspot)
-        const activePing = data.find((h: Hotspot) => h.claimStatus === 'unclaimed' && h.queuePosition === 1);
-        if (activePing) {
-          setMapCenter({ lat: activePing.lat, lng: activePing.lng });
+        // Auto-center map on active ping only on initial load
+        if (!hasInitiallyLoaded) {
+          const activePing = data.find((h: Hotspot) => h.claimStatus === 'unclaimed' && h.queuePosition === 1);
+          if (activePing && adminMapInstance) {
+            // Use smooth pan animation instead of instant center
+            adminMapInstance.panTo({ lat: activePing.lat, lng: activePing.lng });
+          } else if (activePing) {
+            // Fallback if map not loaded yet
+            setMapCenter({ lat: activePing.lat, lng: activePing.lng });
+          }
+          setHasInitiallyLoaded(true);
         }
       }
     } catch (err) {
@@ -652,11 +660,10 @@ function AdminPage() {
   // Center map on active ping
   const centerOnActivePing = () => {
     const activePing = hotspots.find(h => h.claimStatus === 'unclaimed' && h.queuePosition === 1);
-    if (activePing) {
-      setMapCenter({ lat: activePing.lat, lng: activePing.lng });
-      if (adminMapInstance) {
-        adminMapInstance.setZoom(15); // Zoom in for better view
-      }
+    if (activePing && adminMapInstance) {
+      // Use smooth pan animation
+      adminMapInstance.panTo({ lat: activePing.lat, lng: activePing.lng });
+      adminMapInstance.setZoom(15); // Zoom in for better view
     }
   };
 
