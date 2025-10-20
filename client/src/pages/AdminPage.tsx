@@ -79,17 +79,30 @@ function AdminPage() {
   useEffect(() => {
     if (getToken()) {
       setIsAuthenticated(true);
-      fetchHotspots();
-      fetchLogs();
-      fetchPendingClaims();
-      fetchAdminUsers();
+      
+      // Load data sequentially with priority to avoid overwhelming server
+      const loadData = async () => {
+        // 1. Load critical data first (main content)
+        await fetchHotspots();
+        
+        // 2. Load secondary data in parallel
+        await Promise.all([
+          fetchLogs(),
+          fetchAdminUsers()
+        ]);
+        
+        // 3. Load polling data last (will refresh via interval anyway)
+        fetchPendingClaims();
+      };
+      
+      loadData();
     }
   }, []);
 
-  // Poll for pending claims every 10 seconds
+  // Poll for pending claims every 30 seconds (reduced from 10s)
   useEffect(() => {
     if (isAuthenticated) {
-      const interval = setInterval(fetchPendingClaims, 10000);
+      const interval = setInterval(fetchPendingClaims, 30000);
       return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
@@ -188,16 +201,27 @@ function AdminPage() {
   const fetchHotspots = async () => {
     setHotspotsLoading(true);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
       const response = await fetch(`${API_URL}/api/hotspots?admin=true`, {
         headers: getAuthHeaders(),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data = await response.json();
         setHotspots(data);
-        setHotspotsLoading(false);
       }
     } catch (err) {
-      console.error('Failed to fetch hotspots:', err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Hotspots fetch timed out');
+      } else {
+        console.error('Failed to fetch hotspots:', err);
+      }
+    } finally {
       setHotspotsLoading(false);
     }
   };
@@ -205,30 +229,52 @@ function AdminPage() {
   // Fetch admin logs
   const fetchLogs = async () => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+      
       const response = await fetch(`${API_URL}/api/admin/logs`, {
         headers: getAuthHeaders(),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data = await response.json();
         setLogs(data);
       }
     } catch (err) {
-      console.error('Failed to fetch logs:', err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Logs fetch timed out');
+      } else {
+        console.error('Failed to fetch logs:', err);
+      }
     }
   };
 
   // Fetch pending claims
   const fetchPendingClaims = async () => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+      
       const response = await fetch(`${API_URL}/api/admin/claims`, {
         headers: getAuthHeaders(),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data = await response.json();
         setPendingClaims(data);
       }
     } catch (err) {
-      console.error('Failed to fetch pending claims:', err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Pending claims fetch timed out - will retry on next poll');
+      } else {
+        console.error('Failed to fetch pending claims:', err);
+      }
     }
   };
 
@@ -571,16 +617,27 @@ function AdminPage() {
   // Fetch admin users
   const fetchAdminUsers = async () => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+      
       const response = await fetch(`${API_URL}/api/admin/users`, {
         headers: getAuthHeaders(),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data = await response.json();
         setAdminUsers(data.users);
         setCurrentUserRole(data.currentUserRole);
       }
     } catch (err) {
-      console.error('Failed to fetch admin users:', err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Admin users fetch timed out');
+      } else {
+        console.error('Failed to fetch admin users:', err);
+      }
     }
   };
 
