@@ -509,10 +509,10 @@ function AdminPage() {
         throw new Error('Failed to delete hotspot');
       }
 
-      // Add slide-out animation to the hotspot item
+      // Add shrink-out animation to the hotspot item
       const hotspotElement = document.querySelector(`[data-hotspot-id="${id}"]`) as HTMLElement;
       if (hotspotElement) {
-        hotspotElement.style.animation = 'slideOutLeft 0.5s ease-out forwards';
+        hotspotElement.style.animation = 'shrinkOut 0.5s ease-out forwards';
         // Wait for animation to complete, then refresh list with updated queue positions
         setTimeout(() => {
           setDeletingHotspotId(null);

@@ -1426,32 +1426,41 @@
   }
 }
 
-/* Delete confirmation sliding animation */
+/* Delete confirmation pop-in animation */
 .delete-confirmation {
   position: relative;
   overflow: hidden;
-  animation: slideInFromRight 0.3s ease-out;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-@keyframes slideInFromRight {
+@keyframes popIn {
   0% {
-    transform: translateX(100%);
+    transform: scale(0);
     opacity: 0;
   }
   100% {
-    transform: translateX(0);
+    transform: scale(1);
     opacity: 1;
   }
 }
 
-@keyframes slideOutLeft {
+/* Hotspot item shrink and fade animation */
+@keyframes shrinkOut {
   0% {
-    transform: translateX(0);
+    transform: scale(1);
     opacity: 1;
+    max-height: 500px;
+  }
+  50% {
+    transform: scale(0.95);
+    opacity: 0.5;
   }
   100% {
-    transform: translateX(-100%);
+    transform: scale(0.8);
     opacity: 0;
+    max-height: 0;
+    margin: 0;
+    padding: 0;
   }
 }
 
