@@ -1038,22 +1038,31 @@ function AdminPage() {
                             )}
 
                             <div className="form-group">
-                              <label htmlFor="imageUrl">Image URL (Optional)</label>
+                              <label htmlFor="image">PING Image</label>
                               <input
-                                type="url"
-                                id="imageUrl"
-                                name="imageUrl"
-                                value={formData.imageUrl}
-                                onChange={handleInputChange}
-                                placeholder="https://example.com/image.jpg"
+                                type="file"
+                                id="image"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="file-input"
                               />
+                              {imagePreview && (
+                                <div className="image-preview">
+                                  <img src={imagePreview} alt="Preview" />
+                                  <button 
+                                    type="button" 
+                                    onClick={() => {
+                                      setImagePreview(null);
+                                      setFormData({ ...formData, imageUrl: '' });
+                                    }}
+                                    className="remove-image-btn"
+                                  >
+                                    ✕ Remove
+                                  </button>
+                                </div>
+                              )}
+                              <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
                             </div>
-
-                            {imagePreview && (
-                              <div className="image-preview">
-                                <img src={imagePreview} alt="Preview" />
-                              </div>
-                            )}
 
                             <div className="form-actions">
                               <button type="submit" className="save-btn">
