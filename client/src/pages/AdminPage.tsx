@@ -1255,6 +1255,12 @@ function AdminPage() {
               ) : (
                 hotspots
                   .filter(h => h.claimStatus === 'claimed')
+                  .sort((a, b) => {
+                    // Sort by claimedAt date, most recent first
+                    const dateA = a.claimedAt ? new Date(a.claimedAt).getTime() : 0;
+                    const dateB = b.claimedAt ? new Date(b.claimedAt).getTime() : 0;
+                    return dateB - dateA;
+                  })
                   .map((hotspot, index) => (
                   <div key={hotspot.id} data-hotspot-id={hotspot.id} className="hotspot-item claimed-hotspot" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="hotspot-header">
