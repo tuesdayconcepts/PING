@@ -191,7 +191,7 @@ function AdminPage() {
         const data = await response.json();
         setHotspots(data);
         
-        // Fetch location names only for hotspots we don't have yet - sequentially to avoid overwhelming the API
+        // Fetch location names - keep loading until all are fetched
         const fetchLocationNames = async () => {
           for (const hotspot of data) {
             if (!locationNames[hotspot.id]) {
@@ -203,14 +203,15 @@ function AdminPage() {
               }
             }
           }
+          // Only stop loading after all location names are fetched
+          setHotspotsLoading(false);
         };
         
-        // Run in background without blocking
+        // Fetch location names sequentially
         fetchLocationNames();
       }
     } catch (err) {
       console.error('Failed to fetch hotspots:', err);
-    } finally {
       setHotspotsLoading(false);
     }
   };
@@ -814,6 +815,7 @@ function AdminPage() {
                       key={hotspot.id}
                       id={`hotspot-${hotspot.id}`}
                       className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''}`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
                     >
                       <div className="hotspot-header">
                         <div className="header-title-section">
@@ -1201,8 +1203,8 @@ function AdminPage() {
               ) : (
                 hotspots
                   .filter(h => h.claimStatus === 'claimed')
-                  .map((hotspot) => (
-                  <div key={hotspot.id} className="hotspot-item claimed-hotspot">
+                  .map((hotspot, index) => (
+                  <div key={hotspot.id} className="hotspot-item claimed-hotspot" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="hotspot-header">
                       <span className="status-badge badge-claimed">CLAIMED</span>
                       <strong>{hotspot.title}</strong>

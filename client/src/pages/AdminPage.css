@@ -532,6 +532,19 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  animation: fadeInItem 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInItem {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hotspot-item.active-hotspot {
