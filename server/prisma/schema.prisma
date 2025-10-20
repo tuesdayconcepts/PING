@@ -36,8 +36,21 @@ model Hotspot {
   tweetUrl      String?   // Twitter proof URL
   queuePosition Int       @default(0) // 0 = active, 1+ = queued
   locationName  String?   // Cached geocoded location name
+  
+  // Hint system fields
+  hint1         String?   // General area hint (optional)
+  hint2         String?   // Specific location hint (optional)
+  hint3         String?   // Exact spot hint (optional)
+  hint1PriceUsd Float?    // Custom price in USD (null = use default)
+  hint2PriceUsd Float?
+  hint3PriceUsd Float?
+  firstHintFree Boolean   @default(false) // Is hint 1 free?
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  hintPurchases HintPurchase[]
 }
 
 // Admin action log for audit trail
@@ -49,4 +62,36 @@ model AdminLog {
   entityId  String
   details   String?  // Optional details about the action
   timestamp DateTime @default(now())
+}
+
+// Hint purchase tracking
+model HintPurchase {
+  id            String   @id @default(uuid())
+  hotspotId     String
+  walletAddress String   // Solana wallet that purchased
+  hintLevel     Int      // 1, 2, or 3
+  paidAmount    Float    // Amount of $PING paid (0 if free)
+  paidUsd       Float    // USD value at time of purchase
+  txSignature   String?  // Solana transaction signature (null if free)
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  hotspot       Hotspot  @relation(fields: [hotspotId], references: [id], onDelete: Cascade)
+  
+  // Indexes
+  @@unique([walletAddress, hotspotId, hintLevel]) // Prevent duplicate purchases
+  @@index([walletAddress, hotspotId])
+  @@index([hotspotId])
+}
+
+// Global hint system settings (singleton)
+model HintSettings {
+  id                String   @id @default("singleton")
+  treasuryWallet    String   @default("") // Receives 50% of payments
+  burnWallet        String   @default("") // Receives 50% of payments (admin burns manually)
+  defaultHint1Usd   Float    @default(1.00)   // Default hint 1 price in USD
+  defaultHint2Usd   Float    @default(5.00)   // Default hint 2 price in USD
+  defaultHint3Usd   Float    @default(10.00)  // Default hint 3 price in USD
+  pingTokenMint     String   @default("") // $PING SPL token mint address for Jupiter price lookup
+  updatedAt         DateTime @updatedAt
 }
