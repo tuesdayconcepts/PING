@@ -1116,11 +1116,10 @@
 }
 
 .file-input-card {
-  padding: 30px 24px;
+  padding: 37px 24px;
   border: 2px dashed #ffd70082;
   border-radius: 25px;
   background: #ffffff1a;
-  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1132,6 +1131,7 @@
 .file-input-wrapper:hover .file-input-card {
   background: rgba(255, 215, 0, 0.05);
   border-color: #ffd700;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .file-input-card .plus-icon {
