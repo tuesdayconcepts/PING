@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X, ImageUp } from 'lucide-react';
+import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -829,8 +829,8 @@ function AdminPage() {
       <div className="mobile-top-bar">
         <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
         <div className="header-actions">
-          <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
-            <MapPin size={20} />
+          <button onClick={centerOnActivePing} className="logout-btn" aria-label="Center on Active PING">
+            <LocateFixed size={24} />
           </button>
           <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
             <LogOut size={24} />
@@ -901,8 +901,8 @@ function AdminPage() {
         <div className="sidebar-header">
           <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
           <div className="header-actions">
-            <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
-              <MapPin size={20} />
+            <button onClick={centerOnActivePing} className="logout-btn" aria-label="Center on Active PING">
+              <LocateFixed size={24} />
             </button>
             <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
               <LogOut size={24} />
