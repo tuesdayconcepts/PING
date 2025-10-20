@@ -249,7 +249,7 @@ function AdminPage() {
       }
 
       // Add checkmark animation to the hotspot item
-      const hotspotElement = document.querySelector(`[data-hotspot-id="${hotspotId}"]`);
+      const hotspotElement = document.querySelector(`[data-hotspot-id="${hotspotId}"]`) as HTMLElement;
       if (hotspotElement) {
         hotspotElement.classList.add('approving-complete');
         // Remove the item after animation completes
@@ -507,7 +507,7 @@ function AdminPage() {
       }
 
       // Add fade-out animation to the hotspot item
-      const hotspotElement = document.querySelector(`[data-hotspot-id="${id}"]`);
+      const hotspotElement = document.querySelector(`[data-hotspot-id="${id}"]`) as HTMLElement;
       if (hotspotElement) {
         hotspotElement.style.animation = 'fadeOut 0.5s ease-out forwards';
         // Remove the item after animation completes
