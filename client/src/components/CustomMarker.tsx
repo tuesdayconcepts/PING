@@ -9,6 +9,7 @@ interface CustomMarkerProps {
 
 export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, onClick, map }) => {
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  const hasAnimated = useRef(false); // Track if animation has played
 
   useEffect(() => {
     if (!map) return;
@@ -29,8 +30,15 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, 
 
       onAdd() {
         const div = document.createElement('div');
-        div.className = `pulse-marker ${isActive ? '' : 'inactive'} marker-slide-up`;
+        // Only add slide-up animation class on first render
+        const animationClass = !hasAnimated.current ? 'marker-slide-up' : '';
+        div.className = `pulse-marker ${isActive ? '' : 'inactive'} ${animationClass}`;
         div.style.cssText = 'cursor: pointer; width: 80px; height: 80px; position: absolute;';
+        
+        // Mark as animated after first render
+        if (!hasAnimated.current) {
+          hasAnimated.current = true;
+        }
         
         // Add SVGs
         for (let i = 0; i < 3; i++) {
