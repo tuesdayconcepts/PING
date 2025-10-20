@@ -20,14 +20,22 @@ declare global {
 const app = express();
 const prisma = new PrismaClient();
 
+// Trust Railway proxy
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
+  credentials: false,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images
+
+// Handle preflight requests explicitly
+app.options('*', cors());
 
 // JWT Secret from environment
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production";
