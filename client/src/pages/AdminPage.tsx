@@ -423,7 +423,6 @@ function AdminPage() {
       lng: hotspot.lng,
       prize: hotspot.prize || '',
       endDate: hasExpiry ? hotspot.endDate.slice(0, 16) : '',
-      active: hotspot.active,
       imageUrl: hotspot.imageUrl || '',
       privateKey: hotspot.privateKey || '', // Show existing key (encrypted display from backend)
     });
