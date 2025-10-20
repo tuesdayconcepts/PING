@@ -60,12 +60,14 @@
   max-width: 100%; /* Fix Safari datetime-local overflow */
 }
 
-/* Fix Safari datetime-local input width */
+/* Fix Safari datetime-local input width and height */
 .form-group input[type="datetime-local"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
   max-width: 100%;
+  min-height: 44px; /* Maintain consistent height on mobile Safari */
+  padding: 10px; /* Ensure padding matches other inputs */
 }
 
 .form-group input::placeholder,
