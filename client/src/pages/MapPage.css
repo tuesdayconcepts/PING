@@ -602,7 +602,7 @@
 
 /* Combined Header Section (Title + Time Info) */
 .modal-header {
-  background: #ffffff30;
+  background: #ffffff40;
   padding: 20px;
 }
 
@@ -881,7 +881,7 @@
 
 /* Claim Intro State */
 .modal-claim-intro {
-  background: #ffffff30;
+  background: #ffffff40;
   text-align: center;
   padding: 30px 25px !important;
   position: relative;
@@ -955,7 +955,7 @@
 
 /* Queued State */
 .modal-queued {
-  background: #ffffff30;
+  background: #ffffff40;
   text-align: left;
   padding: 25px 25px !important;
 }
@@ -1004,7 +1004,7 @@
 
 /* Pending State */
 .modal-pending {
-  background: #ffffff30;
+  background: #ffffff40;
   text-align: center;
   padding: 30px 25px !important;
 }
@@ -1155,7 +1155,7 @@
 
 /* Claimed/Reveal State */
 .modal-reveal {
-  background: #ffffff30;
+  background: #ffffff40;
   text-align: center;
   padding: 20px 20px !important;
 }

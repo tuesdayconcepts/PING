@@ -619,7 +619,7 @@
   padding: 20px 25px;
   border: 2px solid #d3d3d314;
   border-radius: 25px;
-  background: #ffffff30;
+  background: #ffffff40;
   transition: all .2s;
   display: flex;
   flex-direction: column;
@@ -649,7 +649,7 @@
 }
 
 .hotspot-item.pending-claim {
-  background: #ffffff30;
+  background: #ffffff40;
 }
 
 .hotspot-info {
@@ -843,7 +843,7 @@
   padding: 20px 0;
   /* border: 2px solid #d3d3d31f; */
   /* border-radius: 25px; */
-  /* background: #ffffff30; */
+  /* background: #ffffff40; */
   animation: expandIn .3s ease;
   border-top: dashed 1.5px #ffffff21;
   margin-top: 0;
@@ -858,7 +858,7 @@
   padding: 25px 25px;
   border: 2px solid #d3d3d314;
   border-radius: 25px;
-  background: #ffffff30;
+  background: #ffffff40;
   /* transition: all .2s; */
   /* display: flex; */
   flex-direction: column;
@@ -1761,7 +1761,7 @@
 }
 
 .delete-cancel-btn {
-  background: #ffffff30;
+  background: #ffffff40;
   color: #fff;
   border: none;
   padding: 12px 20px;

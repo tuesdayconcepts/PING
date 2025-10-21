@@ -23,7 +23,7 @@
 .skeleton-title {
   height: 20px;
   width: 60%;
-  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff30 50%, #ffffff1a 100%);
+  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff40 50%, #ffffff1a 100%);
   background-size: 200% 100%;
   border-radius: 4px;
   animation: shimmer 2s infinite;
@@ -32,7 +32,7 @@
 .skeleton-badge {
   height: 24px;
   width: 70px;
-  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff30 50%, #ffffff1a 100%);
+  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff40 50%, #ffffff1a 100%);
   background-size: 200% 100%;
   border-radius: 20px;
   animation: shimmer 2s infinite;
@@ -41,7 +41,7 @@
 .skeleton-location {
   height: 14px;
   width: 50%;
-  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff30 50%, #ffffff1a 100%);
+  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff40 50%, #ffffff1a 100%);
   background-size: 200% 100%;
   border-radius: 4px;
   animation: shimmer 2s infinite;
@@ -57,7 +57,7 @@
 .skeleton-prize {
   height: 16px;
   width: 100px;
-  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff30 50%, #ffffff1a 100%);
+  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff40 50%, #ffffff1a 100%);
   background-size: 200% 100%;
   border-radius: 4px;
   animation: shimmer 2s infinite;
@@ -71,7 +71,7 @@
 .skeleton-icon {
   height: 32px;
   width: 32px;
-  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff30 50%, #ffffff1a 100%);
+  background: linear-gradient(90deg, #ffffff1a 0%, #ffffff40 50%, #ffffff1a 100%);
   background-size: 200% 100%;
   border-radius: 50%;
   animation: shimmer 2s infinite;
