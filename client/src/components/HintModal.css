@@ -161,7 +161,8 @@
   border: solid 3px #00000005 !important;
   border-radius: 50px !important;
   cursor: pointer;
-  font-size: 0.85rem !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
   transition: background 0.3s;
 }
 
@@ -172,7 +173,8 @@
   border: solid 3px #00000005 !important;
   border-radius: 50px !important;
   cursor: pointer;
-  font-size: 0.85rem !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
   transition: background 0.3s;
 }
 
