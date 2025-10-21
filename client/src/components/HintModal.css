@@ -207,6 +207,7 @@
   padding: 0 24px;
   border-radius: 50px;
   transition: all 0.3s ease;
+  text-transform: uppercase;
 }
 
 .hint-actions .wallet-adapter-button:hover:not(:disabled) {
