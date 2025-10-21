@@ -6,20 +6,22 @@
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
   border: 2px solid rgba(255, 215, 0, 0.3);
   border-radius: 20px;
-  padding: 24px;
+  padding: 28px 24px;
 }
 
 .hint-header-section h2 {
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
   color: #ffd700;
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .hint-subtitle {
   margin: 0;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .hint-error-banner {
@@ -35,24 +37,116 @@
 
 /* Hints Container - All hints in one modal-section */
 .hints-container {
+  padding: 24px !important;
+  min-height: 200px;
+}
+
+/* ===================
+   OPTION A: SINGLE MORPHING CARD
+   =================== */
+
+.single-card-container {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px !important;
 }
 
-/* Individual Hint Card */
+.progress-indicator {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.hints-unlocked-count {
+  text-align: center;
+  color: #ffd700;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.hint-card.single {
+  animation: morphIn 0.4s ease;
+}
+
+@keyframes morphIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===================
+   OPTION B: STACKED PERSPECTIVE CARDS
+   =================== */
+
+.stacked-cards-container {
+  position: relative;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.hint-card.stacked {
+  position: absolute;
+  width: 100%;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hint-card.stacked.active {
+  position: relative;
+}
+
+/* ===================
+   OPTION C: HORIZONTAL SLIDER
+   =================== */
+
+.slider-cards-container {
+  overflow: hidden;
+  width: 100%;
+}
+
+.slider-track {
+  display: flex;
+  gap: 16px;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hint-card.slider {
+  min-width: 100%;
+  flex-shrink: 0;
+  opacity: 0.5;
+  transform: scale(0.95);
+  transition: all 0.5s ease;
+}
+
+.hint-card.slider.center {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ===================
+   COMMON HINT CARD STYLES
+   =================== */
+
 .hint-card {
   background: rgba(255, 255, 255, 0.05);
   border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 20px;
+  padding: 20px;
   transition: all 0.3s ease;
 }
 
 .hint-card.unlocked {
-  background: rgba(46, 213, 115, 0.08);
-  border-color: rgba(46, 213, 115, 0.4);
+  background: rgba(46, 213, 115, 0.1);
+  border-color: rgba(46, 213, 115, 0.5);
+  box-shadow: 0 0 20px rgba(46, 213, 115, 0.2);
 }
 
 .hint-card.locked {
@@ -61,7 +155,7 @@
 }
 
 .hint-card.disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   pointer-events: none;
 }
 
@@ -69,16 +163,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .hint-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: #ffd700;
-  font-weight: 600;
-  font-size: 1.05rem;
+  font-weight: 700;
+  font-size: 1.2rem;
 }
 
 .hint-title svg {
@@ -88,60 +182,65 @@
 .free-badge {
   background: linear-gradient(135deg, #2ed573 0%, #20bf6b 100%);
   color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.7rem;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.5px;
+  animation: pulse 2s ease-in-out infinite;
 }
 
-.hint-content {
-  animation: fadeIn 0.5s ease;
-}
-
-.hint-content p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
-  font-size: 0.95rem;
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
 }
 
 .hint-locked-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  align-items: center;
+  gap: 12px;
 }
 
 .hint-requirement {
   margin: 0;
   color: rgba(255, 255, 255, 0.5);
   font-style: italic;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 20px 0;
 }
 
 .hint-price {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .price-text {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 700;
   color: #2ed573;
 }
 
 .price-usd {
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 800;
   color: #ffd700;
+  text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
 }
 
 .price-ping {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
 }
 
 /* Action Buttons Section */
@@ -208,11 +307,11 @@
   align-items: center;
   justify-content: center;
   font-family: 'DM Sans', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-  font-size: 1rem;
+  font-size: 1rem !important;
   font-weight: 600;
   height: 48px;
   line-height: 48px;
-  padding: 0 20px;
+  padding: 0 20px !important;
   border-radius: 50px;
   transition: all 0.3s ease;
   text-transform: uppercase;
