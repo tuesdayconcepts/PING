@@ -65,8 +65,8 @@
 }
 
 .hint-card.locked {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: #ffffff40;
+  border-color: #ffffff1a;
 }
 
 .hint-card.disabled {
