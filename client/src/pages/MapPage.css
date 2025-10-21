@@ -740,11 +740,6 @@
   text-align: center;
 }
 
-.hint-cta:hover {
-  background: #ffd700;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
-}
 
 .hint-cta:active {
   transform: translateY(0);
