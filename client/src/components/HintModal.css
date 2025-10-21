@@ -155,19 +155,25 @@
 
 .details-btn {
   flex-shrink: 0;
-  padding: 16px 20px;
-  background: #00000061;
-  color: #ffffffa1;
-  border: none;
+  padding: 6px 16px;
+  background: #00000024;
+  color: #fff;
+  border: solid 3px #00000005;
   border-radius: 50px;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.85rem;
   transition: background 0.3s;
 }
 
 .details-btn:hover {
-  background: #00000080;
+  padding: 6px 16px;
+  background: #00000040;
+  color: #fff;
+  border: solid 3px #00000005;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.3s;
 }
 
 .hint-cta-btn {
