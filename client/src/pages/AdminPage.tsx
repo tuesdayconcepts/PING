@@ -59,7 +59,7 @@ function AdminPage() {
   });
 
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
-  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access' | 'hints'>('active');
   const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'editor'>('editor'); // Default to editor, will be updated by API
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -78,13 +78,10 @@ function AdminPage() {
   const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'editor' as 'admin' | 'editor' });
   const [showNewUserForm, setShowNewUserForm] = useState(false);
   
-  // Hint Settings state
+  // Hint Settings state (only wallets + token mint, no default prices)
   const [hintSettings, setHintSettings] = useState({
     treasuryWallet: '',
     burnWallet: '',
-    defaultHint1Usd: 1.00,
-    defaultHint2Usd: 5.00,
-    defaultHint3Usd: 10.00,
     pingTokenMint: '',
   });
 
@@ -759,9 +756,6 @@ function AdminPage() {
         setHintSettings({
           treasuryWallet: data.treasuryWallet || '',
           burnWallet: data.burnWallet || '',
-          defaultHint1Usd: data.defaultHint1Usd || 1.00,
-          defaultHint2Usd: data.defaultHint2Usd || 5.00,
-          defaultHint3Usd: data.defaultHint3Usd || 10.00,
           pingTokenMint: data.pingTokenMint || '',
         });
       }
@@ -1056,13 +1050,22 @@ function AdminPage() {
             Recent Activity
           </button>
           {currentUserRole === 'admin' && (
-            <button 
-              className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
-              onClick={(e) => handleTabClick('access', e)}
-              onTouchStart={(e) => handleTabClick('access', e)}
-            >
-              Access Control
-            </button>
+            <>
+              <button 
+                className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
+                onClick={(e) => handleTabClick('access', e)}
+                onTouchStart={(e) => handleTabClick('access', e)}
+              >
+                Access Control
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'hints' ? 'active' : ''}`}
+                onClick={(e) => handleTabClick('hints', e)}
+                onTouchStart={(e) => handleTabClick('hints', e)}
+              >
+                Hint Settings
+              </button>
+            </>
           )}
         </div>
 
@@ -1786,18 +1789,18 @@ function AdminPage() {
             </div>
           )}
 
-          {/* Access Control Tab */}
-          {activeTab === 'access' && currentUserRole === 'admin' && (
-            <div className="access-control-content">
-              {/* Hint Settings Section */}
+
+          {/* Hint Settings Tab */}
+          {activeTab === 'hints' && currentUserRole === 'admin' && (
+            <div className="hint-settings-content">
               <div className="hint-settings-section">
                 <h3>Hint System Configuration</h3>
                 <form onSubmit={handleSaveHintSettings}>
                   <div className="form-group">
-                    <label htmlFor="treasury-wallet">Treasury Wallet Address</label>
+                    <label htmlFor="treasury-wallet-hints">Treasury Wallet Address</label>
                     <input
                       type="text"
-                      id="treasury-wallet"
+                      id="treasury-wallet-hints"
                       value={hintSettings.treasuryWallet}
                       onChange={(e) => setHintSettings({ ...hintSettings, treasuryWallet: e.target.value })}
                       placeholder="Solana wallet address (receives 50%)"
@@ -1805,10 +1808,10 @@ function AdminPage() {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="burn-wallet">Burn Wallet Address</label>
+                    <label htmlFor="burn-wallet-hints">Burn Wallet Address</label>
                     <input
                       type="text"
-                      id="burn-wallet"
+                      id="burn-wallet-hints"
                       value={hintSettings.burnWallet}
                       onChange={(e) => setHintSettings({ ...hintSettings, burnWallet: e.target.value })}
                       placeholder="Solana wallet address (receives 50% for manual burning)"
@@ -1816,60 +1819,32 @@ function AdminPage() {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="ping-token-mint">$PING Token Mint Address</label>
+                    <label htmlFor="ping-token-mint-hints">$PING Token Mint Address</label>
                     <input
                       type="text"
-                      id="ping-token-mint"
+                      id="ping-token-mint-hints"
                       value={hintSettings.pingTokenMint}
                       onChange={(e) => setHintSettings({ ...hintSettings, pingTokenMint: e.target.value })}
                       placeholder="SPL Token mint address for $PING"
                     />
                   </div>
 
-                  <div className="hint-pricing-grid">
-                    <div className="form-group">
-                      <label htmlFor="hint1-price">Default Hint 1 Price (USD)</label>
-                      <input
-                        type="number"
-                        id="hint1-price"
-                        value={hintSettings.defaultHint1Usd}
-                        onChange={(e) => setHintSettings({ ...hintSettings, defaultHint1Usd: parseFloat(e.target.value) })}
-                        step="0.01"
-                        min="0"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="hint2-price">Default Hint 2 Price (USD)</label>
-                      <input
-                        type="number"
-                        id="hint2-price"
-                        value={hintSettings.defaultHint2Usd}
-                        onChange={(e) => setHintSettings({ ...hintSettings, defaultHint2Usd: parseFloat(e.target.value) })}
-                        step="0.01"
-                        min="0"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="hint3-price">Default Hint 3 Price (USD)</label>
-                      <input
-                        type="number"
-                        id="hint3-price"
-                        value={hintSettings.defaultHint3Usd}
-                        onChange={(e) => setHintSettings({ ...hintSettings, defaultHint3Usd: parseFloat(e.target.value) })}
-                        step="0.01"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-
                   <button type="submit" className="save-btn">
                     Save Hint Settings
                   </button>
                 </form>
+                
+                <div className="hint-instructions">
+                  <h4>How Hint Pricing Works</h4>
+                  <p>Hint prices are configured individually per hotspot when creating or editing PINGs. Set the USD price for each hint level (1, 2, 3) in the PING creation form, and the app will automatically calculate the $PING token amount based on the current market price.</p>
+                </div>
               </div>
+            </div>
+          )}
 
+          {/* Access Control Tab */}
+          {activeTab === 'access' && currentUserRole === 'admin' && (
+            <div className="access-control-content">
               {/* New User Form */}
               {showNewUserForm && (
                 <div className="new-user-form">
@@ -2001,13 +1976,22 @@ function AdminPage() {
             Recent Activity
           </button>
           {currentUserRole === 'admin' && (
-            <button 
-              className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
-              onClick={(e) => handleTabClick('access', e)}
-              onTouchStart={(e) => handleTabClick('access', e)}
-            >
-              Access Control
-            </button>
+            <>
+              <button 
+                className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
+                onClick={(e) => handleTabClick('access', e)}
+                onTouchStart={(e) => handleTabClick('access', e)}
+              >
+                Access Control
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'hints' ? 'active' : ''}`}
+                onClick={(e) => handleTabClick('hints', e)}
+                onTouchStart={(e) => handleTabClick('hints', e)}
+              >
+                Hint Settings
+              </button>
+            </>
           )}
         </div>
       </div>

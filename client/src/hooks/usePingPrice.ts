@@ -5,9 +5,6 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 interface HintSettings {
   treasuryWallet: string;
   burnWallet: string;
-  defaultHint1Usd: number;
-  defaultHint2Usd: number;
-  defaultHint3Usd: number;
   pingTokenMint: string;
   currentPingPrice: number | null;
 }

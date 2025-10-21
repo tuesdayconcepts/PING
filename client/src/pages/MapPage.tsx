@@ -543,7 +543,7 @@ function MapPage() {
       )}
 
       {/* Hotspot Modal Popup */}
-      {selectedHotspot && (
+      {selectedHotspot && !showHintModal && (
         <div className={`modal-overlay ${isModalClosing ? 'closing' : ''}`} onClick={() => setSelectedHotspot(null)}>
           <div className="modal-wrapper">
             <div className={`modal-content ${isModalClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>

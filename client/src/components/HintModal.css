@@ -1,137 +1,72 @@
-/* Hint Modal Overlay */
-.hint-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  animation: fadeIn 0.3s ease-out;
-}
+/* Hint Modal uses the same modal-overlay and modal-content from MapPage.css */
+/* Only custom styles for hint-specific sections below */
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Hint Modal Container */
-.hint-modal {
-  background: rgba(20, 20, 20, 0.98);
+.hint-header-section {
+  text-align: center;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
   border: 2px solid rgba(255, 215, 0, 0.3);
-  border-radius: 25px;
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 30px;
-  animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  padding: 24px;
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Modal Header */
-.hint-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid rgba(255, 215, 0, 0.2);
-}
-
-.hint-modal-header h2 {
-  margin: 0;
+.hint-header-section h2 {
+  margin: 0 0 8px 0;
   color: #ffd700;
   font-size: 1.8rem;
   font-weight: 700;
 }
 
-.close-btn {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s;
-  border-radius: 50%;
+.hint-subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
 }
 
-.close-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-  transform: rotate(90deg);
-}
-
-/* Wallet Connect Section */
-.wallet-connect-section {
-  text-align: center;
-  padding: 30px;
-  background: rgba(255, 215, 0, 0.05);
-  border: 2px dashed rgba(255, 215, 0, 0.3);
+.hint-error-section {
+  background: rgba(231, 76, 60, 0.1);
+  border: 2px solid rgba(231, 76, 60, 0.4);
   border-radius: 15px;
-  margin-bottom: 25px;
+  padding: 16px;
 }
 
-.wallet-connect-section p {
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 20px;
-  font-size: 1rem;
-}
-
-/* Hints Grid */
-.hints-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.no-hints {
+.hint-error {
+  margin: 0;
+  color: #e74c3c;
+  font-weight: 500;
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
-  padding: 40px;
-  font-size: 1rem;
 }
 
-/* Hint Card */
+.hint-wallet-section {
+  background: rgba(255, 215, 0, 0.08);
+  border: 2px solid rgba(255, 215, 0, 0.2);
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+}
+
+.hint-wallet-section p {
+  margin: 0 0 16px 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+}
+
+/* Hint Card - matches modal-section but with specific hint styling */
 .hint-card {
   background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 20px;
   padding: 20px;
   transition: all 0.3s ease;
 }
 
-.hint-card.locked {
-  border-color: rgba(255, 255, 255, 0.15);
+.hint-card.unlocked {
+  background: rgba(46, 213, 115, 0.08);
+  border-color: rgba(46, 213, 115, 0.4);
 }
 
-.hint-card.unlocked {
-  border-color: rgba(255, 215, 0, 0.5);
-  background: rgba(255, 215, 0, 0.08);
+.hint-card.locked {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .hint-card.disabled {
@@ -139,21 +74,20 @@
   pointer-events: none;
 }
 
-/* Hint Header */
-.hint-header {
+.hint-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
 .hint-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #fff;
-  font-size: 1.1rem;
+  color: #ffd700;
   font-weight: 600;
+  font-size: 1.1rem;
 }
 
 .hint-title svg {
@@ -161,153 +95,106 @@
 }
 
 .free-badge {
-  background: linear-gradient(135deg, #4ade80, #22c55e);
-  color: #000;
+  background: linear-gradient(135deg, #2ed573 0%, #20bf6b 100%);
+  color: white;
   padding: 4px 12px;
-  border-radius: 50px;
+  border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-/* Hint Content (Unlocked) */
 .hint-content {
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
-  font-size: 1rem;
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  border-left: 4px solid #ffd700;
+  animation: fadeIn 0.5s ease;
 }
 
 .hint-content p {
   margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 1rem;
 }
 
-/* Hint Locked */
-.hint-locked {
+.hint-locked-content {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
   align-items: center;
 }
 
-.requirement-text {
-  color: rgba(255, 255, 255, 0.5);
-  text-align: center;
-  font-size: 0.9rem;
-  font-style: italic;
+.hint-requirement {
   margin: 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  font-size: 0.9rem;
 }
 
-/* Hint Price */
 .hint-price {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-}
-
-.price-free {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #4ade80;
+  gap: 4px;
 }
 
 .price-usd {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #ffd700;
 }
 
 .price-ping {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.6);
-  font-weight: 500;
 }
 
-/* Purchase Button */
 .purchase-btn {
-  background: linear-gradient(135deg, #ffe87c, #ffd700);
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
   color: #000;
-  padding: 14px 30px;
-  border-radius: 50px;
   border: none;
+  border-radius: 25px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  min-width: 200px;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
 }
 
 .purchase-btn:hover:not(:disabled) {
-  background: #ffd700;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
 }
 
-.purchase-btn:active {
-  transform: translateY(0);
-}
-
 .purchase-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
-/* Hint Footer */
-.hint-footer {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 2px solid rgba(255, 215, 0, 0.2);
+.hint-loading {
   text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
 }
 
-.hint-footer p {
+.no-hints {
+  text-align: center;
+  padding: 20px;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 0.9rem;
-  margin: 0;
   font-style: italic;
+  margin: 0;
 }
 
-/* Error Message */
-.hint-error {
-  background: rgba(231, 76, 60, 0.15);
-  border: 2px solid rgba(231, 76, 60, 0.4);
-  color: #fff;
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-  .hint-modal {
-    padding: 20px;
-    max-height: 85vh;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-
-  .hint-modal-header h2 {
-    font-size: 1.5rem;
-  }
-
-  .hint-card {
-    padding: 16px;
-  }
-
-  .purchase-btn {
-    min-width: 160px;
-    padding: 12px 24px;
-    font-size: 0.9rem;
-  }
-
-  .price-usd {
-    font-size: 1.5rem;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
-

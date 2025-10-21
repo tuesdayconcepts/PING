@@ -96,12 +96,16 @@ export function HintModal({ hotspotId, onClose }: HintModalProps) {
 
       // Handle paid purchase
       if (!isFree) {
-        // Get price for this hint level
+        // Get price for this hint level (must be configured on hotspot)
         const hintPriceUsd = hintLevel === 1
-          ? (hotspot.hint1PriceUsd || settings.defaultHint1Usd)
+          ? hotspot.hint1PriceUsd
           : hintLevel === 2
-          ? (hotspot.hint2PriceUsd || settings.defaultHint2Usd)
-          : (hotspot.hint3PriceUsd || settings.defaultHint3Usd);
+          ? hotspot.hint2PriceUsd
+          : hotspot.hint3PriceUsd;
+        
+        if (!hintPriceUsd) {
+          throw new Error('Hint price not configured for this hotspot');
+        }
 
         // Calculate $PING amount
         const pingAmount = usdToPing(hintPriceUsd);
@@ -132,7 +136,6 @@ export function HintModal({ hotspotId, onClose }: HintModalProps) {
           hintLevel,
           txSignature,
           paidAmount,
-          isFree,
         }),
       });
 
@@ -141,20 +144,16 @@ export function HintModal({ hotspotId, onClose }: HintModalProps) {
         throw new Error(data.error || 'Purchase failed');
       }
 
-      const data = await response.json();
+      const result = await response.json();
 
-      // Update purchased hints with new hint text
-      setPurchasedHints((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          [`hint${hintLevel}`]: {
-            purchased: true,
-            text: data.hint,
-          },
-        };
-      });
-
+      // Update purchased hints with the new hint text
+      setPurchasedHints((prev) => ({
+        ...prev!,
+        [`hint${hintLevel}`]: {
+          purchased: true,
+          text: result.hintText,
+        },
+      }));
     } catch (err) {
       console.error('Purchase failed:', err);
       setError(err instanceof Error ? err.message : 'Purchase failed');
@@ -165,13 +164,17 @@ export function HintModal({ hotspotId, onClose }: HintModalProps) {
 
   if (loading) {
     return (
-      <div className="hint-modal-overlay" onClick={onClose}>
-        <div className="hint-modal" onClick={(e) => e.stopPropagation()}>
-          <div className="hint-modal-header">
-            <h2>Loading hints...</h2>
-            <button className="close-btn" onClick={onClose}>
-              <X size={24} />
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-wrapper">
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={onClose}>
+              ✕
             </button>
+            <div className="modal-sections">
+              <div className="modal-section">
+                <div className="hint-loading">Loading hints...</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -184,118 +187,108 @@ export function HintModal({ hotspotId, onClose }: HintModalProps) {
 
   // Determine which hints exist
   const hints = [
-    { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd || settings?.defaultHint1Usd, free: hotspot.firstHintFree },
-    { level: 2, text: hotspot.hint2, price: hotspot.hint2PriceUsd || settings?.defaultHint2Usd, free: false },
-    { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd || settings?.defaultHint3Usd, free: false },
+    { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: hotspot.firstHintFree },
+    { level: 2, text: hotspot.hint2, price: hotspot.hint2PriceUsd, free: false },
+    { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
   ].filter((h) => h.text); // Only show hints that exist
 
   return (
-    <div className="hint-modal-overlay" onClick={onClose}>
-      <div className="hint-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="hint-modal-header">
-          <h2>Get a Hint</h2>
-          <button className="close-btn" onClick={onClose}>
-            <X size={24} />
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-wrapper">
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <button className="modal-close" onClick={onClose}>
+            ✕
           </button>
-        </div>
 
-        {error && (
-          <div className="hint-error">
-            {error}
-          </div>
-        )}
+          <div className="modal-sections">
+            {/* Header Section */}
+            <div className="modal-section hint-header-section">
+              <h2>Get a Hint</h2>
+              <p className="hint-subtitle">Purchase hints to help you find this PING</p>
+            </div>
 
-        {!connected && (
-          <div className="wallet-connect-section">
-            <p>Connect your Solana wallet to purchase hints</p>
-            <WalletMultiButton />
-          </div>
-        )}
+            {/* Error Message */}
+            {error && (
+              <div className="modal-section hint-error-section">
+                <p className="hint-error">{error}</p>
+              </div>
+            )}
 
-        <div className="hints-grid">
-          {hints.length === 0 ? (
-            <p className="no-hints">No hints available for this hotspot</p>
-          ) : (
-            hints.map((hint) => {
-              const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
-              const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text;
-              const pingAmount = hint.free ? 0 : usdToPing(hint.price || 0);
-              
-              // Check if previous hint is required
-              const needsPreviousHint = hint.level > 1 && 
-                !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
+            {/* Wallet Connect Section */}
+            {!connected && (
+              <div className="modal-section hint-wallet-section">
+                <p>Connect your Solana wallet to purchase hints</p>
+                <WalletMultiButton />
+              </div>
+            )}
 
-              return (
-                <div key={hint.level} className={`hint-card ${purchased ? 'unlocked' : 'locked'} ${needsPreviousHint ? 'disabled' : ''}`}>
-                  <div className="hint-header">
-                    <div className="hint-title">
-                      {purchased ? <Unlock size={20} /> : <Lock size={20} />}
-                      <span>Hint {hint.level}</span>
-                    </div>
-                    {hint.free && !purchased && (
-                      <span className="free-badge">FREE</span>
-                    )}
-                  </div>
+            {/* Hints List */}
+            {hints.length === 0 ? (
+              <div className="modal-section">
+                <p className="no-hints">No hints available for this hotspot</p>
+              </div>
+            ) : (
+              hints.map((hint) => {
+                const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
+                const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text;
+                const pingAmount = hint.free ? 0 : (hint.price ? usdToPing(hint.price) : null);
+                
+                // Check if previous hint is required
+                const needsPreviousHint = hint.level > 1 && 
+                  !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
 
-                  {purchased ? (
-                    <div className="hint-content">
-                      <p>{hintText}</p>
-                    </div>
-                  ) : (
-                    <div className="hint-locked">
-                      {needsPreviousHint ? (
-                        <p className="requirement-text">
-                          Unlock Hint {hint.level - 1} first
-                        </p>
-                      ) : (
-                        <>
-                          <div className="hint-price">
-                            {hint.free ? (
-                              <span className="price-free">Free!</span>
-                            ) : (
-                              <>
-                                <span className="price-usd">${hint.price?.toFixed(2)}</span>
-                                {pingAmount && (
-                                  <span className="price-ping">
-                                    {formatPingAmount(pingAmount)} $PING
-                                  </span>
-                                )}
-                              </>
-                            )}
-                          </div>
-                          
-                          <button
-                            className="purchase-btn"
-                            onClick={() => handlePurchase(hint.level, hint.free || false)}
-                            disabled={purchasing !== null || (!connected && !hint.free)}
-                          >
-                            {purchasing === hint.level ? (
-                              'Processing...'
-                            ) : hint.free ? (
-                              'Get Free Hint'
-                            ) : !connected ? (
-                              'Connect Wallet'
-                            ) : (
-                              'Purchase Hint'
-                            )}
-                          </button>
-                        </>
+                return (
+                  <div key={hint.level} className={`modal-section hint-card ${purchased ? 'unlocked' : 'locked'} ${needsPreviousHint ? 'disabled' : ''}`}>
+                    <div className="hint-card-header">
+                      <div className="hint-title">
+                        {purchased ? <Unlock size={20} /> : <Lock size={20} />}
+                        <span>Hint {hint.level}</span>
+                      </div>
+                      {hint.free && !purchased && (
+                        <span className="free-badge">FREE</span>
                       )}
                     </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
 
-        {hints.length > 0 && (
-          <div className="hint-footer">
-            <p>Hints unlock progressively - purchase them in order</p>
+                    {purchased ? (
+                      <div className="hint-content">
+                        <p>{hintText}</p>
+                      </div>
+                    ) : (
+                      <div className="hint-locked-content">
+                        {needsPreviousHint ? (
+                          <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
+                        ) : (
+                          <>
+                            <div className="hint-price">
+                              {hint.free ? (
+                                <span className="price-text">Free Hint</span>
+                              ) : (
+                                <>
+                                  <span className="price-usd">${hint.price?.toFixed(2)}</span>
+                                  {pingAmount && (
+                                    <span className="price-ping">≈ {formatPingAmount(pingAmount)} $PING</span>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                            <button
+                              className="purchase-btn"
+                              onClick={() => handlePurchase(hint.level, hint.free || false)}
+                              disabled={purchasing !== null || needsPreviousHint}
+                            >
+                              {purchasing === hint.level ? 'Processing...' : (hint.free ? 'Get Free Hint' : 'Purchase Hint')}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
 }
-

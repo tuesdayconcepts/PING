@@ -983,9 +983,6 @@ app.get("/api/hints/settings", async (req, res) => {
     res.json({
       treasuryWallet: settings.treasuryWallet,
       burnWallet: settings.burnWallet,
-      defaultHint1Usd: settings.defaultHint1Usd,
-      defaultHint2Usd: settings.defaultHint2Usd,
-      defaultHint3Usd: settings.defaultHint3Usd,
       pingTokenMint: settings.pingTokenMint,
       currentPingPrice: pingPrice, // USD per $PING
     });
@@ -1138,12 +1135,16 @@ app.post("/api/hints/purchase", async (req, res) => {
       return res.status(400).json({ error: "Transaction signature required for paid hints" });
     }
 
-    // Get expected price for this hint
+    // Get expected price for this hint (must be set on hotspot)
     const hintPriceUsd = hintLevel === 1
-      ? (hotspot.hint1PriceUsd || settings.defaultHint1Usd)
+      ? hotspot.hint1PriceUsd
       : hintLevel === 2
-      ? (hotspot.hint2PriceUsd || settings.defaultHint2Usd)
-      : (hotspot.hint3PriceUsd || settings.defaultHint3Usd);
+      ? hotspot.hint2PriceUsd
+      : hotspot.hint3PriceUsd;
+    
+    if (!hintPriceUsd) {
+      return res.status(400).json({ error: "Hint price not configured for this hotspot" });
+    }
 
     // Get current $PING price
     const pingPrice = await getPingPriceFromJupiter(settings.pingTokenMint);
@@ -1219,9 +1220,6 @@ app.put("/api/admin/hints/settings", authenticateAdmin, async (req, res) => {
     const { 
       treasuryWallet, 
       burnWallet, 
-      defaultHint1Usd, 
-      defaultHint2Usd, 
-      defaultHint3Usd,
       pingTokenMint 
     } = req.body;
 
@@ -1230,18 +1228,12 @@ app.put("/api/admin/hints/settings", authenticateAdmin, async (req, res) => {
       update: {
         treasuryWallet,
         burnWallet,
-        defaultHint1Usd,
-        defaultHint2Usd,
-        defaultHint3Usd,
         pingTokenMint,
       },
       create: {
         id: "singleton",
         treasuryWallet,
         burnWallet,
-        defaultHint1Usd,
-        defaultHint2Usd,
-        defaultHint3Usd,
         pingTokenMint,
       },
     });

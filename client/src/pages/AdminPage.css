@@ -424,6 +424,12 @@
 }
 
 /* Hint Settings Section */
+.hint-settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .hint-settings-section {
   background: rgba(255, 215, 0, 0.05);
   border: 2px solid rgba(255, 215, 0, 0.3);
@@ -438,18 +444,26 @@
   font-size: 1.2rem;
 }
 
-.hint-pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
+.hint-instructions {
+  margin-top: 24px;
+  padding: 20px;
+  background: rgba(255, 215, 0, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
-@media (max-width: 768px) {
-  .hint-pricing-grid {
-    grid-template-columns: 1fr;
-  }
+.hint-instructions h4 {
+  color: #ffd700;
+  font-size: 1rem;
+  margin: 0 0 12px 0;
 }
+
+.hint-instructions p {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin: 0;
+}
+
 
 /* Add User Card - Same style as add-ping-card */
 .add-user-card {
