@@ -771,6 +771,10 @@ function MapPage() {
         <HintModal
           hotspotId={selectedHotspot.id}
           onClose={() => setShowHintModal(false)}
+          onShowDetails={() => {
+            setShowHintModal(false);
+            // Main modal is already showing with selectedHotspot
+          }}
         />
       )}
     </div>

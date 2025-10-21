@@ -11,6 +11,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 interface HintModalProps {
   hotspotId: string;
   onClose: () => void;
+  onShowDetails: () => void;
 }
 
 interface HintData {
@@ -24,7 +25,7 @@ interface PurchasedHints {
   hint3: HintData;
 }
 
-export function HintModal({ hotspotId, onClose }: HintModalProps) {
+export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps) {
   const wallet = useWallet();
   const { publicKey, connected } = wallet;
   const { settings, usdToPing, formatPingAmount } = usePingPrice();
@@ -193,6 +194,36 @@ export function HintModal({ hotspotId, onClose }: HintModalProps) {
     { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
   ].filter((h) => h.text); // Only show hints that exist
 
+  // Find the first unpurchased hint
+  const nextHint = hints.find((h) => !purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
+
+  // Determine CTA text and action
+  let ctaText = 'ALL HINTS UNLOCKED';
+  let ctaAction = null;
+  let ctaDisabled = true;
+
+  if (nextHint) {
+    const needsPreviousHint = nextHint.level > 1 && 
+      !purchasedHints[`hint${nextHint.level - 1}` as keyof PurchasedHints]?.purchased;
+
+    if (needsPreviousHint) {
+      ctaText = `UNLOCK HINT ${nextHint.level - 1} FIRST`;
+      ctaDisabled = true;
+    } else if (nextHint.free) {
+      ctaText = 'REVEAL HINT';
+      ctaAction = () => handlePurchase(nextHint.level, true);
+      ctaDisabled = false;
+    } else if (!connected) {
+      // Will show WalletMultiButton instead
+      ctaText = 'CONNECT_WALLET';
+      ctaDisabled = false;
+    } else {
+      ctaText = 'UNLOCK HINT';
+      ctaAction = () => handlePurchase(nextHint.level, false);
+      ctaDisabled = false;
+    }
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-wrapper">
@@ -210,56 +241,46 @@ export function HintModal({ hotspotId, onClose }: HintModalProps) {
 
             {/* Error Message */}
             {error && (
-              <div className="modal-section hint-error-section">
-                <p className="hint-error">{error}</p>
+              <div className="hint-error-banner">
+                {error}
               </div>
             )}
 
-            {/* Wallet Connect Section */}
-            {!connected && (
-              <div className="modal-section hint-wallet-section">
-                <p>Connect your Solana wallet to purchase hints</p>
-                <WalletMultiButton />
-              </div>
-            )}
-
-            {/* Hints List */}
-            {hints.length === 0 ? (
-              <div className="modal-section">
+            {/* All Hints in One Section */}
+            <div className="modal-section hints-container">
+              {hints.length === 0 ? (
                 <p className="no-hints">No hints available for this hotspot</p>
-              </div>
-            ) : (
-              hints.map((hint) => {
-                const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
-                const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text;
-                const pingAmount = hint.free ? 0 : (hint.price ? usdToPing(hint.price) : null);
-                
-                // Check if previous hint is required
-                const needsPreviousHint = hint.level > 1 && 
-                  !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
+              ) : (
+                hints.map((hint) => {
+                  const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
+                  const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text;
+                  const pingAmount = hint.free ? 0 : (hint.price ? usdToPing(hint.price) : null);
+                  
+                  // Check if previous hint is required
+                  const needsPreviousHint = hint.level > 1 && 
+                    !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
 
-                return (
-                  <div key={hint.level} className={`modal-section hint-card ${purchased ? 'unlocked' : 'locked'} ${needsPreviousHint ? 'disabled' : ''}`}>
-                    <div className="hint-card-header">
-                      <div className="hint-title">
-                        {purchased ? <Unlock size={20} /> : <Lock size={20} />}
-                        <span>Hint {hint.level}</span>
+                  return (
+                    <div key={hint.level} className={`hint-card ${purchased ? 'unlocked' : 'locked'} ${needsPreviousHint ? 'disabled' : ''}`}>
+                      <div className="hint-card-header">
+                        <div className="hint-title">
+                          {purchased ? <Unlock size={20} /> : <Lock size={20} />}
+                          <span>Hint {hint.level}</span>
+                        </div>
+                        {hint.free && !purchased && (
+                          <span className="free-badge">FREE</span>
+                        )}
                       </div>
-                      {hint.free && !purchased && (
-                        <span className="free-badge">FREE</span>
-                      )}
-                    </div>
 
-                    {purchased ? (
-                      <div className="hint-content">
-                        <p>{hintText}</p>
-                      </div>
-                    ) : (
-                      <div className="hint-locked-content">
-                        {needsPreviousHint ? (
-                          <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
-                        ) : (
-                          <>
+                      {purchased ? (
+                        <div className="hint-content">
+                          <p>{hintText}</p>
+                        </div>
+                      ) : (
+                        <div className="hint-locked-content">
+                          {needsPreviousHint ? (
+                            <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
+                          ) : (
                             <div className="hint-price">
                               {hint.free ? (
                                 <span className="price-text">Free Hint</span>
@@ -272,21 +293,33 @@ export function HintModal({ hotspotId, onClose }: HintModalProps) {
                                 </>
                               )}
                             </div>
-                            <button
-                              className="purchase-btn"
-                              onClick={() => handlePurchase(hint.level, hint.free || false)}
-                              disabled={purchasing !== null || needsPreviousHint}
-                            >
-                              {purchasing === hint.level ? 'Processing...' : (hint.free ? 'Get Free Hint' : 'Purchase Hint')}
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Action Buttons Section */}
+            <div className="modal-section hint-actions">
+              <button className="details-btn" onClick={onShowDetails}>
+                PING DETAILS
+              </button>
+              
+              {ctaText === 'CONNECT_WALLET' ? (
+                <WalletMultiButton />
+              ) : (
+                <button
+                  className={`hint-cta-btn ${nextHint && !nextHint.free ? 'paid' : 'free'}`}
+                  onClick={ctaAction || undefined}
+                  disabled={ctaDisabled || purchasing !== null}
+                >
+                  {purchasing !== null ? 'PROCESSING...' : ctaText}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
