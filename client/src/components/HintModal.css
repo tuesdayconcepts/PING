@@ -152,24 +152,19 @@
 }
 
 .details-btn {
-  flex: 1;
-  padding: 14px 20px;
-  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+  padding: 6px 16px;
+  background: #00000059;
   color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 25px;
-  font-size: 0.95rem;
-  font-weight: 700;
+  border: none;
+  border-radius: 50px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+  transition: background 0.3s;
 }
 
 .details-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-2px);
+  background: #00000080;
 }
 
 .hint-cta-btn {
@@ -183,6 +178,31 @@
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Wallet Adapter Button Styling */
+.hint-actions .wallet-adapter-button {
+  flex: 1;
+  background-color: #ab9ff2;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  height: 48px;
+  line-height: 48px;
+  padding: 0 24px;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+.hint-actions .wallet-adapter-button:hover:not(:disabled) {
+  background-color: #9b8fe8;
+  transform: translateY(-2px);
 }
 
 .hint-cta-btn.free {
