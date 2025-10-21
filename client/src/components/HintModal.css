@@ -220,7 +220,6 @@
 
 .hint-actions .wallet-adapter-button:hover:not(:disabled) {
   background-color: #9b8fe8;
-  transform: translateY(-2px);
 }
 
 .hint-cta-btn.free {
