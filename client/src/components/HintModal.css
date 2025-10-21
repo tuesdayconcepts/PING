@@ -184,6 +184,12 @@
 }
 
 /* Wallet Adapter Button Styling */
+.hint-actions .wallet-adapter-dropdown {
+  position: relative;
+  display: flex;
+  flex: 1;
+}
+
 .hint-actions .wallet-adapter-button {
   flex: 1;
   background-color: #ab9ff2;
