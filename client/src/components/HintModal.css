@@ -229,10 +229,6 @@
   /* box-shadow: 0 4px 15px #2ed5734d; */
 }
 
-.hint-cta-btn.free:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(46, 213, 115, 0.4);
-}
 
 .hint-cta-btn.paid {
   background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
@@ -240,10 +236,6 @@
   box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
 }
 
-.hint-cta-btn.paid:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
-}
 
 .hint-cta-btn:disabled {
   opacity: 0.6;
