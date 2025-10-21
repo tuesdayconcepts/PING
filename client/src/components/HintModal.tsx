@@ -136,6 +136,7 @@ export function HintModal({ hotspotId, onClose }: HintModalProps) {
           hintLevel,
           txSignature,
           paidAmount,
+          isFree, // Include free hint flag
         }),
       });
 

@@ -1127,7 +1127,7 @@ app.post("/api/hints/purchase", async (req, res) => {
         },
       });
 
-      return res.json({ success: true, hint: hintText, free: true });
+      return res.json({ success: true, hintText, free: true });
     }
 
     // Handle paid purchase
