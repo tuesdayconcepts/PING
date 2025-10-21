@@ -148,20 +148,21 @@
 .hint-actions {
   display: flex;
   gap: 12px;
-  padding: 0 0 20px 0 !important;
+  padding: 0 !important;
   background: none !important;
   border: none !important;
 }
 
 .details-btn {
   flex-shrink: 0;
-  padding: 6px 16px;
-  background: #00000059;
-  color: #fff;
+  padding: 16px 20px;
+  background: #00000061;
+  color: #ffffffa1;
   border: none;
   border-radius: 50px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
   transition: background 0.3s;
 }
 
@@ -171,10 +172,10 @@
 
 .hint-cta-btn {
   flex: 1;
-  padding: 14px 20px;
+  padding: 16px 20px;
   border: none;
   border-radius: 25px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -208,9 +209,9 @@
 }
 
 .hint-cta-btn.free {
-  background: linear-gradient(135deg, #2ed573 0%, #20bf6b 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(46, 213, 115, 0.3);
+  background: linear-gradient(135deg, #2ed573, #20bf6b);
+  color: #fff;
+  /* box-shadow: 0 4px 15px #2ed5734d; */
 }
 
 .hint-cta-btn.free:hover:not(:disabled) {
