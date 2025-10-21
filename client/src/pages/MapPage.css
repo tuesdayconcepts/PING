@@ -596,8 +596,9 @@
   border-radius: 25px;
   transform: translateZ(0); /* GPU acceleration */
   -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  /* backdrop-filter: blur(8px); */
   contain: layout style paint; /* Rendering optimization */
+  background: #ffffff40;
 }
 
 /* Combined Header Section (Title + Time Info) */
