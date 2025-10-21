@@ -42,69 +42,7 @@
 }
 
 /* ===================
-   OPTION A: SINGLE MORPHING CARD
-   =================== */
-
-.single-card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.progress-indicator {
-  text-align: center;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.hints-unlocked-count {
-  text-align: center;
-  color: #ffd700;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.hint-card.single {
-  animation: morphIn 0.4s ease;
-}
-
-@keyframes morphIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* ===================
-   OPTION B: STACKED PERSPECTIVE CARDS
-   =================== */
-
-.stacked-cards-container {
-  position: relative;
-  min-height: 180px;
-  display: flex;
-  flex-direction: column;
-}
-
-.hint-card.stacked {
-  position: absolute;
-  width: 100%;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.hint-card.stacked.active {
-  position: relative;
-}
-
-/* ===================
-   OPTION C: HORIZONTAL SLIDER
+   HORIZONTAL SLIDER LAYOUT
    =================== */
 
 .slider-cards-container {
@@ -167,27 +105,53 @@
 }
 
 .hint-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #ffd700;
-  font-weight: 700;
-  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .hint-title svg {
   color: #ffd700;
 }
 
+/* Combined price/free badge in header */
+.hint-price-badge {
+  display: flex;
+  align-items: center;
+}
+
 .free-badge {
   background: linear-gradient(135deg, #2ed573 0%, #20bf6b 100%);
   color: white;
-  padding: 6px 14px;
-  border-radius: 14px;
-  font-size: 0.75rem;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   animation: pulse 2s ease-in-out infinite;
+}
+
+.price-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.price-badge .price-usd {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #ffd700;
+  line-height: 1;
+}
+
+.price-badge .price-ping {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  line-height: 1;
 }
 
 @keyframes pulse {
@@ -202,9 +166,10 @@
 }
 
 .hint-locked-content {
+  min-height: 80px;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
 }
 
 .hint-requirement {
@@ -213,34 +178,6 @@
   font-style: italic;
   font-size: 0.9rem;
   text-align: center;
-  padding: 20px 0;
-}
-
-.hint-price {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.price-text {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #2ed573;
-}
-
-.price-usd {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #ffd700;
-  text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
-}
-
-.price-ping {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 500;
 }
 
 /* Action Buttons Section */
