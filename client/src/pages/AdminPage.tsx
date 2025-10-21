@@ -166,7 +166,7 @@ function AdminPage() {
   }, [activeTab, isAuthenticated, indicatorReady]);
 
   // Handle tab click with auto-scroll
-  const handleTabClick = (tab: 'active' | 'history' | 'activity' | 'access', event: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
+  const handleTabClick = (tab: 'active' | 'history' | 'activity' | 'access' | 'hints', event: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
     // Prevent double-firing on mobile (touch event followed by click event)
     const now = Date.now();
     if (now - lastTabChangeRef.current < 300) {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { Lock, Unlock, X } from 'lucide-react';
+import { Lock, Unlock } from 'lucide-react';
 import { usePingPrice } from '../hooks/usePingPrice';
 import { sendHintPayment } from '../utils/solana';
 import './HintModal.css';
