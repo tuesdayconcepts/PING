@@ -225,8 +225,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const maxNavigableIndex = Math.min(unlockedCount, hints.length - 1);
   
   // Navigation handlers - only allow navigation within unlocked + current locked
-  const canGoBack = centerIndex > 0;
-  const canGoForward = centerIndex < maxNavigableIndex;
+  // BUT: disable arrows if user just purchased (must use CTA to advance first)
+  const canGoBack = centerIndex > 0 && justPurchased === null;
+  const canGoForward = centerIndex < maxNavigableIndex && justPurchased === null;
   
   const handlePrevious = () => {
     if (canGoBack) {
