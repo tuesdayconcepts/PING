@@ -558,10 +558,10 @@ function MapPage() {
                 ✕
               </button>
 
-            <div className="modal-sections">
+            <div className="modal-sections" data-view={modalView}>
               {/* Hints View */}
               {modalView === 'hints' ? (
-                <div className="modal-view-transition hints-view" key="hints-view">
+                <>
                   <HintModal
                     hotspotId={selectedHotspot.id}
                     onClose={() => {
@@ -570,9 +570,9 @@ function MapPage() {
                     }}
                     onShowDetails={() => setModalView('details')}
                   />
-                </div>
+                </>
               ) : (
-                <div className="modal-view-transition details-view" key="details-view">
+                <>
                   {/* Details View */}
                   {/* Check if hotspot is queued (not active yet) */}
                   {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 1 ? (
@@ -739,7 +739,6 @@ function MapPage() {
                 </div>
               )}
                 </>
-                </div>
               )}
             </div>
             </div>
