@@ -34,7 +34,6 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   const particlesRef = useRef<Particle[]>([]);
   const animationFrameRef = useRef<number>();
   const revealStartTimeRef = useRef<number>(0);
-  const [isRevealing, setIsRevealing] = useState(false);
   const debugMode = useDebugMode();
   
   // Debug controllable parameters
@@ -106,11 +105,10 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   // Trigger reveal animation when revealed prop changes
   // Start reveal animation when revealed becomes true
   useEffect(() => {
-    if (revealed && !isRevealing) {
-      setIsRevealing(true);
+    if (revealed) {
       revealStartTimeRef.current = Date.now();
     }
-  }, [revealed, isRevealing]);
+  }, [revealed]);
 
   // Animation loop
   useEffect(() => {
@@ -130,20 +128,68 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
       const particles = particlesRef.current;
       const now = Date.now();
       const elapsed = now - revealStartTimeRef.current;
-      const revealProgress = isRevealing ? Math.min(elapsed / revealDuration, 1) : 0;
+      const revealDuration = 2000; // 2 seconds
+      const revealProgress = revealed ? Math.min(elapsed / revealDuration, 1) : 0;
 
       // Easing function (power2.out)
       const ease = (t: number) => 1 - Math.pow(1 - t, 2);
       const easedProgress = ease(revealProgress);
 
-      // Render text in canvas if revealed
-      if (revealed) {
-        // Text fades in during the second half of reveal animation, then stays visible
-        const textOpacity = isRevealing && revealProgress > 0.5 
-          ? Math.min((revealProgress - 0.5) / 0.5, 1) // Fade in during second half
-          : 1; // Full opacity once revealed (regardless of isRevealing state)
+      // STATE 1: revealed = false - Show particles only
+      if (!revealed) {
+        particles.forEach((particle) => {
+          // Simple bouncing movement around base position
+          const moveRange = 15; // How far particles wander from base
+          particle.x += particle.vx;
+          particle.y += particle.vy;
+          
+          // Bounce back toward base position (loop effect)
+          const dx = particle.x - particle.baseX;
+          const dy = particle.y - particle.baseY;
+          
+          if (Math.abs(dx) > moveRange) {
+            particle.vx *= -1;
+          }
+          if (Math.abs(dy) > moveRange) {
+            particle.vy *= -1;
+          }
+          
+          // Oscillate opacity
+          particle.opacity += particle.opacityVelocity;
+          if (particle.opacity > 0.8 || particle.opacity < 0.2) {
+            particle.opacityVelocity *= -1;
+          }
+          
+          // Draw particle as perfect circle
+          ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+      
+      // STATE 2: revealed = true - Transition from particles to text over 2 seconds
+      else {
+        // First half: Disperse particles
+        if (revealProgress < 0.5) {
+          particles.forEach((particle) => {
+            // Disperse particles rapidly outward
+            particle.x += particle.vx * disperseSpeed * easedProgress;
+            particle.y += particle.vy * disperseSpeed * easedProgress;
+            particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress * 2)); // Faster fade
+            
+            // Draw particle as perfect circle
+            ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        }
         
-        if (textOpacity > 0) {
+        // Second half: Show text (fade in)
+        if (revealProgress >= 0.5) {
+          const textOpacity = Math.min((revealProgress - 0.5) / 0.5, 1); // Fade in during second half
+          
           ctx.save();
           ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity * 0.9})`;
           ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
@@ -181,53 +227,12 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         }
       }
 
-      // Always render particles (like original working version)
-      particles.forEach((particle) => {
-        if (isRevealing) {
-          // Disperse particles rapidly outward during reveal
-          particle.x += particle.vx * disperseSpeed * easedProgress;
-          particle.y += particle.vy * disperseSpeed * easedProgress;
-          particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress));
-        } else {
-          // Simple bouncing movement around base position (like original)
-          const moveRange = 15; // How far particles wander from base
-          particle.x += particle.vx;
-          particle.y += particle.vy;
-          
-          // Bounce back toward base position (loop effect)
-          const dx = particle.x - particle.baseX;
-          const dy = particle.y - particle.baseY;
-          
-          if (Math.abs(dx) > moveRange) {
-            particle.vx *= -1;
-          }
-          if (Math.abs(dy) > moveRange) {
-            particle.vy *= -1;
-          }
-          
-          // Oscillate opacity
-          particle.opacity += particle.opacityVelocity;
-          if (particle.opacity > 0.8 || particle.opacity < 0.2) {
-            particle.opacityVelocity *= -1;
-          }
-        }
-        
-        // Draw particle as perfect circle
-        ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Check if reveal animation is complete
-      if (isRevealing && revealProgress >= 1) {
-        animating = false;
-        setIsRevealing(false);
-        if (onRevealComplete) {
-          onRevealComplete();
-        }
-      } else {
-        animationFrameRef.current = requestAnimationFrame(animate);
+      // Continue animation
+      animationFrameRef.current = requestAnimationFrame(animate);
+      
+      // Call onRevealComplete when transition is done
+      if (revealed && revealProgress >= 1 && onRevealComplete) {
+        onRevealComplete();
       }
     };
 
@@ -239,7 +244,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isRevealing, onRevealComplete, moveRange, minOpacity, opacityRange, circularMotion, speed, disperseSpeed, revealDuration]);
+  }, [revealed, onRevealComplete, disperseSpeed]);
 
   return (
     <>
