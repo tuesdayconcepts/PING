@@ -114,6 +114,13 @@
 }
 
 /* Hint slide states - override modal-section defaults */
+.hint-slide {
+  position: relative;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+}
+
 .hint-slide.unlocked {
   background: rgba(46, 213, 115, 0.1) !important;
   border-color: rgba(46, 213, 115, 0.5) !important;
@@ -135,6 +142,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  position: relative;
+  z-index: 2; /* Above invisible ink overlay */
 }
 
 .hint-title {
@@ -198,8 +207,38 @@
   }
 }
 
+/* Invisible ink overlay - covers entire locked slide */
+.hint-ink-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Revealed hint text content */
+.hint-revealed-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.hint-revealed-content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Locked content (requirement message) */
 .hint-locked-content {
-  min-height: 80px;
+  position: relative;
+  z-index: 2;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -335,6 +335,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                         key={hint.level} 
                         className={`modal-section hint-slide ${purchased ? 'unlocked' : 'locked'} ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
                       >
+                        {/* Header always on top */}
                         <div className="hint-card-header">
                           <div className="hint-title">
                             Hint {hint.level} of {hints.length}
@@ -356,17 +357,23 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                           )}
                         </div>
 
-                        {purchased ? (
-                          <InvisibleInkReveal text={hintText || ''} revealed={true} />
-                        ) : (
-                          <div className="hint-locked-content">
-                            {needsPreviousHint ? (
-                              <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
-                            ) : (
-                              <InvisibleInkReveal text={hint.text} revealed={false} />
-                            )}
+                        {/* Invisible ink effect covers entire slide for locked hints */}
+                        {!purchased && !needsPreviousHint && (
+                          <div className="hint-ink-overlay">
+                            <InvisibleInkReveal text={hint.text} revealed={false} />
                           </div>
                         )}
+
+                        {/* Revealed text or requirement message */}
+                        {purchased ? (
+                          <div className="hint-revealed-content">
+                            <p>{hintText}</p>
+                          </div>
+                        ) : needsPreviousHint ? (
+                          <div className="hint-locked-content">
+                            <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
+                          </div>
+                        ) : null}
                       </div>
                     );
                   })}
