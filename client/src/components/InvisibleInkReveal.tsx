@@ -48,9 +48,16 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
   const [maxOpacity, setMaxOpacity] = useState(1.0); // Max opacity
   const [opacitySpeed, setOpacitySpeed] = useState(0.1); // Opacity change rate (visibility transition speed)
   const [opacityRange, setOpacityRange] = useState(1.0); // How much opacity changes (0-1)
-  const [disperseSpeed, setDisperseSpeed] = useState(20); // Disperse multiplier
-  const [revealDuration, setRevealDuration] = useState(200); // Reveal time in ms
+  const [disperseSpeed, setDisperseSpeed] = useState(20); // Disperse multiplier (only for reveal)
+  const [revealDuration, setRevealDuration] = useState(200); // Reveal time in ms (only for reveal)
   const [circularMotion, setCircularMotion] = useState(0.55); // Circular motion strength (0=linear, 1=full circular)
+  
+  // Normal particle loop settings (not affected by debug)
+  const normalSpeed = 0.5;
+  const normalMoveRange = 15;
+  const normalMinOpacity = 0.2;
+  const normalMaxOpacity = 0.8;
+  const normalOpacitySpeed = 0.02;
 
   // Initialize particles
   useEffect(() => {
@@ -72,7 +79,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
     updateCanvasSize();
     window.addEventListener('resize', updateCanvasSize);
 
-    // Create many tiny particles - using debug parameters
+    // Create many tiny particles - using normal settings for stable loop
     const particleCount = Math.floor((canvas.width * canvas.height) / density);
     const particles: Particle[] = [];
 
@@ -86,10 +93,10 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
         y: baseY,
         baseX,
         baseY,
-        vx: (Math.random() - 0.5) * speed,
-        vy: (Math.random() - 0.5) * speed,
-        opacity: minOpacity + Math.random() * opacityRange,
-        opacityVelocity: (Math.random() - 0.5) * opacitySpeed,
+        vx: (Math.random() - 0.5) * normalSpeed,
+        vy: (Math.random() - 0.5) * normalSpeed,
+        opacity: normalMinOpacity + Math.random() * (normalMaxOpacity - normalMinOpacity),
+        opacityVelocity: (Math.random() - 0.5) * normalOpacitySpeed,
         size: minSize + Math.random() * maxSize,
         angle: randomAngle,
         angularVelocity: (Math.random() - 0.5) * 0.05, // Random rotation speed
@@ -145,6 +152,9 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
           ? Math.min((revealProgress - 0.5) / 0.5, 1) // Fade in during second half of reveal
           : 1; // Full opacity if not revealing
         
+        // Only render text if opacity > 0
+        if (textOpacity > 0) {
+        
         ctx.save();
         ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity * 0.9})`;
         ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
@@ -179,6 +189,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
         });
         
         ctx.restore();
+        }
       }
 
       // Only show particles when not revealed (to cover text) or during reveal animation
@@ -190,14 +201,14 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
           particle.y += particle.vy * disperseSpeed * easedProgress;
           particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress));
         } else {
-          // Update angle for circular motion
+          // Normal particle loop - use stable settings
           particle.angle += particle.angularVelocity;
           
           // Blend linear and circular motion based on circularMotion parameter
           const linearX = particle.vx;
           const linearY = particle.vy;
-          const circularX = Math.cos(particle.angle) * speed * 0.5;
-          const circularY = Math.sin(particle.angle) * speed * 0.5;
+          const circularX = Math.cos(particle.angle) * normalSpeed * 0.5;
+          const circularY = Math.sin(particle.angle) * normalSpeed * 0.5;
           
           // Interpolate between linear and circular motion
           const moveX = linearX * (1 - circularMotion) + circularX * circularMotion;
@@ -211,26 +222,23 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
           const dy = particle.y - particle.baseY;
           const distance = Math.sqrt(dx * dx + dy * dy);
           
-          if (distance > moveRange) {
+          if (distance > normalMoveRange) {
             // Pull back toward base with elastic effect
             particle.vx *= -1;
             particle.vy *= -1;
             particle.angularVelocity *= -1;
           }
           
-          // Rapid oscillate opacity for faster transitions
+          // Gentle oscillate opacity for stable loop
           particle.opacity += particle.opacityVelocity;
-          const opacityMin = minOpacity;
-          const opacityMax = minOpacity + opacityRange;
+          const opacityMin = normalMinOpacity;
+          const opacityMax = normalMaxOpacity;
           
           if (particle.opacity > opacityMax || particle.opacity < opacityMin) {
             particle.opacityVelocity *= -1;
-            // Clamp opacity within range and ensure it doesn't get stuck
+            // Clamp opacity within range
             particle.opacity = Math.max(opacityMin, Math.min(opacityMax, particle.opacity));
           }
-          
-          // Ensure particles stay within the defined opacity range
-          particle.opacity = Math.max(minOpacity, Math.min(maxOpacity, particle.opacity));
         }
 
         // Draw particle as perfect circle

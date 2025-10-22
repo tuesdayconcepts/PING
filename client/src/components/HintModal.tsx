@@ -172,11 +172,15 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         setRevealingHint(null);
         setShowNavigation(true); // Show navigation after reveal
       }, REVEAL_DURATION + 100); // Wait for animation to complete + small buffer
+      
+      // Keep processing state for 2 seconds total
+      setTimeout(() => {
+        setPurchasing(null);
+      }, 2000);
     } catch (err) {
       console.error('Purchase failed:', err);
       setError(err instanceof Error ? err.message : 'Purchase failed');
-    } finally {
-      setPurchasing(null);
+      setPurchasing(null); // Clear processing state on error
     }
   };
 
