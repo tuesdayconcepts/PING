@@ -802,7 +802,7 @@
 
 /* Image Section */
 .modal-image {
-  background: rgba(0, 0, 0, 0.2);
+  /* background: #0003; */
   padding: 0;
   overflow: hidden;
 }
