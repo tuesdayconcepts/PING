@@ -35,6 +35,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [purchasing, setPurchasing] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hotspot, setHotspot] = useState<any>(null);
+  const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
 
   // Fetch hotspot data and purchased hints
   useEffect(() => {
@@ -156,6 +157,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
           text: result.hintText,
         },
       }));
+      
+      // Set just purchased to keep card visible
+      setJustPurchased(hintLevel);
     } catch (err) {
       console.error('Purchase failed:', err);
       setError(err instanceof Error ? err.message : 'Purchase failed');
@@ -197,12 +201,28 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   // Find the first unpurchased hint
   const nextHint = hints.find((h) => !purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
 
+  // Determine which hint to show centered
+  let centerIndex: number;
+  if (justPurchased !== null) {
+    // Keep just-purchased hint centered until user clicks "GET ANOTHER HINT"
+    centerIndex = hints.findIndex((h) => h.level === justPurchased);
+  } else {
+    // Show next unpurchased hint, or last hint if all purchased
+    const currentHintIndex = hints.findIndex((h) => h === nextHint);
+    centerIndex = currentHintIndex === -1 ? hints.length - 1 : currentHintIndex;
+  }
+
   // Determine CTA text and action
   let ctaText = 'ALL HINTS UNLOCKED';
   let ctaAction = null;
   let ctaDisabled = true;
 
-  if (nextHint) {
+  if (justPurchased !== null && nextHint) {
+    // Just purchased a hint, show "GET ANOTHER HINT" to advance
+    ctaText = 'GET ANOTHER HINT';
+    ctaAction = () => setJustPurchased(null); // Clear to advance to next
+    ctaDisabled = false;
+  } else if (nextHint) {
     const needsPreviousHint = nextHint.level > 1 && 
       !purchasedHints[`hint${nextHint.level - 1}` as keyof PurchasedHints]?.purchased;
 
@@ -223,10 +243,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       ctaDisabled = false;
     }
   }
-
-  // Render slider cards
-  const currentHintIndex = hints.findIndex((h) => h === nextHint);
-  const centerIndex = currentHintIndex === -1 ? hints.length - 1 : currentHintIndex; // Last if all unlocked
 
   return (
     <div className="modal-overlay hint-modal-overlay" onClick={onClose}>
