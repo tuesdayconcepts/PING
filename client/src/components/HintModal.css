@@ -225,6 +225,8 @@
   flex: 1;
   display: flex;
   align-items: center;
+  opacity: 0;
+  animation: fadeInText 0.5s ease 0.2s forwards; /* Delay to let particles disperse first */
 }
 
 .hint-revealed-content p {
@@ -232,6 +234,17 @@
   color: rgba(255, 255, 255, 0.9);
   line-height: 1.6;
   font-size: 0.95rem;
+}
+
+@keyframes fadeInText {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Locked content (requirement message) */

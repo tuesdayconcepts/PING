@@ -7,6 +7,7 @@ import { InvisibleInkReveal } from './InvisibleInkReveal';
 import './HintModal.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const REVEAL_DURATION = 200; // Match the default reveal duration from InvisibleInkReveal
 
 interface HintModalProps {
   hotspotId: string;
@@ -37,6 +38,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [hotspot, setHotspot] = useState<any>(null);
   const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Manual navigation control
+  const [revealingHint, setRevealingHint] = useState<number | null>(null); // Track which hint is currently revealing
 
   // Fetch hotspot data and purchased hints
   useEffect(() => {
@@ -150,17 +152,25 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
 
       const result = await response.json();
 
-      // Update purchased hints with the new hint text
-      setPurchasedHints((prev) => ({
-        ...prev!,
-        [`hint${hintLevel}`]: {
-          purchased: true,
-          text: result.hintText,
-        },
-      }));
+      // Start reveal animation
+      setRevealingHint(hintLevel);
       
-      // Set just purchased to keep card visible
-      setJustPurchased(hintLevel);
+      // Update purchased hints with the new hint text after animation completes
+      setTimeout(() => {
+        setPurchasedHints((prev) => ({
+          ...prev!,
+          [`hint${hintLevel}`]: {
+            purchased: true,
+            text: result.hintText,
+          },
+        }));
+        
+        // Set just purchased to keep card visible
+        setJustPurchased(hintLevel);
+        
+        // Clear revealing state
+        setRevealingHint(null);
+      }, REVEAL_DURATION); // Wait for animation to complete
     } catch (err) {
       console.error('Purchase failed:', err);
       setError(err instanceof Error ? err.message : 'Purchase failed');
@@ -360,7 +370,13 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                         {/* Invisible ink effect covers entire slide for locked hints */}
                         {!purchased && !needsPreviousHint && (
                           <div className="hint-ink-overlay">
-                            <InvisibleInkReveal text={hint.text} revealed={false} />
+                            <InvisibleInkReveal 
+                              text={hint.text} 
+                              revealed={revealingHint === hint.level}
+                              onRevealComplete={() => {
+                                // Animation complete - text will be shown by purchased state
+                              }}
+                            />
                           </div>
                         )}
 

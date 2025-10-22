@@ -20,6 +20,7 @@ interface InvisibleInkRevealProps {
   text: string;
   revealed: boolean;
   onRevealComplete?: () => void;
+  onRevealStart?: () => void;
 }
 
 // Debug controls - set via URL param ?debugInk=true
@@ -28,7 +29,7 @@ const useDebugMode = () => {
   return urlParams.get('debugInk') === 'true';
 };
 
-export function InvisibleInkReveal({ text, revealed, onRevealComplete }: InvisibleInkRevealProps) {
+export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealStart }: InvisibleInkRevealProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isRevealing, setIsRevealing] = useState(false);
@@ -102,13 +103,16 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
     };
   }, [density, minSize, maxSize, speed, minOpacity, opacityRange, opacitySpeed]); // Recreate particles when params change
 
-  // Trigger reveal animation
+  // Trigger reveal animation when revealed prop changes
   useEffect(() => {
     if (revealed && !isRevealing) {
       setIsRevealing(true);
       revealStartTimeRef.current = Date.now();
+      if (onRevealStart) {
+        onRevealStart();
+      }
     }
-  }, [revealed, isRevealing]);
+  }, [revealed, isRevealing, onRevealStart]);
 
   // Animation loop
   useEffect(() => {
