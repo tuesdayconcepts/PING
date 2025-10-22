@@ -42,16 +42,18 @@
   position: fixed;
   top: 20px;
   right: 20px;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.95);
   border: 2px solid #ffd700;
   border-radius: 12px;
   padding: 20px;
-  z-index: 10000;
+  z-index: 999999;
   max-width: 300px;
   max-height: 80vh;
   overflow-y: auto;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  pointer-events: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
 }
 
 .ink-debug-controller h4 {

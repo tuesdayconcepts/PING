@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './InvisibleInkReveal.css';
 
 interface Particle {
@@ -192,8 +193,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         {!revealed && <canvas ref={canvasRef} className="invisible-ink-canvas" />}
       </div>
       
-      {/* Debug Controller - Only shows with ?debugInk=true */}
-      {debugMode && !revealed && (
+      {/* Debug Controller - Portal to body to escape modal container */}
+      {debugMode && !revealed && createPortal(
         <div className="ink-debug-controller">
           <h4>Particle Controls</h4>
           
@@ -255,7 +256,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           }}>
             Log Current Settings
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
