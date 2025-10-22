@@ -7,7 +7,7 @@ import { InvisibleInkReveal } from './InvisibleInkReveal';
 import './HintModal.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const REVEAL_DURATION = 200; // Match the default reveal duration from InvisibleInkReveal
+// Removed REVEAL_DURATION - no longer needed with simplified logic
 
 interface HintModalProps {
   hotspotId: string;
@@ -38,7 +38,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [hotspot, setHotspot] = useState<any>(null);
   const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Manual navigation control
-  const [revealingHint, setRevealingHint] = useState<number | null>(null); // Track which hint is currently revealing
   const [showNavigation, setShowNavigation] = useState(true); // Control navigation visibility
 
   // Fetch hotspot data and purchased hints
@@ -162,16 +161,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         },
       }));
       
-      // Start reveal animation
-      setRevealingHint(hintLevel);
-      setShowNavigation(false); // Hide navigation during reveal
-      
-      // Set just purchased to keep card visible after animation
-      setTimeout(() => {
+        // Set just purchased to keep card visible
         setJustPurchased(hintLevel);
-        setRevealingHint(null);
-        setShowNavigation(true); // Show navigation after reveal
-      }, REVEAL_DURATION + 100); // Wait for animation to complete + small buffer
+        setShowNavigation(false); // Hide navigation initially
       
       // Keep processing state for 2 seconds total
       setTimeout(() => {
@@ -383,12 +375,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                             <div className="hint-ink-overlay">
                               <InvisibleInkReveal 
                                 text={purchased ? hintText : 'Hint will be revealed after purchase'} 
-                                revealed={purchased || revealingHint === hint.level}
+                                revealed={purchased}
                                 onRevealComplete={() => {
-                                  // Animation complete
-                                }}
-                                onRevealStart={() => {
-                                  // Animation started
+                                  // Animation complete - show navigation after reveal
+                                  setShowNavigation(true);
                                 }}
                               />
                             </div>

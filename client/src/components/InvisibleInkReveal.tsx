@@ -20,7 +20,6 @@ interface InvisibleInkRevealProps {
   text: string;
   revealed: boolean;
   onRevealComplete?: () => void;
-  onRevealStart?: () => void;
 }
 
 // Debug controls - set via URL param ?debugInk=true
@@ -29,13 +28,11 @@ const useDebugMode = () => {
   return urlParams.get('debugInk') === 'true';
 };
 
-export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealStart }: InvisibleInkRevealProps) {
+export function InvisibleInkReveal({ text, revealed, onRevealComplete }: InvisibleInkRevealProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isRevealing, setIsRevealing] = useState(false);
   const particlesRef = useRef<Particle[]>([]);
   const animationFrameRef = useRef<number>();
-  const revealStartTimeRef = useRef<number>(0);
   const debugMode = useDebugMode();
   
   // Debug controllable parameters
@@ -48,8 +45,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
   const [maxOpacity, setMaxOpacity] = useState(1.0); // Max opacity
   const [opacitySpeed, setOpacitySpeed] = useState(0.1); // Opacity change rate (visibility transition speed)
   const [opacityRange, setOpacityRange] = useState(1.0); // How much opacity changes (0-1)
-  const [disperseSpeed, setDisperseSpeed] = useState(20); // Disperse multiplier (only for reveal)
-  const [revealDuration, setRevealDuration] = useState(200); // Reveal time in ms (only for reveal)
+  // Removed disperseSpeed and revealDuration - no longer needed with simplified logic
   const [circularMotion, setCircularMotion] = useState(0.55); // Circular motion strength (0=linear, 1=full circular)
   
   // Normal particle loop settings (not affected by debug)
@@ -111,15 +107,12 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
   }, [density, minSize, maxSize, speed, minOpacity, opacityRange, opacitySpeed]); // Recreate particles when params change
 
   // Trigger reveal animation when revealed prop changes
+  // Call onRevealComplete when revealed becomes true
   useEffect(() => {
-    if (revealed && !isRevealing) {
-      setIsRevealing(true);
-      revealStartTimeRef.current = Date.now();
-      if (onRevealStart) {
-        onRevealStart();
-      }
+    if (revealed && onRevealComplete) {
+      onRevealComplete();
     }
-  }, [revealed, isRevealing, onRevealStart]);
+  }, [revealed, onRevealComplete]);
 
   // Animation loop
   useEffect(() => {
@@ -137,26 +130,11 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const particles = particlesRef.current;
-      const now = Date.now();
-      const elapsed = now - revealStartTimeRef.current;
-      const revealProgress = isRevealing ? Math.min(elapsed / revealDuration, 1) : 0;
 
-      // Easing function (power2.out)
-      const ease = (t: number) => 1 - Math.pow(1 - t, 2);
-      const easedProgress = ease(revealProgress);
-
-      // Render text in canvas
+      // Render text in canvas if revealed
       if (revealed) {
-        // If revealed, show text (with or without particles dispersing)
-        const textOpacity = isRevealing && revealProgress > 0.5 
-          ? Math.min((revealProgress - 0.5) / 0.5, 1) // Fade in during second half of reveal
-          : 1; // Full opacity if not revealing
-        
-        // Only render text if opacity > 0
-        if (textOpacity > 0) {
-        
         ctx.save();
-        ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity * 0.9})`;
+        ctx.fillStyle = `rgba(255, 255, 255, 0.9)`;
         ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -189,18 +167,11 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
         });
         
         ctx.restore();
-        }
       }
 
-      // Only show particles when not revealed (to cover text) or during reveal animation
-      if (!revealed || isRevealing) {
+      // Only show particles when not revealed (to cover text)
+      if (!revealed) {
         particles.forEach((particle) => {
-        if (isRevealing) {
-          // Disperse particles rapidly outward
-          particle.x += particle.vx * disperseSpeed * easedProgress;
-          particle.y += particle.vy * disperseSpeed * easedProgress;
-          particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress));
-        } else {
           // Normal particle loop - use stable settings
           particle.angle += particle.angularVelocity;
           
@@ -239,26 +210,16 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
             // Clamp opacity within range
             particle.opacity = Math.max(opacityMin, Math.min(opacityMax, particle.opacity));
           }
-        }
-
-        // Draw particle as perfect circle
-        ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fill();
+          
+          // Draw particle as perfect circle
+          ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.fill();
         });
       }
 
-      // Check if reveal is complete
-      if (isRevealing && revealProgress >= 1) {
-        animating = false;
-        setIsRevealing(false); // Reset revealing state
-        if (onRevealComplete) {
-          onRevealComplete();
-        }
-      } else {
-        animationFrameRef.current = requestAnimationFrame(animate);
-      }
+      animationFrameRef.current = requestAnimationFrame(animate);
     };
 
     animate();
@@ -344,15 +305,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
             <small style={{color: '#999', fontSize: '0.75rem'}}>0=straight lines, 1=full swirl</small>
           </label>
           
-          <label>
-            Disperse Speed: {disperseSpeed}
-            <input type="range" min="1" max="20" value={disperseSpeed} onChange={(e) => setDisperseSpeed(Number(e.target.value))} />
-          </label>
-          
-          <label>
-            Reveal Duration: {revealDuration}ms
-            <input type="range" min="200" max="2000" step="100" value={revealDuration} onChange={(e) => setRevealDuration(Number(e.target.value))} />
-          </label>
+          {/* Removed disperse speed and reveal duration - no longer needed with simplified logic */}
           
           <button onClick={() => {
             console.log('Particle Settings:', {
