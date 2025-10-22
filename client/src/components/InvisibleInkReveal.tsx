@@ -4,9 +4,12 @@ import './InvisibleInkReveal.css';
 interface Particle {
   x: number;
   y: number;
+  baseX: number;
+  baseY: number;
   vx: number;
   vy: number;
   opacity: number;
+  opacityVelocity: number;
   size: number;
 }
 
@@ -18,7 +21,7 @@ interface InvisibleInkRevealProps {
 
 export function InvisibleInkReveal({ text, revealed, onRevealComplete }: InvisibleInkRevealProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isRevealing, setIsRevealing] = useState(false);
   const particlesRef = useRef<Particle[]>([]);
   const animationFrameRef = useRef<number>();
@@ -26,7 +29,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
 
   // Initialize particles
   useEffect(() => {
-    if (!canvasRef.current || !textRef.current) return;
+    if (!canvasRef.current || !containerRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -34,7 +37,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
 
     // Set canvas size to match container
     const updateCanvasSize = () => {
-      const rect = textRef.current?.getBoundingClientRect();
+      const rect = containerRef.current?.getBoundingClientRect();
       if (rect) {
         canvas.width = rect.width;
         canvas.height = rect.height;
@@ -44,18 +47,24 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
     updateCanvasSize();
     window.addEventListener('resize', updateCanvasSize);
 
-    // Create particles to cover text
-    const particleCount = Math.floor((canvas.width * canvas.height) / 80); // Density
+    // Create many tiny particles
+    const particleCount = Math.floor((canvas.width * canvas.height) / 25); // Higher density
     const particles: Particle[] = [];
 
     for (let i = 0; i < particleCount; i++) {
+      const baseX = Math.random() * canvas.width;
+      const baseY = Math.random() * canvas.height;
+      
       particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 3, // Random velocity for disperse
-        vy: (Math.random() - 0.5) * 3,
-        opacity: 0.6 + Math.random() * 0.4,
-        size: 2 + Math.random() * 2,
+        x: baseX,
+        y: baseY,
+        baseX,
+        baseY,
+        vx: (Math.random() - 0.5) * 2, // Random movement speed
+        vy: (Math.random() - 0.5) * 2,
+        opacity: 0.3 + Math.random() * 0.5, // Random starting opacity
+        opacityVelocity: (Math.random() - 0.5) * 0.02, // Opacity change rate
+        size: 1.5 + Math.random() * 1, // Tiny particles (1.5-2.5px)
       });
     }
 
@@ -76,7 +85,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
 
   // Animation loop
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !containerRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -91,7 +100,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
 
       const particles = particlesRef.current;
       const now = Date.now();
-      const revealDuration = 1500; // 1.5 seconds
+      const revealDuration = 800; // Faster reveal (0.8s)
       const elapsed = now - revealStartTimeRef.current;
       const revealProgress = isRevealing ? Math.min(elapsed / revealDuration, 1) : 0;
 
@@ -101,18 +110,36 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
 
       particles.forEach((particle) => {
         if (isRevealing) {
-          // Disperse particles
-          particle.x += particle.vx * easedProgress * 2;
-          particle.y += particle.vy * easedProgress * 2;
-          particle.opacity = Math.max(0, 1 - easedProgress);
+          // Disperse particles rapidly outward
+          particle.x += particle.vx * 8 * easedProgress;
+          particle.y += particle.vy * 8 * easedProgress;
+          particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress));
         } else {
-          // Gentle idle movement
-          particle.x += Math.sin(now / 1000 + particle.x) * 0.1;
-          particle.y += Math.cos(now / 1000 + particle.y) * 0.1;
+          // Rapid looping movement around base position
+          const moveRange = 15; // How far particles wander from base
+          particle.x += particle.vx;
+          particle.y += particle.vy;
+          
+          // Bounce back toward base position (loop effect)
+          const dx = particle.x - particle.baseX;
+          const dy = particle.y - particle.baseY;
+          
+          if (Math.abs(dx) > moveRange) {
+            particle.vx *= -1;
+          }
+          if (Math.abs(dy) > moveRange) {
+            particle.vy *= -1;
+          }
+          
+          // Oscillate opacity
+          particle.opacity += particle.opacityVelocity;
+          if (particle.opacity > 0.8 || particle.opacity < 0.2) {
+            particle.opacityVelocity *= -1;
+          }
         }
 
-        // Draw particle
-        ctx.fillStyle = `rgba(200, 200, 200, ${particle.opacity})`;
+        // Draw particle as perfect circle
+        ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fill();
@@ -140,12 +167,11 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   }, [isRevealing, onRevealComplete]);
 
   return (
-    <div className="invisible-ink-container">
-      <div ref={textRef} className={`invisible-ink-text ${revealed ? 'revealed' : ''}`}>
+    <div className="invisible-ink-container" ref={containerRef}>
+      <div className={`invisible-ink-text ${revealed ? 'revealed' : ''}`}>
         {text}
       </div>
       {!revealed && <canvas ref={canvasRef} className="invisible-ink-canvas" />}
     </div>
   );
 }
-
