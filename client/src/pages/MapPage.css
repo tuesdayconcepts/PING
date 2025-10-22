@@ -517,6 +517,23 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  position: relative;
+}
+
+/* Smooth view transitions */
+.modal-view-transition {
+  animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes slideUp {
