@@ -383,7 +383,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                             <div className="hint-ink-overlay">
                               <InvisibleInkReveal 
                                 text={purchased ? hintText : 'Hint will be revealed after purchase'} 
-                                revealed={revealingHint === hint.level}
+                                revealed={purchased || revealingHint === hint.level}
                                 onRevealComplete={() => {
                                   // Animation complete
                                 }}

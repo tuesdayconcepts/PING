@@ -252,6 +252,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
       // Check if reveal is complete
       if (isRevealing && revealProgress >= 1) {
         animating = false;
+        setIsRevealing(false); // Reset revealing state
         if (onRevealComplete) {
           onRevealComplete();
         }
