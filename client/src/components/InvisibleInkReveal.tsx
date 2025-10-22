@@ -38,18 +38,18 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   const debugMode = useDebugMode();
   
   // Debug controllable parameters
-  const [density, setDensity] = useState(25); // Particle density divider
-  const [minSize, setMinSize] = useState(1.5); // Min particle size
-  const [maxSize, setMaxSize] = useState(1); // Max additional size
-  const [speed, setSpeed] = useState(2); // Movement speed multiplier
-  const [moveRange, setMoveRange] = useState(15); // How far particles wander
-  const [minOpacity, setMinOpacity] = useState(0.2); // Min opacity
-  const [maxOpacity, setMaxOpacity] = useState(0.8); // Max opacity
-  const [opacitySpeed, setOpacitySpeed] = useState(0.02); // Opacity change rate (visibility transition speed)
-  const [opacityRange, setOpacityRange] = useState(0.6); // How much opacity changes (0-1)
-  const [disperseSpeed, setDisperseSpeed] = useState(8); // Disperse multiplier
-  const [revealDuration, setRevealDuration] = useState(800); // Reveal time in ms
-  const [circularMotion, setCircularMotion] = useState(0.5); // Circular motion strength (0=linear, 1=full circular)
+  const [density, setDensity] = useState(65); // Particle density divider
+  const [minSize, setMinSize] = useState(0.5); // Min particle size
+  const [maxSize, setMaxSize] = useState(2.7); // Max additional size
+  const [speed, setSpeed] = useState(0.5); // Movement speed multiplier
+  const [moveRange, setMoveRange] = useState(5); // How far particles wander
+  const [minOpacity, setMinOpacity] = useState(0.0); // Min opacity
+  const [maxOpacity, setMaxOpacity] = useState(1.0); // Max opacity
+  const [opacitySpeed, setOpacitySpeed] = useState(0.1); // Opacity change rate (visibility transition speed)
+  const [opacityRange, setOpacityRange] = useState(1.0); // How much opacity changes (0-1)
+  const [disperseSpeed, setDisperseSpeed] = useState(20); // Disperse multiplier
+  const [revealDuration, setRevealDuration] = useState(200); // Reveal time in ms
+  const [circularMotion, setCircularMotion] = useState(0.55); // Circular motion strength (0=linear, 1=full circular)
 
   // Initialize particles
   useEffect(() => {
