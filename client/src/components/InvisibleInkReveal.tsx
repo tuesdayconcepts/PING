@@ -170,61 +170,60 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
       
       // STATE 2: revealed = true - Transition from particles to text over 2 seconds
       else {
-        // First half: Disperse particles
-        if (revealProgress < 0.5) {
-          particles.forEach((particle) => {
-            // Disperse particles rapidly outward
-            particle.x += particle.vx * disperseSpeed * easedProgress;
-            particle.y += particle.vy * disperseSpeed * easedProgress;
-            particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress * 2)); // Faster fade
-            
-            // Draw particle as perfect circle
+        // ALWAYS render the text underneath first (like it's already there)
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, 0.9)`;
+        ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Wrap text to fit canvas width
+        const maxWidth = canvas.width - 40; // 20px padding on each side
+        const words = text.split(' ');
+        const lines: string[] = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const metrics = ctx.measureText(testLine);
+          
+          if (metrics.width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
+        
+        // Draw text lines
+        const lineHeight = 24;
+        const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
+        
+        lines.forEach((line, index) => {
+          ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
+        });
+        
+        ctx.restore();
+        
+        // Then render particles on top (slower dispersion to create true reveal effect)
+        particles.forEach((particle) => {
+          // Slower, more gradual dispersion
+          const dispersionSpeed = disperseSpeed * 0.3; // Much slower
+          particle.x += particle.vx * dispersionSpeed * easedProgress;
+          particle.y += particle.vy * dispersionSpeed * easedProgress;
+          
+          // Gradual opacity fade (not too fast)
+          particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress * 0.8));
+          
+          // Only draw particles if they still have opacity
+          if (particle.opacity > 0) {
             ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
             ctx.beginPath();
             ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
             ctx.fill();
-          });
-        }
-        
-        // Second half: Show text (fade in)
-        if (revealProgress >= 0.5) {
-          const textOpacity = Math.min((revealProgress - 0.5) / 0.5, 1); // Fade in during second half
-          
-          ctx.save();
-          ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity * 0.9})`;
-          ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          
-          // Wrap text to fit canvas width
-          const maxWidth = canvas.width - 40; // 20px padding on each side
-          const words = text.split(' ');
-          const lines: string[] = [];
-          let currentLine = '';
-          
-          for (const word of words) {
-            const testLine = currentLine + (currentLine ? ' ' : '') + word;
-            const metrics = ctx.measureText(testLine);
-            
-            if (metrics.width > maxWidth && currentLine) {
-              lines.push(currentLine);
-              currentLine = word;
-            } else {
-              currentLine = testLine;
-            }
           }
-          if (currentLine) lines.push(currentLine);
-          
-          // Draw text lines
-          const lineHeight = 24;
-          const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
-          
-          lines.forEach((line, index) => {
-            ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
-          });
-          
-          ctx.restore();
-        }
+        });
       }
 
       // Continue animation
