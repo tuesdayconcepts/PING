@@ -252,63 +252,63 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               </div>
             )}
 
-            {/* Hints Slider - Direct modal-section */}
+            {/* Hints Slider - Each hint is its own modal-section */}
             {hints.length === 0 ? (
               <div className="modal-section">
                 <p className="no-hints">No hints available for this hotspot</p>
               </div>
             ) : (
-              <div className="modal-section slider-cards-container">
-                <div className="slider-track" style={{ transform: `translateX(calc(-${centerIndex * 100}% - ${centerIndex * 16}px))` }}>
+              <div className="hints-slider-wrapper">
+                <div className="hints-slider-track" style={{ transform: `translateX(calc(-${centerIndex * 100}% - ${centerIndex * 15}px))` }}>
                   {hints.map((hint) => {
-                      const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
-                      const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text || hint.text;
-                      const pingAmount = hint.free ? 0 : (hint.price ? usdToPing(hint.price) : null);
-                      const needsPreviousHint = hint.level > 1 && 
-                        !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
-                      const isCenter = hint === nextHint || (purchased && !nextHint);
+                    const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
+                    const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text || hint.text;
+                    const pingAmount = hint.free ? 0 : (hint.price ? usdToPing(hint.price) : null);
+                    const needsPreviousHint = hint.level > 1 && 
+                      !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
+                    const isCenter = hint === nextHint || (purchased && !nextHint);
 
-                      return (
-                        <div 
-                          key={hint.level} 
-                          className={`hint-card slider ${purchased ? 'unlocked' : 'locked'} ${isCenter ? 'center' : ''} ${needsPreviousHint ? 'disabled' : ''}`}
-                        >
-                          <div className="hint-card-header">
-                            <div className="hint-title">
-                              Hint {hint.level} of {hints.length}
-                            </div>
-                            {/* Combined free badge and price */}
-                            {!purchased && (
-                              <div className="hint-price-badge">
-                                {hint.free ? (
-                                  <span className="free-badge">FREE</span>
-                                ) : (
-                                  <div className="price-badge">
-                                    <span className="price-usd">${hint.price?.toFixed(2)}</span>
-                                    {pingAmount && (
-                                      <span className="price-ping">{formatPingAmount(pingAmount)} $PING</span>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                    return (
+                      <div 
+                        key={hint.level} 
+                        className={`modal-section hint-slide ${purchased ? 'unlocked' : 'locked'} ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
+                      >
+                        <div className="hint-card-header">
+                          <div className="hint-title">
+                            Hint {hint.level} of {hints.length}
                           </div>
-
-                          {purchased ? (
-                            <InvisibleInkReveal text={hintText || ''} revealed={true} />
-                          ) : (
-                            <div className="hint-locked-content">
-                              {needsPreviousHint ? (
-                                <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
+                          {/* Combined free badge and price */}
+                          {!purchased && (
+                            <div className="hint-price-badge">
+                              {hint.free ? (
+                                <span className="free-badge">FREE</span>
                               ) : (
-                                <InvisibleInkReveal text={hint.text} revealed={false} />
+                                <div className="price-badge">
+                                  <span className="price-usd">${hint.price?.toFixed(2)}</span>
+                                  {pingAmount && (
+                                    <span className="price-ping">{formatPingAmount(pingAmount)} $PING</span>
+                                  )}
+                                </div>
                               )}
                             </div>
                           )}
                         </div>
-                      );
-                    })}
-                  </div>
+
+                        {purchased ? (
+                          <InvisibleInkReveal text={hintText || ''} revealed={true} />
+                        ) : (
+                          <div className="hint-locked-content">
+                            {needsPreviousHint ? (
+                              <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
+                            ) : (
+                              <InvisibleInkReveal text={hint.text} revealed={false} />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 

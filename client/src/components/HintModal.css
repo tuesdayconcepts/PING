@@ -40,57 +40,53 @@
 
 /* ===================
    HORIZONTAL SLIDER LAYOUT
+   Each hint is a modal-section that slides
    =================== */
 
-.slider-cards-container {
+.hints-slider-wrapper {
   overflow: hidden;
   width: 100%;
-  padding: 20px !important; /* Override modal-section default */
+  position: relative;
 }
 
-.slider-track {
+.hints-slider-track {
   display: flex;
-  gap: 16px;
+  gap: 15px;
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.hint-card.slider {
+/* Each hint slide is a full modal-section */
+.hint-slide {
   min-width: 100%;
   flex-shrink: 0;
   opacity: 0.5;
   transform: scale(0.95);
-  transition: all 0.5s ease;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.hint-card.slider.center {
+.hint-slide.center {
   opacity: 1;
   transform: scale(1);
 }
 
-/* ===================
-   COMMON HINT CARD STYLES
-   =================== */
-
-.hint-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 20px;
-  transition: all 0.3s ease;
+.hint-slide.side {
+  opacity: 0.5;
+  transform: scale(0.95);
 }
 
-.hint-card.unlocked {
-  background: rgba(46, 213, 115, 0.1);
-  border-color: rgba(46, 213, 115, 0.5);
+/* Hint slide states - override modal-section defaults */
+.hint-slide.unlocked {
+  background: rgba(46, 213, 115, 0.1) !important;
+  border-color: rgba(46, 213, 115, 0.5) !important;
   box-shadow: 0 0 20px rgba(46, 213, 115, 0.2);
 }
 
-.hint-card.locked {
-  background: #ffffff40;
-  border-color: #ffffff1a;
+.hint-slide.locked {
+  background: #ffffff40 !important;
+  border-color: #ffffff1a !important;
 }
 
-.hint-card.disabled {
+.hint-slide.disabled {
   opacity: 0.4;
   pointer-events: none;
 }
