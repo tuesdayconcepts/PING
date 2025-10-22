@@ -138,10 +138,10 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
 
       // Render text in canvas if revealed
       if (revealed) {
-        // Text fades in during the second half of reveal animation
+        // Text fades in during the second half of reveal animation, then stays visible
         const textOpacity = isRevealing && revealProgress > 0.5 
           ? Math.min((revealProgress - 0.5) / 0.5, 1) // Fade in during second half
-          : 1; // Full opacity if not revealing
+          : 1; // Full opacity once revealed (regardless of isRevealing state)
         
         if (textOpacity > 0) {
           ctx.save();
