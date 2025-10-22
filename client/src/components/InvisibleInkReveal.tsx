@@ -141,8 +141,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
       // Render text in canvas
       if (revealed) {
         // If revealed, show text (with or without particles dispersing)
-        const textOpacity = isRevealing && revealProgress > 0.3 
-          ? Math.min((revealProgress - 0.3) / 0.7, 1) // Fade in during reveal
+        const textOpacity = isRevealing && revealProgress > 0.5 
+          ? Math.min((revealProgress - 0.5) / 0.5, 1) // Fade in during second half of reveal
           : 1; // Full opacity if not revealing
         
         ctx.save();
@@ -225,9 +225,12 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
           
           if (particle.opacity > opacityMax || particle.opacity < opacityMin) {
             particle.opacityVelocity *= -1;
-            // Clamp opacity within range
+            // Clamp opacity within range and ensure it doesn't get stuck
             particle.opacity = Math.max(opacityMin, Math.min(opacityMax, particle.opacity));
           }
+          
+          // Ensure particles never completely fade out by adding a minimum base opacity
+          particle.opacity = Math.max(particle.opacity, minOpacity + 0.1);
         }
 
         // Draw particle as perfect circle

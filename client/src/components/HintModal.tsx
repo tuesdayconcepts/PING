@@ -39,6 +39,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Manual navigation control
   const [revealingHint, setRevealingHint] = useState<number | null>(null); // Track which hint is currently revealing
+  const [showNavigation, setShowNavigation] = useState(true); // Control navigation visibility
 
   // Fetch hotspot data and purchased hints
   useEffect(() => {
@@ -163,11 +164,13 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       
       // Start reveal animation
       setRevealingHint(hintLevel);
+      setShowNavigation(false); // Hide navigation during reveal
       
       // Set just purchased to keep card visible after animation
       setTimeout(() => {
         setJustPurchased(hintLevel);
         setRevealingHint(null);
+        setShowNavigation(true); // Show navigation after reveal
       }, REVEAL_DURATION); // Wait for animation to complete
     } catch (err) {
       console.error('Purchase failed:', err);
@@ -234,8 +237,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   
   // Navigation handlers - only allow navigation within unlocked + current locked
   // BUT: disable arrows if user just purchased (must use CTA to advance first)
-  const canGoBack = centerIndex > 0 && justPurchased === null;
-  const canGoForward = centerIndex < maxNavigableIndex && justPurchased === null;
+  const canGoBack = centerIndex > 0 && justPurchased === null && showNavigation;
+  const canGoForward = centerIndex < maxNavigableIndex && justPurchased === null && !purchasing && showNavigation;
   
   const handlePrevious = () => {
     if (canGoBack) {
