@@ -367,9 +367,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
 
                         {/* Hint content area - always present */}
                         <div className="hint-content-area">
-                          {/* The actual hint text - always rendered but visibility controlled */}
+                          {/* The actual hint text - only show real text after purchase */}
                           <div className={`hint-text-content ${purchased ? 'revealed' : 'hidden'}`}>
-                            <p>{hintText || hint.text}</p>
+                            <p>{purchased ? hintText : 'Hint will be revealed after purchase'}</p>
                           </div>
 
                           {/* Invisible ink overlay - when locked or currently revealing */}
