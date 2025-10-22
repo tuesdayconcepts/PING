@@ -216,9 +216,17 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     centerIndex = currentHintIndex === -1 ? hints.length - 1 : currentHintIndex;
   }
   
-  // Navigation handlers
+  // Calculate how many hints are unlocked
+  const unlockedCount = hints.filter((h) => 
+    purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased
+  ).length;
+  
+  // Max index user can navigate to (unlocked hints + 1 for current locked)
+  const maxNavigableIndex = Math.min(unlockedCount, hints.length - 1);
+  
+  // Navigation handlers - only allow navigation within unlocked + current locked
   const canGoBack = centerIndex > 0;
-  const canGoForward = centerIndex < hints.length - 1;
+  const canGoForward = centerIndex < maxNavigableIndex;
   
   const handlePrevious = () => {
     if (canGoBack) {
