@@ -230,7 +230,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isRevealing, onRevealComplete, moveRange, minOpacity, opacityRange, disperseSpeed, revealDuration, circularMotion, speed]);
+  }, [onRevealComplete, moveRange, minOpacity, opacityRange, circularMotion, speed]);
 
   return (
     <>
@@ -311,7 +311,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
             console.log('Particle Settings:', {
               density, minSize, maxSize, speed, moveRange,
               minOpacity, maxOpacity, opacitySpeed, opacityRange,
-              circularMotion, disperseSpeed, revealDuration
+              circularMotion
             });
           }}>
             Log Current Settings
