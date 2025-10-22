@@ -12,6 +12,8 @@ interface Particle {
   opacity: number;
   opacityVelocity: number;
   size: number;
+  angle: number; // For circular motion
+  angularVelocity: number; // Rotation speed
 }
 
 interface InvisibleInkRevealProps {
@@ -43,9 +45,11 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   const [moveRange, setMoveRange] = useState(15); // How far particles wander
   const [minOpacity, setMinOpacity] = useState(0.2); // Min opacity
   const [maxOpacity, setMaxOpacity] = useState(0.8); // Max opacity
-  const [opacitySpeed, setOpacitySpeed] = useState(0.02); // Opacity change rate
+  const [opacitySpeed, setOpacitySpeed] = useState(0.02); // Opacity change rate (visibility transition speed)
+  const [opacityRange, setOpacityRange] = useState(0.6); // How much opacity changes (0-1)
   const [disperseSpeed, setDisperseSpeed] = useState(8); // Disperse multiplier
   const [revealDuration, setRevealDuration] = useState(800); // Reveal time in ms
+  const [circularMotion, setCircularMotion] = useState(0.5); // Circular motion strength (0=linear, 1=full circular)
 
   // Initialize particles
   useEffect(() => {
@@ -74,6 +78,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
     for (let i = 0; i < particleCount; i++) {
       const baseX = Math.random() * canvas.width;
       const baseY = Math.random() * canvas.height;
+      const randomAngle = Math.random() * Math.PI * 2;
       
       particles.push({
         x: baseX,
@@ -82,9 +87,11 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         baseY,
         vx: (Math.random() - 0.5) * speed,
         vy: (Math.random() - 0.5) * speed,
-        opacity: minOpacity + Math.random() * (maxOpacity - minOpacity),
+        opacity: minOpacity + Math.random() * opacityRange,
         opacityVelocity: (Math.random() - 0.5) * opacitySpeed,
         size: minSize + Math.random() * maxSize,
+        angle: randomAngle,
+        angularVelocity: (Math.random() - 0.5) * 0.05, // Random rotation speed
       });
     }
 
@@ -93,7 +100,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
     return () => {
       window.removeEventListener('resize', updateCanvasSize);
     };
-  }, [density, minSize, maxSize, speed, minOpacity, maxOpacity, opacitySpeed]); // Recreate particles when params change
+  }, [density, minSize, maxSize, speed, minOpacity, opacityRange, opacitySpeed]); // Recreate particles when params change
 
   // Trigger reveal animation
   useEffect(() => {
@@ -134,25 +141,43 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           particle.y += particle.vy * disperseSpeed * easedProgress;
           particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress));
         } else {
-          // Rapid looping movement around base position
-          particle.x += particle.vx;
-          particle.y += particle.vy;
+          // Update angle for circular motion
+          particle.angle += particle.angularVelocity;
+          
+          // Blend linear and circular motion based on circularMotion parameter
+          const linearX = particle.vx;
+          const linearY = particle.vy;
+          const circularX = Math.cos(particle.angle) * speed * 0.5;
+          const circularY = Math.sin(particle.angle) * speed * 0.5;
+          
+          // Interpolate between linear and circular motion
+          const moveX = linearX * (1 - circularMotion) + circularX * circularMotion;
+          const moveY = linearY * (1 - circularMotion) + circularY * circularMotion;
+          
+          particle.x += moveX;
+          particle.y += moveY;
           
           // Bounce back toward base position (loop effect)
           const dx = particle.x - particle.baseX;
           const dy = particle.y - particle.baseY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
           
-          if (Math.abs(dx) > moveRange) {
+          if (distance > moveRange) {
+            // Pull back toward base with elastic effect
             particle.vx *= -1;
-          }
-          if (Math.abs(dy) > moveRange) {
             particle.vy *= -1;
+            particle.angularVelocity *= -1;
           }
           
-          // Oscillate opacity
+          // Rapid oscillate opacity for faster transitions
           particle.opacity += particle.opacityVelocity;
-          if (particle.opacity > maxOpacity || particle.opacity < minOpacity) {
+          const opacityMin = minOpacity;
+          const opacityMax = minOpacity + opacityRange;
+          
+          if (particle.opacity > opacityMax || particle.opacity < opacityMin) {
             particle.opacityVelocity *= -1;
+            // Clamp opacity within range
+            particle.opacity = Math.max(opacityMin, Math.min(opacityMax, particle.opacity));
           }
         }
 
@@ -182,7 +207,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isRevealing, onRevealComplete, moveRange, minOpacity, maxOpacity, disperseSpeed, revealDuration]);
+  }, [isRevealing, onRevealComplete, moveRange, minOpacity, opacityRange, disperseSpeed, revealDuration, circularMotion, speed]);
 
   return (
     <>
@@ -235,7 +260,20 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           
           <label>
             Opacity Speed: {opacitySpeed.toFixed(3)}
-            <input type="range" min="0.001" max="0.05" step="0.001" value={opacitySpeed} onChange={(e) => setOpacitySpeed(Number(e.target.value))} />
+            <input type="range" min="0.001" max="0.1" step="0.001" value={opacitySpeed} onChange={(e) => setOpacitySpeed(Number(e.target.value))} />
+            <small style={{color: '#999', fontSize: '0.75rem'}}>How fast opacity changes</small>
+          </label>
+          
+          <label>
+            Opacity Range: {opacityRange.toFixed(2)}
+            <input type="range" min="0.1" max="1" step="0.05" value={opacityRange} onChange={(e) => setOpacityRange(Number(e.target.value))} />
+            <small style={{color: '#999', fontSize: '0.75rem'}}>Transition visible ↔ transparent range</small>
+          </label>
+          
+          <label>
+            Circular Motion: {circularMotion.toFixed(2)}
+            <input type="range" min="0" max="1" step="0.05" value={circularMotion} onChange={(e) => setCircularMotion(Number(e.target.value))} />
+            <small style={{color: '#999', fontSize: '0.75rem'}}>0=straight lines, 1=full swirl</small>
           </label>
           
           <label>
@@ -251,7 +289,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           <button onClick={() => {
             console.log('Particle Settings:', {
               density, minSize, maxSize, speed, moveRange,
-              minOpacity, maxOpacity, opacitySpeed, disperseSpeed, revealDuration
+              minOpacity, maxOpacity, opacitySpeed, opacityRange,
+              circularMotion, disperseSpeed, revealDuration
             });
           }}>
             Log Current Settings
