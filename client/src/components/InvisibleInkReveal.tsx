@@ -208,13 +208,13 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         
         // Then render particles on top (slower dispersion to create true reveal effect)
         particles.forEach((particle) => {
-          // Slower, more gradual dispersion
-          const dispersionSpeed = disperseSpeed * 0.3; // Much slower
+          // Much slower, more gradual dispersion (3x slower)
+          const dispersionSpeed = disperseSpeed * 0.1; // 3x slower than before
           particle.x += particle.vx * dispersionSpeed * easedProgress;
           particle.y += particle.vy * dispersionSpeed * easedProgress;
           
-          // Gradual opacity fade (not too fast)
-          particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress * 0.8));
+          // Much more gradual opacity fade (3x slower)
+          particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress * 0.27));
           
           // Only draw particles if they still have opacity
           if (particle.opacity > 0) {
