@@ -80,7 +80,7 @@ function MapPage() {
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
   const [locationName, setLocationName] = useState<string>('');
-  const [showHintModal, setShowHintModal] = useState(false);
+  const [modalView, setModalView] = useState<'details' | 'hints'>('details');
 
   // Extract Twitter handle from tweet URL
   const extractTwitterHandle = (tweetUrl: string): string => {
@@ -543,18 +543,37 @@ function MapPage() {
       )}
 
       {/* Hotspot Modal Popup */}
-      {selectedHotspot && !showHintModal && (
-        <div className={`modal-overlay ${isModalClosing ? 'closing' : ''}`} onClick={() => setSelectedHotspot(null)}>
+      {selectedHotspot && (
+        <div className={`modal-overlay ${isModalClosing ? 'closing' : ''}`} onClick={() => {
+          setSelectedHotspot(null);
+          setModalView('details');
+        }}>
           <div className="modal-wrapper">
             <div className={`modal-content ${isModalClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
               {/* Close button */}
-              <button className="modal-close" onClick={() => setSelectedHotspot(null)}>
+              <button className="modal-close" onClick={() => {
+                setSelectedHotspot(null);
+                setModalView('details');
+              }}>
                 ✕
               </button>
 
             <div className="modal-sections">
-              {/* Check if hotspot is queued (not active yet) */}
-              {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 1 ? (
+              {/* Hints View */}
+              {modalView === 'hints' ? (
+                <HintModal
+                  hotspotId={selectedHotspot.id}
+                  onClose={() => {
+                    setSelectedHotspot(null);
+                    setModalView('details');
+                  }}
+                  onShowDetails={() => setModalView('details')}
+                />
+              ) : (
+                <>
+                  {/* Details View */}
+                  {/* Check if hotspot is queued (not active yet) */}
+                  {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 1 ? (
                 <div className="modal-section modal-queued">
                   <h3>INACTIVE PING</h3>
                   <p>This PING is currently in queue. It will become active in the future.</p>
@@ -649,9 +668,9 @@ function MapPage() {
                                 <Gift className="prize-icon" />
                                 <span className="prize-text">{selectedHotspot.prize} SOL</span>
                               </div>
-                              <button className="hint-cta" onClick={() => setShowHintModal(true)}>
-                                GET A HINT!
-                              </button>
+              <button className="hint-cta" onClick={() => setModalView('hints')}>
+                GET A HINT!
+              </button>
                             </div>
                           )}
                         </>
@@ -717,6 +736,8 @@ function MapPage() {
                   </div>
                 </div>
               )}
+                </>
+              )}
             </div>
             </div>
             
@@ -766,17 +787,6 @@ function MapPage() {
         </div>
       )}
 
-      {/* Hint Modal */}
-      {showHintModal && selectedHotspot && (
-        <HintModal
-          hotspotId={selectedHotspot.id}
-          onClose={() => setShowHintModal(false)}
-          onShowDetails={() => {
-            setShowHintModal(false);
-            // Main modal is already showing with selectedHotspot
-          }}
-        />
-      )}
     </div>
   );
 }
