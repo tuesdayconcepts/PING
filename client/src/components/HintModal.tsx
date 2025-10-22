@@ -322,13 +322,13 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                 )}
                 
                 <div className="hints-slider-track" style={{ transform: `translateX(calc(-${centerIndex * 100}% - ${centerIndex * 15}px))` }}>
-                  {hints.map((hint) => {
+                  {hints.map((hint, index) => {
                     const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
                     const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text || hint.text;
                     const pingAmount = hint.free ? 0 : (hint.price ? usdToPing(hint.price) : null);
                     const needsPreviousHint = hint.level > 1 && 
                       !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
-                    const isCenter = hint === nextHint || (purchased && !nextHint);
+                    const isCenter = index === centerIndex; // Check if this is the centered slide
 
                     return (
                       <div 
