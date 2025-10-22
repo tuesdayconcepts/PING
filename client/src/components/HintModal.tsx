@@ -171,7 +171,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         setJustPurchased(hintLevel);
         setRevealingHint(null);
         setShowNavigation(true); // Show navigation after reveal
-      }, REVEAL_DURATION); // Wait for animation to complete
+      }, REVEAL_DURATION + 100); // Wait for animation to complete + small buffer
     } catch (err) {
       console.error('Purchase failed:', err);
       setError(err instanceof Error ? err.message : 'Purchase failed');
@@ -267,6 +267,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       setCurrentSlideIndex(centerIndex + 1); // Advance to next hint
     };
     ctaDisabled = false;
+  } else if (purchasing !== null) {
+    // Currently processing a purchase
+    ctaText = 'PROCESSING...';
+    ctaDisabled = true;
   } else if (nextHint) {
     const needsPreviousHint = nextHint.level > 1 && 
       !purchasedHints[`hint${nextHint.level - 1}` as keyof PurchasedHints]?.purchased;
@@ -375,7 +379,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                             <div className="hint-ink-overlay">
                               <InvisibleInkReveal 
                                 text={purchased ? hintText : 'Hint will be revealed after purchase'} 
-                                revealed={purchased || revealingHint === hint.level}
+                                revealed={revealingHint === hint.level}
                                 onRevealComplete={() => {
                                   // Animation complete
                                 }}

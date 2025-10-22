@@ -44,7 +44,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
   const [maxSize, setMaxSize] = useState(2.7); // Max additional size
   const [speed, setSpeed] = useState(0.5); // Movement speed multiplier
   const [moveRange, setMoveRange] = useState(5); // How far particles wander
-  const [minOpacity, setMinOpacity] = useState(0.0); // Min opacity
+  const [minOpacity, setMinOpacity] = useState(0.3); // Min opacity
   const [maxOpacity, setMaxOpacity] = useState(1.0); // Max opacity
   const [opacitySpeed, setOpacitySpeed] = useState(0.1); // Opacity change rate (visibility transition speed)
   const [opacityRange, setOpacityRange] = useState(1.0); // How much opacity changes (0-1)
@@ -229,8 +229,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
             particle.opacity = Math.max(opacityMin, Math.min(opacityMax, particle.opacity));
           }
           
-          // Ensure particles never completely fade out by adding a minimum base opacity
-          particle.opacity = Math.max(particle.opacity, minOpacity + 0.1);
+          // Ensure particles stay within the defined opacity range
+          particle.opacity = Math.max(minOpacity, Math.min(maxOpacity, particle.opacity));
         }
 
         // Draw particle as perfect circle
