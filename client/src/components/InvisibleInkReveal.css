@@ -36,3 +36,58 @@
   z-index: 2;
   pointer-events: none;
 }
+
+/* Debug Controller */
+.ink-debug-controller {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 20px;
+  z-index: 10000;
+  max-width: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ink-debug-controller h4 {
+  margin: 0 0 16px 0;
+  color: #ffd700;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.ink-debug-controller label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ink-debug-controller input[type="range"] {
+  width: 100%;
+  cursor: pointer;
+}
+
+.ink-debug-controller button {
+  width: 100%;
+  padding: 10px;
+  background: #ffd700;
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.ink-debug-controller button:hover {
+  background: #ffed4e;
+}
