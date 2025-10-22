@@ -365,21 +365,19 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                           )}
                         </div>
 
-                        {/* Hint content area - always present */}
+                        {/* Hint content area - canvas renders everything */}
                         <div className="hint-content-area">
-                          {/* The actual hint text - only show real text after purchase */}
-                          <div className={`hint-text-content ${purchased ? 'revealed' : 'hidden'}`}>
-                            <p>{purchased ? hintText : 'Hint will be revealed after purchase'}</p>
-                          </div>
-
-                          {/* Invisible ink overlay - when locked or currently revealing */}
-                          {(!purchased || revealingHint === hint.level) && !needsPreviousHint && (
+                          {/* Canvas handles both particles and text rendering */}
+                          {!needsPreviousHint && (
                             <div className="hint-ink-overlay">
                               <InvisibleInkReveal 
-                                text={hint.text} 
+                                text={purchased ? hintText : hint.text} 
                                 revealed={revealingHint === hint.level}
                                 onRevealComplete={() => {
-                                  // Animation complete - text will be shown by purchased state
+                                  // Animation complete
+                                }}
+                                onRevealStart={() => {
+                                  // Animation started
                                 }}
                               />
                             </div>

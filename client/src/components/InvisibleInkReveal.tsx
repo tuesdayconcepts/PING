@@ -138,6 +138,46 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
       const ease = (t: number) => 1 - Math.pow(1 - t, 2);
       const easedProgress = ease(revealProgress);
 
+      // Render text in canvas (only when revealed)
+      if (revealed && revealProgress > 0.3) { // Start showing text after 30% of particles disperse
+        const textOpacity = Math.min((revealProgress - 0.3) / 0.7, 1); // Fade in over remaining 70%
+        
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity * 0.9})`;
+        ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Wrap text to fit canvas width
+        const maxWidth = canvas.width - 40; // 20px padding on each side
+        const words = text.split(' ');
+        const lines: string[] = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const metrics = ctx.measureText(testLine);
+          
+          if (metrics.width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
+        
+        // Draw text lines
+        const lineHeight = 24;
+        const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
+        
+        lines.forEach((line, index) => {
+          ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
+        });
+        
+        ctx.restore();
+      }
+
       particles.forEach((particle) => {
         if (isRevealing) {
           // Disperse particles rapidly outward
@@ -216,10 +256,16 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
   return (
     <>
       <div className="invisible-ink-container" ref={containerRef}>
-        <div className={`invisible-ink-text ${revealed ? 'revealed' : ''}`}>
-          {text}
+        <canvas 
+          ref={canvasRef} 
+          className="invisible-ink-canvas"
+          aria-label={revealed ? `Hint: ${text}` : 'Hint content hidden - purchase to reveal'}
+          role="img"
+        />
+        {/* Hidden text for screen readers */}
+        <div className="sr-only" aria-live="polite">
+          {revealed ? text : 'Hint content is hidden until purchased'}
         </div>
-        {!revealed && <canvas ref={canvasRef} className="invisible-ink-canvas" />}
       </div>
       
       {/* Debug Controller - Portal to body to escape modal container */}

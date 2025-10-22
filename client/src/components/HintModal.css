@@ -218,53 +218,13 @@
   pointer-events: none;
 }
 
-/* Hint content area - always present container */
+/* Hint content area - canvas container */
 .hint-content-area {
   position: relative;
   flex: 1;
   display: flex;
   align-items: center;
   min-height: 120px;
-}
-
-/* Hint text content - always rendered, visibility controlled */
-.hint-text-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  z-index: 1;
-}
-
-.hint-text-content.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.hint-text-content.revealed {
-  opacity: 0;
-  animation: fadeInText 0.5s ease 0.2s forwards; /* Delay to let particles disperse first */
-}
-
-.hint-text-content p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
-  font-size: 0.95rem;
-}
-
-@keyframes fadeInText {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* Locked content (requirement message) */
