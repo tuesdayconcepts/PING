@@ -252,14 +252,15 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               </div>
             )}
 
-            {/* Hints Container - Slider Layout */}
-            <div className="modal-section hints-container">
-              {hints.length === 0 ? (
+            {/* Hints Slider - Direct modal-section */}
+            {hints.length === 0 ? (
+              <div className="modal-section">
                 <p className="no-hints">No hints available for this hotspot</p>
-              ) : (
-                <div className="slider-cards-container">
-                  <div className="slider-track" style={{ transform: `translateX(calc(-${centerIndex * 100}% - ${centerIndex * 16}px))` }}>
-                    {hints.map((hint) => {
+              </div>
+            ) : (
+              <div className="modal-section slider-cards-container">
+                <div className="slider-track" style={{ transform: `translateX(calc(-${centerIndex * 100}% - ${centerIndex * 16}px))` }}>
+                  {hints.map((hint) => {
                       const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
                       const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text || hint.text;
                       const pingAmount = hint.free ? 0 : (hint.price ? usdToPing(hint.price) : null);
@@ -308,9 +309,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                       );
                     })}
                   </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Action Buttons Section */}
             <div className="modal-section hint-actions">

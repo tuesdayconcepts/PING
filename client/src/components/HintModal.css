@@ -38,12 +38,6 @@
   text-align: center;
 }
 
-/* Hints Container - All hints in one modal-section */
-.hints-container {
-  padding: 24px !important;
-  min-height: 200px;
-}
-
 /* ===================
    HORIZONTAL SLIDER LAYOUT
    =================== */
@@ -51,6 +45,7 @@
 .slider-cards-container {
   overflow: hidden;
   width: 100%;
+  padding: 20px !important; /* Override modal-section default */
 }
 
 .slider-track {
