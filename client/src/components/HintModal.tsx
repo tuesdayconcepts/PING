@@ -152,23 +152,21 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
 
       const result = await response.json();
 
+      // Update purchased hints with the new hint text immediately (but still hidden)
+      setPurchasedHints((prev) => ({
+        ...prev!,
+        [`hint${hintLevel}`]: {
+          purchased: true,
+          text: result.hintText,
+        },
+      }));
+      
       // Start reveal animation
       setRevealingHint(hintLevel);
       
-      // Update purchased hints with the new hint text after animation completes
+      // Set just purchased to keep card visible after animation
       setTimeout(() => {
-        setPurchasedHints((prev) => ({
-          ...prev!,
-          [`hint${hintLevel}`]: {
-            purchased: true,
-            text: result.hintText,
-          },
-        }));
-        
-        // Set just purchased to keep card visible
         setJustPurchased(hintLevel);
-        
-        // Clear revealing state
         setRevealingHint(null);
       }, REVEAL_DURATION); // Wait for animation to complete
     } catch (err) {
@@ -343,7 +341,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                     return (
                       <div 
                         key={hint.level} 
-                        className={`modal-section hint-slide ${purchased ? 'unlocked' : 'locked'} ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
+                        className={`modal-section hint-slide ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
                       >
                         {/* Header always on top */}
                         <div className="hint-card-header">
@@ -367,29 +365,33 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                           )}
                         </div>
 
-                        {/* Invisible ink effect covers entire slide for locked hints */}
-                        {!purchased && !needsPreviousHint && (
-                          <div className="hint-ink-overlay">
-                            <InvisibleInkReveal 
-                              text={hint.text} 
-                              revealed={revealingHint === hint.level}
-                              onRevealComplete={() => {
-                                // Animation complete - text will be shown by purchased state
-                              }}
-                            />
+                        {/* Hint content area - always present */}
+                        <div className="hint-content-area">
+                          {/* The actual hint text - always rendered but visibility controlled */}
+                          <div className={`hint-text-content ${purchased ? 'revealed' : 'hidden'}`}>
+                            <p>{hintText || hint.text}</p>
                           </div>
-                        )}
 
-                        {/* Revealed text or requirement message */}
-                        {purchased ? (
-                          <div className="hint-revealed-content">
-                            <p>{hintText}</p>
-                          </div>
-                        ) : needsPreviousHint ? (
-                          <div className="hint-locked-content">
-                            <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
-                          </div>
-                        ) : null}
+                          {/* Invisible ink overlay - when locked or currently revealing */}
+                          {(!purchased || revealingHint === hint.level) && !needsPreviousHint && (
+                            <div className="hint-ink-overlay">
+                              <InvisibleInkReveal 
+                                text={hint.text} 
+                                revealed={revealingHint === hint.level}
+                                onRevealComplete={() => {
+                                  // Animation complete - text will be shown by purchased state
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          {/* Requirement message for locked hints */}
+                          {needsPreviousHint && (
+                            <div className="hint-locked-content">
+                              <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
