@@ -138,9 +138,12 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
       const ease = (t: number) => 1 - Math.pow(1 - t, 2);
       const easedProgress = ease(revealProgress);
 
-      // Render text in canvas (only when revealed)
-      if (revealed && revealProgress > 0.3) { // Start showing text after 30% of particles disperse
-        const textOpacity = Math.min((revealProgress - 0.3) / 0.7, 1); // Fade in over remaining 70%
+      // Render text in canvas
+      if (revealed) {
+        // If revealed, show text (with or without particles dispersing)
+        const textOpacity = isRevealing && revealProgress > 0.3 
+          ? Math.min((revealProgress - 0.3) / 0.7, 1) // Fade in during reveal
+          : 1; // Full opacity if not revealing
         
         ctx.save();
         ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity * 0.9})`;
@@ -178,7 +181,9 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
         ctx.restore();
       }
 
-      particles.forEach((particle) => {
+      // Only show particles when not revealed (to cover text) or during reveal animation
+      if (!revealed || isRevealing) {
+        particles.forEach((particle) => {
         if (isRevealing) {
           // Disperse particles rapidly outward
           particle.x += particle.vx * disperseSpeed * easedProgress;
@@ -230,7 +235,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete, onRevealS
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fill();
-      });
+        });
+      }
 
       // Check if reveal is complete
       if (isRevealing && revealProgress >= 1) {
