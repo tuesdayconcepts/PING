@@ -25,7 +25,7 @@ interface PurchasedHints {
   hint3: HintData;
 }
 
-export function HintModal({ hotspotId, onShowDetails }: HintModalProps) {
+export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps) {
   const wallet = useWallet();
   const { publicKey, connected } = wallet;
   const { settings, usdToPing, formatPingAmount } = usePingPrice();
@@ -166,8 +166,19 @@ export function HintModal({ hotspotId, onShowDetails }: HintModalProps) {
 
   if (loading) {
     return (
-      <div className="modal-section">
-        <div className="hint-loading">Loading hints...</div>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-wrapper">
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={onClose}>
+              ✕
+            </button>
+            <div className="modal-sections">
+              <div className="modal-section">
+                <div className="hint-loading">Loading hints...</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -218,100 +229,110 @@ export function HintModal({ hotspotId, onShowDetails }: HintModalProps) {
   const centerIndex = currentHintIndex === -1 ? hints.length - 1 : currentHintIndex; // Last if all unlocked
 
   return (
-    <>
-      {/* Header Section - Enhanced Messaging */}
-      <div className="modal-section hint-header-section">
-        <h2>Unlock the Secret</h2>
-        <p className="hint-subtitle">
-          Stuck? Reveal exclusive clues that guide you straight to {hotspot.prize ? `${hotspot.prize} SOL` : 'the treasure'}
-        </p>
-      </div>
+    <div className="modal-overlay hint-modal-overlay" onClick={onClose}>
+      <div className="modal-wrapper">
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <button className="modal-close" onClick={onClose}>
+            ✕
+          </button>
 
-      {/* Error Message */}
-      {error && (
-        <div className="hint-error-banner">
-          {error}
-        </div>
-      )}
+          <div className="modal-sections">
+            {/* Header Section - Enhanced Messaging */}
+            <div className="modal-section hint-header-section">
+              <h2>Unlock the Secret</h2>
+              <p className="hint-subtitle">
+                Stuck? Reveal exclusive clues that guide you straight to {hotspot.prize ? `${hotspot.prize} SOL` : 'the treasure'}
+              </p>
+            </div>
 
-      {/* Hints Container - Slider Layout */}
-      <div className="modal-section hints-container">
-        {hints.length === 0 ? (
-          <p className="no-hints">No hints available for this hotspot</p>
-        ) : (
-          <div className="slider-cards-container">
-            <div className="slider-track" style={{ transform: `translateX(calc(-${centerIndex * 100}% - ${centerIndex * 16}px))` }}>
-              {hints.map((hint) => {
-                const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
-                const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text || hint.text;
-                const pingAmount = hint.free ? 0 : (hint.price ? usdToPing(hint.price) : null);
-                const needsPreviousHint = hint.level > 1 && 
-                  !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
-                const isCenter = hint === nextHint || (purchased && !nextHint);
+            {/* Error Message */}
+            {error && (
+              <div className="hint-error-banner">
+                {error}
+              </div>
+            )}
 
-                return (
-                  <div 
-                    key={hint.level} 
-                    className={`hint-card slider ${purchased ? 'unlocked' : 'locked'} ${isCenter ? 'center' : ''} ${needsPreviousHint ? 'disabled' : ''}`}
-                  >
-                    <div className="hint-card-header">
-                      <div className="hint-title">
-                        Hint {hint.level} of {hints.length}
-                      </div>
-                      {/* Combined free badge and price */}
-                      {!purchased && (
-                        <div className="hint-price-badge">
-                          {hint.free ? (
-                            <span className="free-badge">FREE</span>
+            {/* Hints Container - Slider Layout */}
+            <div className="modal-section hints-container">
+              {hints.length === 0 ? (
+                <p className="no-hints">No hints available for this hotspot</p>
+              ) : (
+                <div className="slider-cards-container">
+                  <div className="slider-track" style={{ transform: `translateX(calc(-${centerIndex * 100}% - ${centerIndex * 16}px))` }}>
+                    {hints.map((hint) => {
+                      const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
+                      const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text || hint.text;
+                      const pingAmount = hint.free ? 0 : (hint.price ? usdToPing(hint.price) : null);
+                      const needsPreviousHint = hint.level > 1 && 
+                        !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
+                      const isCenter = hint === nextHint || (purchased && !nextHint);
+
+                      return (
+                        <div 
+                          key={hint.level} 
+                          className={`hint-card slider ${purchased ? 'unlocked' : 'locked'} ${isCenter ? 'center' : ''} ${needsPreviousHint ? 'disabled' : ''}`}
+                        >
+                          <div className="hint-card-header">
+                            <div className="hint-title">
+                              Hint {hint.level} of {hints.length}
+                            </div>
+                            {/* Combined free badge and price */}
+                            {!purchased && (
+                              <div className="hint-price-badge">
+                                {hint.free ? (
+                                  <span className="free-badge">FREE</span>
+                                ) : (
+                                  <div className="price-badge">
+                                    <span className="price-usd">${hint.price?.toFixed(2)}</span>
+                                    {pingAmount && (
+                                      <span className="price-ping">{formatPingAmount(pingAmount)} $PING</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {purchased ? (
+                            <InvisibleInkReveal text={hintText || ''} revealed={true} />
                           ) : (
-                            <div className="price-badge">
-                              <span className="price-usd">${hint.price?.toFixed(2)}</span>
-                              {pingAmount && (
-                                <span className="price-ping">{formatPingAmount(pingAmount)} $PING</span>
+                            <div className="hint-locked-content">
+                              {needsPreviousHint ? (
+                                <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
+                              ) : (
+                                <InvisibleInkReveal text={hint.text} revealed={false} />
                               )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-
-                    {purchased ? (
-                      <InvisibleInkReveal text={hintText || ''} revealed={true} />
-                    ) : (
-                      <div className="hint-locked-content">
-                        {needsPreviousHint ? (
-                          <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
-                        ) : (
-                          <InvisibleInkReveal text={hint.text} revealed={false} />
-                        )}
-                      </div>
-                    )}
+                      );
+                    })}
                   </div>
-                );
-              })}
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons Section */}
+            <div className="modal-section hint-actions">
+              <button className="details-btn" onClick={onShowDetails}>
+                PING DETAILS
+              </button>
+              
+              {ctaText === 'CONNECT_WALLET' ? (
+                <WalletMultiButton />
+              ) : (
+                <button
+                  className={`hint-cta-btn ${nextHint && !nextHint.free ? 'paid' : 'free'}`}
+                  onClick={ctaAction || undefined}
+                  disabled={ctaDisabled || purchasing !== null}
+                >
+                  {purchasing !== null ? 'PROCESSING...' : ctaText}
+                </button>
+              )}
             </div>
           </div>
-        )}
+        </div>
       </div>
-
-      {/* Action Buttons Section */}
-      <div className="modal-section hint-actions">
-        <button className="details-btn" onClick={onShowDetails}>
-          PING DETAILS
-        </button>
-        
-        {ctaText === 'CONNECT_WALLET' ? (
-          <WalletMultiButton />
-        ) : (
-          <button
-            className={`hint-cta-btn ${nextHint && !nextHint.free ? 'paid' : 'free'}`}
-            onClick={ctaAction || undefined}
-            disabled={ctaDisabled || purchasing !== null}
-          >
-            {purchasing !== null ? 'PROCESSING...' : ctaText}
-          </button>
-        )}
-      </div>
-    </>
+    </div>
   );
 }

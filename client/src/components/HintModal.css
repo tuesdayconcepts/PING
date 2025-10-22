@@ -1,5 +1,8 @@
 /* Hint Modal uses the same modal-overlay and modal-content from MapPage.css */
-/* Only custom styles for hint-specific sections below */
+/* Smooth fade-in transition for hint modal */
+.hint-modal-overlay {
+  animation: fadeIn 0.3s ease;
+}
 
 .hint-header-section {
   text-align: center;
