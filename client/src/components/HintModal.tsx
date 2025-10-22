@@ -36,6 +36,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [error, setError] = useState<string | null>(null);
   const [hotspot, setHotspot] = useState<any>(null);
   const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Manual navigation control
 
   // Fetch hotspot data and purchased hints
   useEffect(() => {
@@ -206,11 +207,32 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   if (justPurchased !== null) {
     // Keep just-purchased hint centered until user clicks "GET ANOTHER HINT"
     centerIndex = hints.findIndex((h) => h.level === justPurchased);
+  } else if (currentSlideIndex >= 0 && currentSlideIndex < hints.length) {
+    // Use manual slide index if set
+    centerIndex = currentSlideIndex;
   } else {
     // Show next unpurchased hint, or last hint if all purchased
     const currentHintIndex = hints.findIndex((h) => h === nextHint);
     centerIndex = currentHintIndex === -1 ? hints.length - 1 : currentHintIndex;
   }
+  
+  // Navigation handlers
+  const canGoBack = centerIndex > 0;
+  const canGoForward = centerIndex < hints.length - 1;
+  
+  const handlePrevious = () => {
+    if (canGoBack) {
+      setCurrentSlideIndex(centerIndex - 1);
+      setJustPurchased(null);
+    }
+  };
+  
+  const handleNext = () => {
+    if (canGoForward) {
+      setCurrentSlideIndex(centerIndex + 1);
+      setJustPurchased(null);
+    }
+  };
 
   // Determine CTA text and action
   let ctaText = 'ALL HINTS UNLOCKED';
@@ -220,7 +242,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   if (justPurchased !== null && nextHint) {
     // Just purchased a hint, show "GET ANOTHER HINT" to advance
     ctaText = 'GET ANOTHER HINT';
-    ctaAction = () => setJustPurchased(null); // Clear to advance to next
+    ctaAction = () => {
+      setJustPurchased(null);
+      setCurrentSlideIndex(centerIndex + 1); // Advance to next hint
+    };
     ctaDisabled = false;
   } else if (nextHint) {
     const needsPreviousHint = nextHint.level > 1 && 
@@ -275,6 +300,18 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               </div>
             ) : (
               <div className="hints-slider-wrapper">
+                {/* Navigation Arrows */}
+                {canGoBack && (
+                  <button className="slider-nav prev" onClick={handlePrevious} aria-label="Previous hint">
+                    ‹
+                  </button>
+                )}
+                {canGoForward && (
+                  <button className="slider-nav next" onClick={handleNext} aria-label="Next hint">
+                    ›
+                  </button>
+                )}
+                
                 <div className="hints-slider-track" style={{ transform: `translateX(calc(-${centerIndex * 100}% - ${centerIndex * 15}px))` }}>
                   {hints.map((hint) => {
                     const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
