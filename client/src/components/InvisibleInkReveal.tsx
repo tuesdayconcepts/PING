@@ -51,12 +51,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   const [revealDuration, setRevealDuration] = useState(2000); // Reveal duration in ms (match processing time)
   const [circularMotion, setCircularMotion] = useState(0.55); // Circular motion strength (0=linear, 1=full circular)
   
-  // Normal particle loop settings (not affected by debug)
-  const normalSpeed = 0.5;
-  const normalMoveRange = 15;
-  const normalMinOpacity = 0.2;
-  const normalMaxOpacity = 0.8;
-  const normalOpacitySpeed = 0.02;
+  // Removed normal particle settings - using original simple approach
 
   // Initialize particles
   useEffect(() => {
@@ -78,27 +73,26 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
     updateCanvasSize();
     window.addEventListener('resize', updateCanvasSize);
 
-    // Create many tiny particles - using normal settings for stable loop
-    const particleCount = Math.floor((canvas.width * canvas.height) / density);
+    // Create many tiny particles (like original working version)
+    const particleCount = Math.floor((canvas.width * canvas.height) / 25); // Higher density
     const particles: Particle[] = [];
 
     for (let i = 0; i < particleCount; i++) {
       const baseX = Math.random() * canvas.width;
       const baseY = Math.random() * canvas.height;
-      const randomAngle = Math.random() * Math.PI * 2;
       
       particles.push({
         x: baseX,
         y: baseY,
         baseX,
         baseY,
-        vx: (Math.random() - 0.5) * normalSpeed,
-        vy: (Math.random() - 0.5) * normalSpeed,
-        opacity: normalMinOpacity + Math.random() * (normalMaxOpacity - normalMinOpacity),
-        opacityVelocity: (Math.random() - 0.5) * normalOpacitySpeed,
-        size: minSize + Math.random() * maxSize,
-        angle: randomAngle,
-        angularVelocity: (Math.random() - 0.5) * 0.05, // Random rotation speed
+        vx: (Math.random() - 0.5) * 2, // Random movement speed
+        vy: (Math.random() - 0.5) * 2,
+        opacity: 0.3 + Math.random() * 0.5, // Random starting opacity
+        opacityVelocity: (Math.random() - 0.5) * 0.02, // Opacity change rate
+        size: 1.5 + Math.random() * 1, // Tiny particles (1.5-2.5px)
+        angle: Math.random() * Math.PI * 2, // Random starting angle
+        angularVelocity: (Math.random() - 0.5) * 0.1, // Angular velocity
       });
     }
 
@@ -187,62 +181,43 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         }
       }
 
-      // Show particles when not revealed OR during reveal animation
-      if (!revealed || isRevealing) {
-        particles.forEach((particle) => {
-          if (isRevealing) {
-            // Disperse particles rapidly outward during reveal
-            particle.x += particle.vx * disperseSpeed * easedProgress;
-            particle.y += particle.vy * disperseSpeed * easedProgress;
-            particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress));
-          } else {
-            // Normal particle loop - use stable settings when not revealing
-            particle.angle += particle.angularVelocity;
-            
-            // Blend linear and circular motion based on circularMotion parameter
-            const linearX = particle.vx;
-            const linearY = particle.vy;
-            const circularX = Math.cos(particle.angle) * normalSpeed * 0.5;
-            const circularY = Math.sin(particle.angle) * normalSpeed * 0.5;
-            
-            // Interpolate between linear and circular motion
-            const moveX = linearX * (1 - circularMotion) + circularX * circularMotion;
-            const moveY = linearY * (1 - circularMotion) + circularY * circularMotion;
-            
-            particle.x += moveX;
-            particle.y += moveY;
-            
-            // Bounce back toward base position (loop effect)
-            const dx = particle.x - particle.baseX;
-            const dy = particle.y - particle.baseY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance > normalMoveRange) {
-              // Pull back toward base with elastic effect
-              particle.vx *= -1;
-              particle.vy *= -1;
-              particle.angularVelocity *= -1;
-            }
-            
-            // Gentle oscillate opacity for stable loop
-            particle.opacity += particle.opacityVelocity;
-            const opacityMin = normalMinOpacity;
-            const opacityMax = normalMaxOpacity;
-            
-            if (particle.opacity > opacityMax || particle.opacity < opacityMin) {
-              particle.opacityVelocity *= -1;
-              // Clamp opacity within range
-              particle.opacity = Math.max(opacityMin, Math.min(opacityMax, particle.opacity));
-            }
+      // Always render particles (like original working version)
+      particles.forEach((particle) => {
+        if (isRevealing) {
+          // Disperse particles rapidly outward during reveal
+          particle.x += particle.vx * disperseSpeed * easedProgress;
+          particle.y += particle.vy * disperseSpeed * easedProgress;
+          particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress));
+        } else {
+          // Simple bouncing movement around base position (like original)
+          const moveRange = 15; // How far particles wander from base
+          particle.x += particle.vx;
+          particle.y += particle.vy;
+          
+          // Bounce back toward base position (loop effect)
+          const dx = particle.x - particle.baseX;
+          const dy = particle.y - particle.baseY;
+          
+          if (Math.abs(dx) > moveRange) {
+            particle.vx *= -1;
+          }
+          if (Math.abs(dy) > moveRange) {
+            particle.vy *= -1;
           }
           
-          // Draw particle as perfect circle
-          ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
-          ctx.beginPath();
-          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-          ctx.fill();
-        });
-      }
+          // Oscillate opacity
+          particle.opacity += particle.opacityVelocity;
+          if (particle.opacity > 0.8 || particle.opacity < 0.2) {
+            particle.opacityVelocity *= -1;
+          }
+        }
+        
+        // Draw particle as perfect circle
+        ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
 
       // Check if reveal animation is complete
       if (isRevealing && revealProgress >= 1) {
