@@ -14,6 +14,7 @@ interface Particle {
   size: number;
   angle: number; // For circular motion
   angularVelocity: number; // Rotation speed
+  radius: number; // Fixed radius for circular motion
 }
 
 interface InvisibleInkRevealProps {
@@ -37,18 +38,18 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   const debugMode = useDebugMode();
   
   // Debug controllable parameters
-  const [density, setDensity] = useState(65); // Particle density divider
+  const [density, setDensity] = useState(26); // Particle density divider
   const [minSize, setMinSize] = useState(0.5); // Min particle size
-  const [maxSize, setMaxSize] = useState(2.7); // Max additional size
-  const [speed, setSpeed] = useState(0.5); // Movement speed multiplier
+  const [maxSize, setMaxSize] = useState(1.9); // Max additional size
+  const [speed, setSpeed] = useState(0.1); // Movement speed multiplier
   const [moveRange, setMoveRange] = useState(5); // How far particles wander
-  const [minOpacity, setMinOpacity] = useState(0.3); // Min opacity
+  const [minOpacity, setMinOpacity] = useState(0.0); // Min opacity
   const [maxOpacity, setMaxOpacity] = useState(1.0); // Max opacity
   const [opacitySpeed, setOpacitySpeed] = useState(0.1); // Opacity change rate (visibility transition speed)
   const [opacityRange, setOpacityRange] = useState(1.0); // How much opacity changes (0-1)
   const [disperseSpeed, setDisperseSpeed] = useState(15); // How fast particles disperse during reveal
   const [revealDuration, setRevealDuration] = useState(2000); // Reveal duration in ms (match processing time)
-  const [circularMotion, setCircularMotion] = useState(0.55); // Circular motion strength (0=linear, 1=full circular)
+  const [circularMotion, setCircularMotion] = useState(1.0); // Circular motion strength (0=linear, 1=full circular)
   const [vignetteFade, setVignetteFade] = useState(0.85); // Adjustable fade start point
   
   // Removed normal particle settings - using original simple approach
@@ -116,6 +117,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         size: minSize + Math.random() * maxSize, // Use size parameters
         angle: Math.random() * Math.PI * 2,
         angularVelocity: (Math.random() - 0.5) * 0.1,
+        radius: moveRange * (0.5 + Math.random() * 0.5), // Fixed radius for circular motion
       });
     }
 
@@ -161,19 +163,29 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
       // STATE 1: revealed = false - Show particles only
       if (!revealed) {
         particles.forEach((particle) => {
-          // Bouncing movement around base position using moveRange parameter
-          particle.x += particle.vx;
-          particle.y += particle.vy;
-          
-          // Bounce back toward base position (loop effect)
-          const dx = particle.x - particle.baseX;
-          const dy = particle.y - particle.baseY;
-          
-          if (Math.abs(dx) > moveRange) {
-            particle.vx *= -1;
-          }
-          if (Math.abs(dy) > moveRange) {
-            particle.vy *= -1;
+          // Circular motion around base position
+          if (circularMotion > 0) {
+            // Update angle for circular motion
+            particle.angle += particle.angularVelocity * circularMotion;
+            
+            // Calculate circular position around base using fixed radius
+            particle.x = particle.baseX + Math.cos(particle.angle) * particle.radius;
+            particle.y = particle.baseY + Math.sin(particle.angle) * particle.radius;
+          } else {
+            // Linear bouncing movement (original behavior)
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            
+            // Bounce back toward base position (loop effect)
+            const dx = particle.x - particle.baseX;
+            const dy = particle.y - particle.baseY;
+            
+            if (Math.abs(dx) > moveRange) {
+              particle.vx *= -1;
+            }
+            if (Math.abs(dy) > moveRange) {
+              particle.vy *= -1;
+            }
           }
           
           // Oscillate opacity using debug parameters
