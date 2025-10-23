@@ -306,7 +306,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           
           <label>
             Speed: {speed.toFixed(1)}
-            <input type="range" min="0.5" max="5" step="0.1" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
+            <input type="range" min="0.1" max="5" step="0.1" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
           </label>
           
           <label>
