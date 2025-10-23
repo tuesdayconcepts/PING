@@ -2,7 +2,7 @@ import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 
 // Solana RPC endpoint (use your preferred RPC)
-const SOLANA_RPC = import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+const SOLANA_RPC = import.meta.env.VITE_SOLANA_RPC_URL || 'https://solana-api.projectserum.com';
 
 /**
  * Create and send a dual-transfer transaction for hint purchase
@@ -40,6 +40,8 @@ export async function sendHintPayment(
   const connection = new Connection(SOLANA_RPC, 'confirmed');
 
   try {
+    // Test RPC connection first
+    await connection.getLatestBlockhash();
     // Get token account info to find the SPL token program
     const { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createTransferInstruction } = await import('@solana/spl-token');
 
@@ -104,6 +106,20 @@ export async function sendHintPayment(
     return signature;
   } catch (error) {
     console.error('Transaction failed:', error);
+    
+    // Handle specific RPC errors
+    if (error instanceof Error) {
+      if (error.message.includes('403') || error.message.includes('Access forbidden')) {
+        throw new Error('RPC endpoint is temporarily unavailable. Please try again in a moment.');
+      }
+      if (error.message.includes('failed to get recent blockhash')) {
+        throw new Error('Unable to connect to Solana network. Please check your internet connection and try again.');
+      }
+      if (error.message.includes('Insufficient funds')) {
+        throw new Error('Insufficient SOL balance for transaction fees.');
+      }
+    }
+    
     throw error;
   }
 }
