@@ -199,64 +199,49 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         });
       }
       
-      // STATE 2: revealed = true - 7 second sequence: wait 2s, disperse 2s, text at 4s, complete at 7s
+      // STATE 2: revealed = true - Immediate transition: text and dispersion start at 0ms
       else {
-        // Phase 1 (0-2s): Show particles only, no text
-        // Phase 2 (2-4s): Start particle dispersion, still no text  
-        // Phase 3 (4-7s): Show text, continue particle dispersion
-        // Phase 4 (7s+): Complete
+        // Render text immediately when revealed becomes true
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, 0.9)`;
+        ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         
-        const textStartTime = 4000; // Text appears at 4 seconds
-        const disperseStartTime = 2000; // Dispersion starts at 2 seconds
-        const showText = elapsed >= textStartTime;
-        const startDispersion = elapsed >= disperseStartTime;
+        // Wrap text to fit canvas width
+        const maxWidth = canvas.width - 40; // 20px padding on each side
+        const words = text.split(' ');
+        const lines: string[] = [];
+        let currentLine = '';
         
-        // Render text only after 4 seconds
-        if (showText) {
-          ctx.save();
-          ctx.fillStyle = `rgba(255, 255, 255, 0.9)`;
-          ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const metrics = ctx.measureText(testLine);
           
-          // Wrap text to fit canvas width
-          const maxWidth = canvas.width - 40; // 20px padding on each side
-          const words = text.split(' ');
-          const lines: string[] = [];
-          let currentLine = '';
-          
-          for (const word of words) {
-            const testLine = currentLine + (currentLine ? ' ' : '') + word;
-            const metrics = ctx.measureText(testLine);
-            
-            if (metrics.width > maxWidth && currentLine) {
-              lines.push(currentLine);
-              currentLine = word;
-            } else {
-              currentLine = testLine;
-            }
+          if (metrics.width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
           }
-          if (currentLine) lines.push(currentLine);
-          
-          // Draw text lines
-          const lineHeight = 24;
-          const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
-          
-          lines.forEach((line, index) => {
-            ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
-          });
-          
-          ctx.restore();
         }
+        if (currentLine) lines.push(currentLine);
         
-        // Render particles throughout the entire sequence
+        // Draw text lines
+        const lineHeight = 24;
+        const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
+        
+        lines.forEach((line, index) => {
+          ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
+        });
+        
+        ctx.restore();
+        
+        // Start particle dispersion immediately when revealed becomes true
         particles.forEach((particle) => {
-          // Only start dispersing after 2 seconds
-          if (startDispersion) {
-            const dispersionSpeed = disperseSpeed * 0.1; // Keep same speed as before
-            particle.x += particle.vx * dispersionSpeed;
-            particle.y += particle.vy * dispersionSpeed;
-          }
+          const dispersionSpeed = disperseSpeed * 0.1; // Keep same speed as before
+          particle.x += particle.vx * dispersionSpeed;
+          particle.y += particle.vy * dispersionSpeed;
           
           // No opacity fade - particles disperse naturally by moving away
           // Keep original opacity for particles that haven't moved off screen
