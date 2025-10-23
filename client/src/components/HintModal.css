@@ -150,11 +150,11 @@
 
 .hint-title {
   position: absolute;
-  bottom: 20px;
+  bottom: 10px;
   left: 50%;
   transform: translate(-50%);
   color: #ffffffb3;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: .5px;
