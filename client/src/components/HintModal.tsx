@@ -166,8 +166,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       setJustPurchased(hintLevel);
       setShowNavigation(false); // Hide navigation initially
       
-      // Start reveal animation after purchase is processed (both free and paid)
-      setRevealingHint(hintLevel);
+      // Start reveal animation after purchase is processed (only for paid hints)
+      if (!isFree) {
+        setRevealingHint(hintLevel);
+      }
       
       // Keep processing state for 2 seconds total
       setTimeout(() => {
@@ -227,7 +229,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     centerIndex = currentHintIndex === -1 ? hints.length - 1 : currentHintIndex;
   }
   
-  // Calculate how many hints are unlocked (purchased AND revealed)
+  // Calculate how many hints are unlocked (purchased and not currently revealing)
   const unlockedCount = hints.filter((h) => 
     purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased && 
     revealingHint !== h.level
@@ -352,7 +354,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                         className={`modal-section hint-slide ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
                       >
                         {/* Price text floating in center */}
-                        {(!purchased || revealingHint === hint.level) && (
+                        {!purchased && (
                           <div className="hint-price-text">
                             {hint.free ? (
                               <span className="free-text">FREE HINT</span>
@@ -377,7 +379,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                             <div className="hint-ink-overlay">
                               <InvisibleInkReveal 
                                 text={purchased ? hintText : 'Hint will be revealed after purchase'} 
-                                revealed={revealingHint === hint.level}
+                                revealed={hint.free ? purchased : revealingHint === hint.level}
                                 onRevealComplete={() => {
                                   // Animation complete - show navigation after reveal
                                   setShowNavigation(true);
