@@ -76,14 +76,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         );
         const data = await purchasedRes.json();
         console.log('🔍 API Response - Purchased hints:', data);
-        
-        // TEMPORARY FIX: Backend fix may not be deployed yet
-        // Force hint1 to unpurchased if it's not free
-        if (currentHotspot && !currentHotspot.firstHintFree && data.hint1?.purchased) {
-          console.log('🔧 Backend still returning purchased=true for paid hint, fixing...');
-          data.hint1 = { purchased: false };
-        }
-        
         setPurchasedHints(data);
       } else {
         // Not connected, show all as unpurchased
