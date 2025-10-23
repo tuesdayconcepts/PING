@@ -68,6 +68,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       }
       
       setHotspot(currentHotspot);
+      console.log('🔍 Hotspot data - firstHintFree:', currentHotspot.firstHintFree);
+      console.log('🔍 Hotspot data - hint1PriceUsd:', currentHotspot.hint1PriceUsd);
 
       // Fetch purchased hints if wallet connected
       if (publicKey) {
@@ -76,6 +78,16 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         );
         const data = await purchasedRes.json();
         console.log('🔍 API Response - Purchased hints:', data);
+        console.log('🔍 API Response - hint1 details:', data.hint1);
+        console.log('🔍 API Response - firstHintFree from hotspot:', currentHotspot?.firstHintFree);
+        
+        // Test: Let's also check what the backend thinks about this hotspot
+        console.log('🔍 Testing backend API directly...');
+        const testResponse = await fetch(`${API_URL}/api/hotspots`);
+        const testHotspots = await testResponse.json();
+        const testHotspot = testHotspots.find((h: any) => h.id === hotspotId);
+        console.log('🔍 Backend hotspot data - firstHintFree:', testHotspot?.firstHintFree);
+        
         setPurchasedHints(data);
       } else {
         // Not connected, show all as unpurchased
