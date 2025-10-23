@@ -2,12 +2,16 @@ import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 
 // Solana RPC endpoint (use your preferred RPC)
-const SOLANA_RPC = import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+const SOLANA_RPC = import.meta.env.VITE_SOLANA_RPC_URL;
 
 // Debug logging
 console.log('RPC URL being used:', SOLANA_RPC);
 console.log('Environment variable:', import.meta.env.VITE_SOLANA_RPC_URL);
 console.log('All env vars:', import.meta.env);
+
+if (!SOLANA_RPC) {
+  throw new Error('VITE_SOLANA_RPC_URL environment variable is not set. Please configure it in Railway.');
+}
 
 /**
  * Create and send a dual-transfer transaction for hint purchase
