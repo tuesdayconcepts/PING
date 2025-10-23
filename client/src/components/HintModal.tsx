@@ -120,6 +120,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
           throw new Error('Unable to calculate $PING price. Please try again.');
         }
 
+        if (!settings.pingTokenMint) {
+          throw new Error('$PING token mint address not configured. Please contact support.');
+        }
+
         paidAmount = pingAmount;
 
         // Send transaction
@@ -241,7 +245,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   // Navigation handlers - only allow navigation within unlocked + current locked
   // BUT: disable arrows if user just purchased (must use CTA to advance first)
   const canGoBack = centerIndex > 0 && justPurchased === null && showNavigation && revealingHint === null;
-  const canGoForward = centerIndex < maxNavigableIndex && justPurchased === null && !purchasing && showNavigation && revealingHint === null;
+  const canGoForward = centerIndex < maxNavigableIndex && justPurchased === null && !purchasing && showNavigation && revealingHint === null && unlockedCount > 0;
   
   const handlePrevious = () => {
     if (canGoBack) {
