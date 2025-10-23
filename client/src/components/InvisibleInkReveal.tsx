@@ -199,10 +199,10 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         });
       }
       
-      // STATE 2: revealed = true - Text waits 3s, fades in over 2s, particles disperse in 3s
+      // STATE 2: revealed = true - Text waits 1s, fades in over 2s, particles disperse in 3s
       else {
-        // Text timing: wait 3 seconds, then fade in over 2 seconds
-        const textStartTime = 3000; // Text starts appearing at 3 seconds
+        // Text timing: wait 1 second, then fade in over 2 seconds
+        const textStartTime = 1000; // Text starts appearing at 1 second
         const textFadeDuration = 2000; // Text fades in over 2 seconds
         const showText = elapsed >= textStartTime;
         const textOpacity = showText ? Math.min((elapsed - textStartTime) / textFadeDuration, 1) : 0;
