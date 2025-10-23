@@ -64,15 +64,15 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
     // Find the closest edge
     const minDistToEdge = Math.min(distFromLeft, distFromRight, distFromTop, distFromBottom);
     
-    // Only start fading in the outer 20% of the canvas
-    const fadeStartDistance = Math.min(width, height) * 0.2;
+    // Only start fading in the outer 30% of the canvas
+    const fadeStartDistance = Math.min(width, height) * 0.3;
     
     if (minDistToEdge > fadeStartDistance) {
       return 1.0; // Full opacity in center area
     } else {
-      // Subtle fade only in the outer 20% - much more gentle
+      // Fade from 100% to 0% in the outer 30%
       const fadeAmount = (fadeStartDistance - minDistToEdge) / fadeStartDistance;
-      return Math.max(0.3, 1 - fadeAmount * 0.7); // Only fade to 30% opacity, not 0
+      return Math.max(0, 1 - fadeAmount); // Fade to 0% opacity at edges
     }
   };
 
@@ -359,7 +359,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           <label>
             Vignette Fade: {vignetteFade.toFixed(2)}
             <input type="range" min="0.5" max="1.0" step="0.05" value={vignetteFade} onChange={(e) => setVignetteFade(Number(e.target.value))} />
-            <small style={{color: '#999', fontSize: '0.75rem'}}>Subtle edge fade intensity (maintains square shape)</small>
+            <small style={{color: '#999', fontSize: '0.75rem'}}>Edge fade intensity - affects outer 30%, fades 100% to 0%</small>
           </label>
           
           <button onClick={() => {
