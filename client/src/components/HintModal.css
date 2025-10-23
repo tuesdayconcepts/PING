@@ -116,7 +116,7 @@
 /* Hint slide states - override modal-section defaults */
 .hint-slide {
   position: relative;
-  min-height: 250px;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
 }
