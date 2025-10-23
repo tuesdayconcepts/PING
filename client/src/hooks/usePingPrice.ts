@@ -64,9 +64,15 @@ export function usePingPrice() {
     if (amount < 1000) {
       // Less than 1000: show with 1 decimal
       return amount.toFixed(1);
-    } else {
-      // 1000 or more: show with K notation and 1 decimal
+    } else if (amount < 1000000) {
+      // 1K to 999K: show with K notation and 1 decimal
       return (amount / 1000).toFixed(1) + 'K';
+    } else if (amount < 1000000000) {
+      // 1M to 999M: show with M notation and 1 decimal
+      return (amount / 1000000).toFixed(1) + 'M';
+    } else {
+      // 1B+: show with B notation and 1 decimal
+      return (amount / 1000000000).toFixed(1) + 'B';
     }
   };
 
