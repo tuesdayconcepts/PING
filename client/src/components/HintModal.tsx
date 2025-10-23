@@ -352,7 +352,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                         className={`modal-section hint-slide ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
                       >
                         {/* Price text floating in center */}
-                        {!purchased || revealingHint === hint.level ? (
+                        {(!purchased || revealingHint === hint.level) && (
                           <div className="hint-price-text">
                             {hint.free ? (
                               <span className="free-text">FREE HINT</span>
