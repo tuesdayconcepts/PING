@@ -237,8 +237,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   
   // Navigation handlers - only allow navigation within unlocked + current locked
   // BUT: disable arrows if user just purchased (must use CTA to advance first)
-  const canGoBack = centerIndex > 0 && justPurchased === null && showNavigation;
-  const canGoForward = centerIndex < maxNavigableIndex && justPurchased === null && !purchasing && showNavigation;
+  const canGoBack = centerIndex > 0 && justPurchased === null && showNavigation && revealingHint === null;
+  const canGoForward = centerIndex < maxNavigableIndex && justPurchased === null && !purchasing && showNavigation && revealingHint === null;
   
   const handlePrevious = () => {
     if (canGoBack) {
