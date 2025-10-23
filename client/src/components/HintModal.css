@@ -125,6 +125,7 @@
   min-height: 200px;
   display: flex;
   flex-direction: column;
+  background: #091dadc2 !important;
 }
 
 .hint-slide.unlocked {
