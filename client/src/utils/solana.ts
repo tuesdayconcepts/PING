@@ -49,8 +49,6 @@ export async function sendHintPayment(
   const connection = new Connection(SOLANA_RPC, 'confirmed');
 
   try {
-    // Test RPC connection first
-    await connection.getLatestBlockhash();
     // Get token account info to find the SPL token program
     const { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createTransferInstruction } = await import('@solana/spl-token');
 
@@ -100,13 +98,17 @@ export async function sendHintPayment(
       )
     );
 
-    // Get recent blockhash
-    const { blockhash } = await connection.getLatestBlockhash('finalized');
-    transaction.recentBlockhash = blockhash;
+    // Set fee payer
     transaction.feePayer = wallet.publicKey;
 
-    // Sign and send transaction
+    // Sign transaction first
     const signed = await wallet.signTransaction(transaction);
+    
+    // Get fresh blockhash right before sending
+    const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    signed.recentBlockhash = blockhash;
+    
+    // Send transaction
     const signature = await connection.sendRawTransaction(signed.serialize());
 
     // Wait for confirmation
