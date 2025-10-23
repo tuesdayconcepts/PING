@@ -142,45 +142,46 @@ export async function verifyHintPurchaseTransaction(
 }
 
 /**
- * Get current $PING token price from CoinGecko API
+ * Get current $PING token price from Birdeye API with DexScreener fallback
  * @param tokenMint - $PING SPL token mint address
  * @returns Price in USD or null if unavailable
  */
 export async function getPingPriceFromJupiter(tokenMint: string): Promise<number | null> {
   try {
-    // First try to get price from Jupiter API (if available)
-    const jupiterResponse = await fetch(
-      `https://api.jup.ag/price/v2?ids=${tokenMint}&showExtraInfo=true`
+    // First try Birdeye API (best Solana coverage)
+    const birdeyeResponse = await fetch(
+      `https://public-api.birdeye.so/public/v1/price?address=${tokenMint}`
     );
     
-    if (jupiterResponse.ok) {
-      const jupiterData = await jupiterResponse.json();
-      const priceData = jupiterData.data?.[tokenMint];
+    if (birdeyeResponse.ok) {
+      const birdeyeData = await birdeyeResponse.json();
       
-      if (priceData && typeof priceData.price === 'number') {
-        return priceData.price; // Price in USD
+      if (birdeyeData.success && typeof birdeyeData.data?.value === 'number') {
+        return birdeyeData.data.value; // Price in USD
       }
     }
 
-    // Fallback to CoinGecko API for Solana tokens
-    const coingeckoResponse = await fetch(
-      `https://api.coingecko.com/api/v3/simple/token_price/solana?contract_addresses=${tokenMint}&vs_currencies=usd`
+    // Fallback to DexScreener API
+    const dexscreenerResponse = await fetch(
+      `https://api.dexscreener.com/latest/dex/tokens/${tokenMint}`
     );
     
-    if (!coingeckoResponse.ok) {
-      console.error('CoinGecko API error:', coingeckoResponse.status);
-      return null;
+    if (dexscreenerResponse.ok) {
+      const dexscreenerData = await dexscreenerResponse.json();
+      
+      if (dexscreenerData.pairs && dexscreenerData.pairs.length > 0) {
+        const pair = dexscreenerData.pairs[0];
+        if (typeof pair.priceUsd === 'string') {
+          const price = parseFloat(pair.priceUsd);
+          if (!isNaN(price)) {
+            return price; // Price in USD
+          }
+        }
+      }
     }
 
-    const coingeckoData = await coingeckoResponse.json();
-    const tokenData = coingeckoData[tokenMint.toLowerCase()];
-    
-    if (!tokenData || typeof tokenData.usd !== 'number') {
-      console.warn('No price data found for token:', tokenMint);
-      return null;
-    }
-
-    return tokenData.usd; // Price in USD
+    console.warn('No price data found for token:', tokenMint);
+    return null;
   } catch (error) {
     console.error('Failed to fetch $PING price:', error);
     return null;
