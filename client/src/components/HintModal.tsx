@@ -46,6 +46,16 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     fetchHotspotAndPurchases();
   }, [hotspotId, publicKey]);
 
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('🔍 Debug - Wallet connected:', connected);
+    console.log('🔍 Debug - Public key:', publicKey?.toString());
+    console.log('🔍 Debug - Purchased hints:', purchasedHints);
+    console.log('🔍 Debug - Revealing hint:', revealingHint);
+    console.log('🔍 Debug - Just purchased:', justPurchased);
+  }, [connected, publicKey, purchasedHints, revealingHint, justPurchased]);
+
+
   const fetchHotspotAndPurchases = async () => {
     try {
       // Fetch hotspot data
@@ -253,10 +263,28 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   // Max index user can navigate to (unlocked hints + 1 for current locked)
   const maxNavigableIndex = Math.min(unlockedCount, hints.length - 1);
   
+  // Check if current centered hint needs previous hint unlocked
+  const currentHint = hints[centerIndex];
+  const currentHintNeedsPrevious = currentHint && currentHint.level > 1 && 
+    !purchasedHints[`hint${currentHint.level - 1}` as keyof PurchasedHints]?.purchased;
+  
+  // Debug logging for navigation state
+  console.log('🧭 Debug - Center index:', centerIndex);
+  console.log('🧭 Debug - Current hint:', currentHint);
+  console.log('🧭 Debug - Unlocked count:', unlockedCount);
+  console.log('🧭 Debug - Current hint needs previous:', currentHintNeedsPrevious);
+  console.log('🧭 Debug - Show navigation:', showNavigation);
+  
   // Navigation handlers - only allow navigation within unlocked + current locked
   // BUT: disable arrows if user just purchased (must use CTA to advance first)
   const canGoBack = centerIndex > 0 && justPurchased === null && showNavigation && revealingHint === null;
-  const canGoForward = centerIndex < maxNavigableIndex && justPurchased === null && !purchasing && showNavigation && revealingHint === null && unlockedCount > 0;
+  const canGoForward = centerIndex < maxNavigableIndex && 
+    justPurchased === null && 
+    !purchasing && 
+    showNavigation && 
+    revealingHint === null && 
+    unlockedCount > 0 &&
+    !currentHintNeedsPrevious; // Prevent navigation if current hint needs previous hint unlocked
   
   const handlePrevious = () => {
     if (canGoBack) {
@@ -365,7 +393,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                         className={`modal-section hint-slide ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
                       >
                         {/* Price text floating in center */}
-                        {!purchased && (
+                        {!purchased && !revealingHint && (
                           <div className="hint-price-text">
                             {hint.free ? (
                               <span className="free-text">FREE HINT</span>
