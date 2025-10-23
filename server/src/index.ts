@@ -1021,8 +1021,9 @@ app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
     });
 
     // Build response with hint text only for purchased hints
+    // Check firstHintFree flag for hint1 - if free, it's automatically available
     const response = {
-      hint1: purchases.some((p) => p.hintLevel === 1)
+      hint1: purchases.some((p) => p.hintLevel === 1) || hotspot.firstHintFree
         ? { purchased: true, text: hotspot.hint1 }
         : { purchased: false },
       hint2: purchases.some((p) => p.hintLevel === 2)
