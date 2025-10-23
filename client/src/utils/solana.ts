@@ -101,12 +101,12 @@ export async function sendHintPayment(
     // Set fee payer
     transaction.feePayer = wallet.publicKey;
 
-    // Sign transaction first
-    const signed = await wallet.signTransaction(transaction);
-    
-    // Get fresh blockhash right before sending
+    // Get fresh blockhash right before signing
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
-    signed.recentBlockhash = blockhash;
+    transaction.recentBlockhash = blockhash;
+
+    // Sign transaction
+    const signed = await wallet.signTransaction(transaction);
     
     // Send transaction
     const signature = await connection.sendRawTransaction(signed.serialize());
