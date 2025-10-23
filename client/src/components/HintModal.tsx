@@ -227,9 +227,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     centerIndex = currentHintIndex === -1 ? hints.length - 1 : currentHintIndex;
   }
   
-  // Calculate how many hints are unlocked
+  // Calculate how many hints are unlocked (purchased AND revealed)
   const unlockedCount = hints.filter((h) => 
-    purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased
+    purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased && 
+    revealingHint !== h.level
   ).length;
   
   // Max index user can navigate to (unlocked hints + 1 for current locked)
@@ -351,7 +352,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                         className={`modal-section hint-slide ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
                       >
                         {/* Price text floating in center */}
-                        {!purchased && (
+                        {!purchased || revealingHint === hint.level ? (
                           <div className="hint-price-text">
                             {hint.free ? (
                               <span className="free-text">FREE HINT</span>
