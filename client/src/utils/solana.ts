@@ -70,6 +70,18 @@ export async function sendHintPayment(
       new PublicKey(burnAddress)
     );
 
+    // Check if treasury and burn wallets have token accounts
+    const treasuryAccountInfo = await connection.getAccountInfo(treasuryTokenAccount);
+    const burnAccountInfo = await connection.getAccountInfo(burnTokenAccount);
+
+    if (!treasuryAccountInfo) {
+      throw new Error('Treasury wallet does not have a token account for this token. Please contact support.');
+    }
+
+    if (!burnAccountInfo) {
+      throw new Error('Burn wallet does not have a token account for this token. Please contact support.');
+    }
+
     // Calculate split amounts (assuming 9 decimals for $PING token - adjust if needed)
     const decimals = 9; // Check your $PING token decimals
     const totalLamports = Math.floor(totalAmount * Math.pow(10, decimals));
