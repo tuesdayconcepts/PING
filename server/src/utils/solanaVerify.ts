@@ -149,7 +149,7 @@ export async function verifyHintPurchaseTransaction(
 export async function getPingPriceFromJupiter(tokenMint: string): Promise<number | null> {
   try {
     const response = await fetch(
-      `https://price.jup.ag/v4/price?ids=${tokenMint}`
+      `https://api.jup.ag/price/v2?ids=${tokenMint}&showExtraInfo=true`
     );
     
     if (!response.ok) {
