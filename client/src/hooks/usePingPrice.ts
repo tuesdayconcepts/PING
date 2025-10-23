@@ -58,10 +58,16 @@ export function usePingPrice() {
   };
 
   /**
-   * Format $PING amount for display
+   * Format $PING amount for display with smart formatting
    */
   const formatPingAmount = (amount: number): string => {
-    return amount.toFixed(1); // Show 1 decimal place for all amounts
+    if (amount < 1000) {
+      // Less than 1000: show with 1 decimal
+      return amount.toFixed(1);
+    } else {
+      // 1000 or more: show with K notation and 1 decimal
+      return (amount / 1000).toFixed(1) + 'K';
+    }
   };
 
   return {
