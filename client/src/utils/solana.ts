@@ -2,7 +2,11 @@ import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 
 // Solana RPC endpoint (use your preferred RPC)
-const SOLANA_RPC = import.meta.env.VITE_SOLANA_RPC_URL || 'https://solana-api.projectserum.com';
+const SOLANA_RPC = import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+
+// Debug logging
+console.log('RPC URL being used:', SOLANA_RPC);
+console.log('Environment variable:', import.meta.env.VITE_SOLANA_RPC_URL);
 
 /**
  * Create and send a dual-transfer transaction for hint purchase
@@ -112,7 +116,7 @@ export async function sendHintPayment(
       if (error.message.includes('403') || error.message.includes('Access forbidden')) {
         throw new Error('RPC endpoint is temporarily unavailable. Please try again in a moment.');
       }
-      if (error.message.includes('failed to get recent blockhash')) {
+      if (error.message.includes('failed to get recent blockhash') || error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_TIMED_OUT')) {
         throw new Error('Unable to connect to Solana network. Please check your internet connection and try again.');
       }
       if (error.message.includes('Insufficient funds')) {
