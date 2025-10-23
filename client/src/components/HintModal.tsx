@@ -331,13 +331,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               </p>
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="hint-error-banner">
-                {error}
-              </div>
-            )}
-
             {/* Hints Slider - Each hint is its own modal-section */}
             {hints.length === 0 ? (
               <div className="modal-section">
@@ -418,6 +411,13 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                     );
                   })}
                 </div>
+              </div>
+            )}
+
+            {/* Error Message - positioned under hints-slider-wrapper */}
+            {error && (
+              <div className="hint-error-banner">
+                {error}
               </div>
             )}
 
