@@ -203,24 +203,28 @@
   }
 }
 
-/* Invisible ink overlay - covers entire locked slide */
+/* Invisible ink overlay - covers entire hint content area */
 .hint-ink-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
 }
 
-/* Hint content area - canvas container */
+/* Hint content area - covers entire hint slide like background */
 .hint-content-area {
-  position: relative;
-  flex: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
-  min-height: 120px;
+  justify-content: center;
 }
 
 /* Locked content (requirement message) */
