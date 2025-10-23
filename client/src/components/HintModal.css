@@ -197,6 +197,14 @@
   letter-spacing: 1px;
 }
 
+.paid-line-3 {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
 
 /* Invisible ink overlay - covers entire hint content area */
 .hint-ink-overlay {

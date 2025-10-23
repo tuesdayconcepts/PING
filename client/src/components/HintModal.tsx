@@ -354,7 +354,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                             ) : (
                               <div className="paid-text">
                                 <div className="paid-line-1">UNLOCK FOR</div>
-                                <div className="paid-line-2">{formatPingAmount(pingAmount || 0)} $PING / USD ${hint.price?.toFixed(2)}</div>
+                                <div className="paid-line-2">{formatPingAmount(pingAmount || 0)} $PING</div>
+                                <div className="paid-line-3">USD ${hint.price?.toFixed(2)}</div>
                               </div>
                             )}
                           </div>
