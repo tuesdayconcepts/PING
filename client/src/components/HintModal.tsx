@@ -346,14 +346,15 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                         key={hint.level} 
                         className={`modal-section hint-slide ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
                       >
-                        {/* Price badge floating in center */}
+                        {/* Price text floating in center */}
                         {!purchased && (
-                          <div className="hint-price-badge">
+                          <div className="hint-price-text">
                             {hint.free ? (
-                              <span className="free-badge">FREE HINT</span>
+                              <span className="free-text">FREE HINT</span>
                             ) : (
-                              <div className="price-badge">
-                                <span className="price-usd">UNLOCK FOR {formatPingAmount(pingAmount || 0)} $PING</span>
+                              <div className="paid-text">
+                                <div className="paid-line-1">UNLOCK FOR</div>
+                                <div className="paid-line-2">{formatPingAmount(pingAmount || 0)} $PING / USD ${hint.price?.toFixed(2)}</div>
                               </div>
                             )}
                           </div>

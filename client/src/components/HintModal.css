@@ -138,7 +138,7 @@
 }
 
 /* Price badge floating in center of hint slide */
-.hint-price-badge {
+.hint-price-text {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -146,6 +146,7 @@
   z-index: 3;
   display: flex;
   align-items: center;
+  text-align: center;
 }
 
 .hint-title {
@@ -161,46 +162,34 @@
   z-index: 2;
 }
 
-.free-badge {
-  background: linear-gradient(135deg, gold, #ffed4e);
-  color: #000;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-size: 1rem;
-  font-weight: 700;
+.free-text {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-  animation: pulse 2s ease-in-out infinite;
 }
 
-.price-badge {
-  display: flex;
-  align-items: center;
+.paid-text {
+  color: #fff;
+  line-height: 1.2;
 }
 
-.price-badge .price-usd {
-  background: linear-gradient(135deg, gold, #ffed4e);
-  color: #000;
-  padding: 12px 24px;
-  border-radius: 25px;
+.paid-line-1 {
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.paid-line-2 {
+  font-size: 2rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.9;
-  }
-}
 
 /* Invisible ink overlay - covers entire hint content area */
 .hint-ink-overlay {
