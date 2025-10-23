@@ -346,26 +346,22 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                         key={hint.level} 
                         className={`modal-section hint-slide ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
                       >
-                        {/* Header always on top */}
-                        <div className="hint-card-header">
-                          <div className="hint-title">
-                            Hint {hint.level} of {hints.length}
+                        {/* Price badge floating in center */}
+                        {!purchased && (
+                          <div className="hint-price-badge">
+                            {hint.free ? (
+                              <span className="free-badge">FREE HINT</span>
+                            ) : (
+                              <div className="price-badge">
+                                <span className="price-usd">UNLOCK FOR {formatPingAmount(pingAmount || 0)} $PING</span>
+                              </div>
+                            )}
                           </div>
-                          {/* Combined free badge and price */}
-                          {!purchased && (
-                            <div className="hint-price-badge">
-                              {hint.free ? (
-                                <span className="free-badge">FREE</span>
-                              ) : (
-                                <div className="price-badge">
-                                  <span className="price-usd">${hint.price?.toFixed(2)}</span>
-                                  {pingAmount && (
-                                    <span className="price-ping">{formatPingAmount(pingAmount)} $PING</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                        )}
+
+                        {/* Hint title at middle bottom */}
+                        <div className="hint-title">
+                          Hint {hint.level} of {hints.length}
                         </div>
 
                         {/* Hint content area - canvas renders everything */}
