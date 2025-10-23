@@ -76,8 +76,27 @@ export async function sendHintPayment(
     const treasuryLamports = Math.floor(totalLamports / 2);
     const burnLamports = totalLamports - treasuryLamports; // Ensure it adds up exactly
 
-    // Create transaction with both transfers
-    const transaction = new Transaction().add(
+    // Create transaction
+    const transaction = new Transaction();
+
+    // Check if user has a token account, create if not
+    const userAccountInfo = await connection.getAccountInfo(userTokenAccount);
+    if (!userAccountInfo) {
+      console.log('User token account does not exist, creating...');
+      const { createAssociatedTokenAccountInstruction } = await import('@solana/spl-token');
+      
+      const createAccountIx = createAssociatedTokenAccountInstruction(
+        wallet.publicKey, // payer
+        userTokenAccount, // associated token account
+        wallet.publicKey, // owner
+        new PublicKey(tokenMint) // mint
+      );
+      
+      transaction.add(createAccountIx);
+    }
+
+    // Add transfer instructions
+    transaction.add(
       // Transfer 1: 50% to treasury
       createTransferInstruction(
         userTokenAccount,
