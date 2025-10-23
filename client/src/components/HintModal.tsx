@@ -39,6 +39,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Manual navigation control
   const [showNavigation, setShowNavigation] = useState(true); // Control navigation visibility
+  const [revealingHint, setRevealingHint] = useState<number | null>(null); // Track which hint is currently revealing
 
   // Fetch hotspot data and purchased hints
   useEffect(() => {
@@ -161,9 +162,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         },
       }));
       
-        // Set just purchased to keep card visible
-        setJustPurchased(hintLevel);
-        setShowNavigation(false); // Hide navigation initially
+      // Set just purchased to keep card visible
+      setJustPurchased(hintLevel);
+      setShowNavigation(false); // Hide navigation initially
+      
+      // Start reveal animation after purchase is processed (both free and paid)
+      setRevealingHint(hintLevel);
       
       // Keep processing state for 2 seconds total
       setTimeout(() => {
@@ -372,10 +376,11 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                             <div className="hint-ink-overlay">
                               <InvisibleInkReveal 
                                 text={purchased ? hintText : 'Hint will be revealed after purchase'} 
-                                revealed={purchased}
+                                revealed={revealingHint === hint.level}
                                 onRevealComplete={() => {
                                   // Animation complete - show navigation after reveal
                                   setShowNavigation(true);
+                                  setRevealingHint(null); // Clear revealing state
                                 }}
                               />
                             </div>
