@@ -156,10 +156,6 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
       const elapsed = now - revealStartTimeRef.current;
       const revealProgress = revealed ? Math.min(elapsed / revealDuration, 1) : 0;
 
-      // Easing function (power2.out)
-      const ease = (t: number) => 1 - Math.pow(1 - t, 2);
-      const easedProgress = ease(revealProgress);
-
       // STATE 1: revealed = false - Show particles only
       if (!revealed) {
         particles.forEach((particle) => {
