@@ -29,7 +29,7 @@ interface PurchasedHints {
 export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps) {
   const wallet = useWallet();
   const { publicKey, connected } = wallet;
-  const { settings, usdToPing, formatPingAmount } = usePingPrice();
+  const { settings, usdToPing, formatPingAmount, pingPrice, loading: priceLoading } = usePingPrice();
   
   const [purchasedHints, setPurchasedHints] = useState<PurchasedHints | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,6 +117,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         const pingAmount = usdToPing(hintPriceUsd);
         
         if (!pingAmount) {
+          if (!pingPrice) {
+            throw new Error('$PING price is not loaded yet. Please wait a moment and try again.');
+          }
           throw new Error('Unable to calculate $PING price. Please try again.');
         }
 
@@ -293,6 +296,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       // Will show WalletMultiButton instead
       ctaText = 'CONNECT_WALLET';
       ctaDisabled = false;
+    } else if (priceLoading || !pingPrice) {
+      ctaText = 'LOADING PRICE...';
+      ctaDisabled = true;
     } else {
       ctaText = 'UNLOCK HINT';
       ctaAction = () => handlePurchase(nextHint.level, false);
@@ -347,7 +353,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                   {hints.map((hint, index) => {
                     const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
                     const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text || hint.text;
-                    const pingAmount = hint.free ? 0 : (hint.price ? usdToPing(hint.price) : null);
+                    const pingAmount = hint.free ? 0 : (hint.price && pingPrice ? usdToPing(hint.price) : null);
                     const needsPreviousHint = hint.level > 1 && 
                       !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
                     const isCenter = index === centerIndex; // Check if this is the centered slide
