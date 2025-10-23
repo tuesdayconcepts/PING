@@ -199,47 +199,55 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         });
       }
       
-      // STATE 2: revealed = true - Immediate transition: text and dispersion start at 0ms
+      // STATE 2: revealed = true - Text waits 3s, fades in over 2s, particles disperse in 3s
       else {
-        // Render text immediately when revealed becomes true
-        ctx.save();
-        ctx.fillStyle = `rgba(255, 255, 255, 0.9)`;
-        ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        // Text timing: wait 3 seconds, then fade in over 2 seconds
+        const textStartTime = 3000; // Text starts appearing at 3 seconds
+        const textFadeDuration = 2000; // Text fades in over 2 seconds
+        const showText = elapsed >= textStartTime;
+        const textOpacity = showText ? Math.min((elapsed - textStartTime) / textFadeDuration, 1) : 0;
         
-        // Wrap text to fit canvas width
-        const maxWidth = canvas.width - 40; // 20px padding on each side
-        const words = text.split(' ');
-        const lines: string[] = [];
-        let currentLine = '';
-        
-        for (const word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          const metrics = ctx.measureText(testLine);
+        // Render text with fade-in effect
+        if (showText) {
+          ctx.save();
+          ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * textOpacity})`; // Fade in from 0 to 0.9
+          ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
           
-          if (metrics.width > maxWidth && currentLine) {
-            lines.push(currentLine);
-            currentLine = word;
-          } else {
-            currentLine = testLine;
+          // Wrap text to fit canvas width
+          const maxWidth = canvas.width - 40; // 20px padding on each side
+          const words = text.split(' ');
+          const lines: string[] = [];
+          let currentLine = '';
+          
+          for (const word of words) {
+            const testLine = currentLine + (currentLine ? ' ' : '') + word;
+            const metrics = ctx.measureText(testLine);
+            
+            if (metrics.width > maxWidth && currentLine) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              currentLine = testLine;
+            }
           }
+          if (currentLine) lines.push(currentLine);
+          
+          // Draw text lines
+          const lineHeight = 24;
+          const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
+          
+          lines.forEach((line, index) => {
+            ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
+          });
+          
+          ctx.restore();
         }
-        if (currentLine) lines.push(currentLine);
         
-        // Draw text lines
-        const lineHeight = 24;
-        const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
-        
-        lines.forEach((line, index) => {
-          ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
-        });
-        
-        ctx.restore();
-        
-        // Start particle dispersion immediately when revealed becomes true
+        // Start particle dispersion immediately with much faster speed
         particles.forEach((particle) => {
-          const dispersionSpeed = disperseSpeed * 0.1; // Keep same speed as before
+          const dispersionSpeed = disperseSpeed * 2.0; // Much faster dispersion (was 0.1)
           particle.x += particle.vx * dispersionSpeed;
           particle.y += particle.vy * dispersionSpeed;
           
