@@ -49,8 +49,29 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   const [disperseSpeed, setDisperseSpeed] = useState(15); // How fast particles disperse during reveal
   const [revealDuration, setRevealDuration] = useState(2000); // Reveal duration in ms (match processing time)
   const [circularMotion, setCircularMotion] = useState(0.55); // Circular motion strength (0=linear, 1=full circular)
+  const [vignetteFade, setVignetteFade] = useState(0.85); // Adjustable fade start point
   
   // Removed normal particle settings - using original simple approach
+
+  // Calculate edge fade factor (1.0 at center, 0.0 at edges)
+  const getEdgeFadeFactor = (x: number, y: number, width: number, height: number): number => {
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const maxRadius = Math.min(centerX, centerY) * vignetteFade; // Use adjustable fade start point
+    
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Smooth fade from center to edges
+    if (distance < maxRadius) {
+      return 1.0; // Full opacity in center
+    } else {
+      const fadeRange = Math.min(centerX, centerY) * 0.15; // 15% fade zone
+      const fadeAmount = (distance - maxRadius) / fadeRange;
+      return Math.max(0, 1 - fadeAmount); // Gradual fade to 0
+    }
+  };
 
   // Initialize particles
   useEffect(() => {
@@ -160,8 +181,9 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
             particle.opacityVelocity *= -1;
           }
           
-          // Draw particle as perfect circle
-          ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
+          // Draw particle as perfect circle with edge fade
+          const edgeFade = getEdgeFadeFactor(particle.x, particle.y, canvas.width, canvas.height);
+          ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity * edgeFade})`;
           ctx.beginPath();
           ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
           ctx.fill();
@@ -218,7 +240,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           
           // Only draw particles if they still have opacity
           if (particle.opacity > 0) {
-            ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity})`;
+            const edgeFade = getEdgeFadeFactor(particle.x, particle.y, canvas.width, canvas.height);
+            ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity * edgeFade})`;
             ctx.beginPath();
             ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
             ctx.fill();
@@ -330,11 +353,17 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
             <small style={{color: '#999', fontSize: '0.75rem'}}>How long the reveal animation takes</small>
           </label>
           
+          <label>
+            Vignette Fade: {vignetteFade.toFixed(2)}
+            <input type="range" min="0.5" max="1.0" step="0.05" value={vignetteFade} onChange={(e) => setVignetteFade(Number(e.target.value))} />
+            <small style={{color: '#999', fontSize: '0.75rem'}}>How far from center particles start fading (0.5=early fade, 1.0=no fade)</small>
+          </label>
+          
           <button onClick={() => {
             console.log('Particle Settings:', {
               density, minSize, maxSize, speed, moveRange,
               minOpacity, maxOpacity, opacitySpeed, opacityRange,
-              circularMotion, disperseSpeed, revealDuration
+              circularMotion, disperseSpeed, revealDuration, vignetteFade
             });
           }}>
             Log Current Settings
