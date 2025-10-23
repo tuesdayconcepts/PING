@@ -10,7 +10,7 @@ console.log('Environment variable:', import.meta.env.VITE_SOLANA_RPC_URL);
 console.log('All env vars:', import.meta.env);
 
 if (!SOLANA_RPC) {
-  throw new Error('VITE_SOLANA_RPC_URL environment variable is not set. Please configure it in Railway.');
+  throw new Error('VITE_SOLANA_RPC_URL environment variable is not set. Please configure it in Netlify.');
 }
 
 /**
