@@ -216,7 +216,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           ctx.textBaseline = 'middle';
           
           // Wrap text to fit canvas width
-          const maxWidth = canvas.width - 40; // 20px padding on each side
+          const maxWidth = canvas.width - 80; // 40px padding on each side
           const words = text.split(' ');
           const lines: string[] = [];
           let currentLine = '';
