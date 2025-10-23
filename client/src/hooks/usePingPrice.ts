@@ -61,13 +61,7 @@ export function usePingPrice() {
    * Format $PING amount for display
    */
   const formatPingAmount = (amount: number): string => {
-    if (amount < 0.01) {
-      return amount.toFixed(6); // Show 6 decimals for very small amounts
-    } else if (amount < 1) {
-      return amount.toFixed(4); // Show 4 decimals for amounts < 1
-    } else {
-      return amount.toFixed(2); // Show 2 decimals for larger amounts
-    }
+    return amount.toFixed(1); // Show 1 decimal place for all amounts
   };
 
   return {
