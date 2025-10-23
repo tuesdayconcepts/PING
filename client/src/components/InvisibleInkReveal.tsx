@@ -48,7 +48,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   const [opacitySpeed, setOpacitySpeed] = useState(0.1); // Opacity change rate (visibility transition speed)
   const [opacityRange, setOpacityRange] = useState(1.0); // How much opacity changes (0-1)
   const [disperseSpeed, setDisperseSpeed] = useState(15); // How fast particles disperse during reveal
-  const [revealDuration, setRevealDuration] = useState(2000); // Reveal duration in ms (match processing time)
+  const [revealDuration, setRevealDuration] = useState(7000); // Reveal duration in ms (7 seconds)
   const [circularMotion, setCircularMotion] = useState(1.0); // Circular motion strength (0=linear, 1=full circular)
   const [vignetteFade, setVignetteFade] = useState(0.85); // Adjustable fade start point
   
@@ -203,62 +203,72 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         });
       }
       
-      // STATE 2: revealed = true - Transition from particles to text over 2 seconds
+      // STATE 2: revealed = true - 7 second sequence: wait 2s, disperse 2s, text at 4s, complete at 7s
       else {
-        // ALWAYS render the text underneath first (like it's already there)
-        ctx.save();
-        ctx.fillStyle = `rgba(255, 255, 255, 0.9)`;
-        ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        // Phase 1 (0-2s): Show particles only, no text
+        // Phase 2 (2-4s): Start particle dispersion, still no text  
+        // Phase 3 (4-7s): Show text, continue particle dispersion
+        // Phase 4 (7s+): Complete
         
-        // Wrap text to fit canvas width
-        const maxWidth = canvas.width - 40; // 20px padding on each side
-        const words = text.split(' ');
-        const lines: string[] = [];
-        let currentLine = '';
+        const textStartTime = 4000; // Text appears at 4 seconds
+        const disperseStartTime = 2000; // Dispersion starts at 2 seconds
+        const showText = elapsed >= textStartTime;
+        const startDispersion = elapsed >= disperseStartTime;
         
-        for (const word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          const metrics = ctx.measureText(testLine);
+        // Render text only after 4 seconds
+        if (showText) {
+          ctx.save();
+          ctx.fillStyle = `rgba(255, 255, 255, 0.9)`;
+          ctx.font = '16px DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
           
-          if (metrics.width > maxWidth && currentLine) {
-            lines.push(currentLine);
-            currentLine = word;
-          } else {
-            currentLine = testLine;
+          // Wrap text to fit canvas width
+          const maxWidth = canvas.width - 40; // 20px padding on each side
+          const words = text.split(' ');
+          const lines: string[] = [];
+          let currentLine = '';
+          
+          for (const word of words) {
+            const testLine = currentLine + (currentLine ? ' ' : '') + word;
+            const metrics = ctx.measureText(testLine);
+            
+            if (metrics.width > maxWidth && currentLine) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              currentLine = testLine;
+            }
           }
+          if (currentLine) lines.push(currentLine);
+          
+          // Draw text lines
+          const lineHeight = 24;
+          const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
+          
+          lines.forEach((line, index) => {
+            ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
+          });
+          
+          ctx.restore();
         }
-        if (currentLine) lines.push(currentLine);
         
-        // Draw text lines
-        const lineHeight = 24;
-        const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
-        
-        lines.forEach((line, index) => {
-          ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
-        });
-        
-        ctx.restore();
-        
-        // Then render particles on top (slower dispersion to create true reveal effect)
+        // Render particles throughout the entire sequence
         particles.forEach((particle) => {
-          // Much slower, more gradual dispersion (3x slower)
-          const dispersionSpeed = disperseSpeed * 0.1; // 3x slower than before
-          particle.x += particle.vx * dispersionSpeed * easedProgress;
-          particle.y += particle.vy * dispersionSpeed * easedProgress;
-          
-          // Much more gradual opacity fade (3x slower)
-          particle.opacity = Math.max(0, particle.opacity * (1 - easedProgress * 0.27));
-          
-          // Only draw particles if they still have opacity
-          if (particle.opacity > 0) {
-            const edgeFade = getEdgeFadeFactor(particle.x, particle.y, canvas.width, canvas.height);
-            ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity * edgeFade})`;
-            ctx.beginPath();
-            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-            ctx.fill();
+          // Only start dispersing after 2 seconds
+          if (startDispersion) {
+            const dispersionSpeed = disperseSpeed * 0.1; // Keep same speed as before
+            particle.x += particle.vx * dispersionSpeed;
+            particle.y += particle.vy * dispersionSpeed;
           }
+          
+          // No opacity fade - particles disperse naturally by moving away
+          // Keep original opacity for particles that haven't moved off screen
+          const edgeFade = getEdgeFadeFactor(particle.x, particle.y, canvas.width, canvas.height);
+          ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity * edgeFade})`;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.fill();
         });
       }
 
@@ -362,8 +372,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           
           <label>
             Reveal Duration: {revealDuration}ms
-            <input type="range" min="1000" max="4000" step="100" value={revealDuration} onChange={(e) => setRevealDuration(Number(e.target.value))} />
-            <small style={{color: '#999', fontSize: '0.75rem'}}>How long the reveal animation takes</small>
+            <input type="range" min="3000" max="10000" step="100" value={revealDuration} onChange={(e) => setRevealDuration(Number(e.target.value))} />
+            <small style={{color: '#999', fontSize: '0.75rem'}}>How long the reveal animation takes (7s default)</small>
           </label>
           
           <label>
