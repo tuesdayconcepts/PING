@@ -75,6 +75,15 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
           `${API_URL}/api/hints/${hotspotId}/purchased?wallet=${publicKey.toString()}`
         );
         const data = await purchasedRes.json();
+        console.log('🔍 API Response - Purchased hints:', data);
+        
+        // TEMPORARY FIX: Ensure first hint is not marked as purchased if it's not free
+        // This prevents the backend bug from affecting the UI
+        if (currentHotspot && !currentHotspot.firstHintFree) {
+          data.hint1 = { purchased: false };
+          console.log('🔧 Fixed: Set hint1 to unpurchased since it\'s not free');
+        }
+        
         setPurchasedHints(data);
       } else {
         // Not connected, show all as unpurchased
