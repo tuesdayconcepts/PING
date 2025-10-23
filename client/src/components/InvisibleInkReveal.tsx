@@ -196,7 +196,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           
           // Draw particle as perfect circle with edge fade
           const edgeFade = getEdgeFadeFactor(particle.x, particle.y, canvas.width, canvas.height);
-          ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity * edgeFade})`;
+          ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity * edgeFade})`;
           ctx.beginPath();
           ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
           ctx.fill();
@@ -254,7 +254,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           // Only draw particles if they still have opacity
           if (particle.opacity > 0) {
             const edgeFade = getEdgeFadeFactor(particle.x, particle.y, canvas.width, canvas.height);
-            ctx.fillStyle = `rgba(180, 180, 180, ${particle.opacity * edgeFade})`;
+            ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity * edgeFade})`;
             ctx.beginPath();
             ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
             ctx.fill();
