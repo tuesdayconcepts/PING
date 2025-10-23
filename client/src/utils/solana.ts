@@ -83,6 +83,15 @@ export async function sendHintPayment(
     const userAccountInfo = await connection.getAccountInfo(userTokenAccount);
     if (!userAccountInfo) {
       console.log('User token account does not exist, creating...');
+      
+      // Check SOL balance before creating account
+      const solBalance = await connection.getBalance(wallet.publicKey);
+      const minRequiredSOL = 3000000; // 0.003 SOL in lamports
+      
+      if (solBalance < minRequiredSOL) {
+        throw new Error(`Insufficient SOL balance. You need at least 0.003 SOL to create a token account and pay transaction fees. Current balance: ${(solBalance / 1000000000).toFixed(6)} SOL`);
+      }
+      
       const { createAssociatedTokenAccountInstruction } = await import('@solana/spl-token');
       
       const createAccountIx = createAssociatedTokenAccountInstruction(
@@ -145,8 +154,8 @@ export async function sendHintPayment(
       if (error.message.includes('failed to get recent blockhash') || error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_TIMED_OUT')) {
         throw new Error('Unable to connect to Solana network. Please check your internet connection and try again.');
       }
-      if (error.message.includes('Insufficient funds')) {
-        throw new Error('Insufficient SOL balance for transaction fees.');
+      if (error.message.includes('Insufficient funds') || error.message.includes('insufficient lamports')) {
+        throw new Error('Insufficient SOL balance. You need at least 0.003 SOL to create a token account and pay transaction fees.');
       }
     }
     
