@@ -53,23 +53,29 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   
   // Removed normal particle settings - using original simple approach
 
-  // Calculate edge fade factor (1.0 at center, 0.0 at edges)
+  // Calculate edge fade factor (1.0 at center, subtle fade at edges)
   const getEdgeFadeFactor = (x: number, y: number, width: number, height: number): number => {
     const centerX = width / 2;
     const centerY = height / 2;
-    const maxRadius = Math.min(centerX, centerY) * vignetteFade; // Use adjustable fade start point
     
-    const dx = x - centerX;
-    const dy = y - centerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    // Calculate distance from each edge (maintains square shape)
+    const distFromLeft = x;
+    const distFromRight = width - x;
+    const distFromTop = y;
+    const distFromBottom = height - y;
     
-    // Smooth fade from center to edges
-    if (distance < maxRadius) {
-      return 1.0; // Full opacity in center
+    // Find the closest edge
+    const minDistToEdge = Math.min(distFromLeft, distFromRight, distFromTop, distFromBottom);
+    
+    // Only start fading in the outer 20% of the canvas
+    const fadeStartDistance = Math.min(width, height) * 0.2;
+    
+    if (minDistToEdge > fadeStartDistance) {
+      return 1.0; // Full opacity in center area
     } else {
-      const fadeRange = Math.min(centerX, centerY) * 0.15; // 15% fade zone
-      const fadeAmount = (distance - maxRadius) / fadeRange;
-      return Math.max(0, 1 - fadeAmount); // Gradual fade to 0
+      // Subtle fade only in the outer 20% - much more gentle
+      const fadeAmount = (fadeStartDistance - minDistToEdge) / fadeStartDistance;
+      return Math.max(0.3, 1 - fadeAmount * 0.7); // Only fade to 30% opacity, not 0
     }
   };
 
@@ -356,7 +362,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           <label>
             Vignette Fade: {vignetteFade.toFixed(2)}
             <input type="range" min="0.5" max="1.0" step="0.05" value={vignetteFade} onChange={(e) => setVignetteFade(Number(e.target.value))} />
-            <small style={{color: '#999', fontSize: '0.75rem'}}>How far from center particles start fading (0.5=early fade, 1.0=no fade)</small>
+            <small style={{color: '#999', fontSize: '0.75rem'}}>Subtle edge fade intensity (maintains square shape)</small>
           </label>
           
           <button onClick={() => {
