@@ -127,6 +127,14 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
           throw new Error('$PING token mint address not configured. Please contact support.');
         }
 
+        if (!settings.treasuryWallet) {
+          throw new Error('Treasury wallet address not configured. Please contact support.');
+        }
+
+        if (!settings.burnWallet) {
+          throw new Error('Burn wallet address not configured. Please contact support.');
+        }
+
         paidAmount = pingAmount;
 
         // Send transaction

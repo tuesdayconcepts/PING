@@ -26,6 +26,17 @@ export async function sendHintPayment(
     throw new Error('Wallet not connected');
   }
 
+  // Validate wallet addresses before creating PublicKey objects
+  if (!treasuryAddress || treasuryAddress.length < 32) {
+    throw new Error('Invalid treasury wallet address. Please check your settings configuration.');
+  }
+  if (!burnAddress || burnAddress.length < 32) {
+    throw new Error('Invalid burn wallet address. Please check your settings configuration.');
+  }
+  if (!tokenMint || tokenMint.length < 32) {
+    throw new Error('Invalid token mint address. Please check your settings configuration.');
+  }
+
   const connection = new Connection(SOLANA_RPC, 'confirmed');
 
   try {
