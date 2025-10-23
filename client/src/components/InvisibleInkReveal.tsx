@@ -55,9 +55,6 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
 
   // Calculate edge fade factor (1.0 at center, subtle fade at edges)
   const getEdgeFadeFactor = (x: number, y: number, width: number, height: number): number => {
-    const centerX = width / 2;
-    const centerY = height / 2;
-    
     // Calculate distance from each edge (maintains square shape)
     const distFromLeft = x;
     const distFromRight = width - x;
