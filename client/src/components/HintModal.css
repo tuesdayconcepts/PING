@@ -148,17 +148,16 @@
   align-items: center;
 }
 
-/* Hint title at middle bottom of hint slide */
 .hint-title {
   position: absolute;
   bottom: 20px;
   left: 50%;
-  transform: translateX(-50%);
-  color: rgba(255, 255, 255, 0.7);
+  transform: translate(-50%);
+  color: #ffffffb3;
   font-weight: 600;
   font-size: 1rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: .5px;
   z-index: 2;
 }
 
