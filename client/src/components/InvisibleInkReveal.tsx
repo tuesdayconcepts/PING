@@ -96,8 +96,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
     updateCanvasSize();
     window.addEventListener('resize', updateCanvasSize);
 
-    // Create many tiny particles (like original working version)
-    const particleCount = Math.floor((canvas.width * canvas.height) / 25); // Higher density
+    // Create particles using debug parameters
+    const particleCount = Math.floor((canvas.width * canvas.height) / density);
     const particles: Particle[] = [];
 
     for (let i = 0; i < particleCount; i++) {
@@ -109,13 +109,13 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         y: baseY,
         baseX,
         baseY,
-        vx: (Math.random() - 0.5) * 2, // Random movement speed
-        vy: (Math.random() - 0.5) * 2,
-        opacity: 0.3 + Math.random() * 0.5, // Random starting opacity
-        opacityVelocity: (Math.random() - 0.5) * 0.02, // Opacity change rate
-        size: 1.5 + Math.random() * 1, // Tiny particles (1.5-2.5px)
-        angle: Math.random() * Math.PI * 2, // Random starting angle
-        angularVelocity: (Math.random() - 0.5) * 0.1, // Angular velocity
+        vx: (Math.random() - 0.5) * 2 * speed, // Use speed parameter
+        vy: (Math.random() - 0.5) * 2 * speed,
+        opacity: minOpacity + Math.random() * (maxOpacity - minOpacity), // Use opacity range
+        opacityVelocity: (Math.random() - 0.5) * opacitySpeed, // Use opacity speed
+        size: minSize + Math.random() * maxSize, // Use size parameters
+        angle: Math.random() * Math.PI * 2,
+        angularVelocity: (Math.random() - 0.5) * 0.1,
       });
     }
 
@@ -124,7 +124,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
     return () => {
       window.removeEventListener('resize', updateCanvasSize);
     };
-  }, [density, minSize, maxSize, speed, minOpacity, opacityRange, opacitySpeed]); // Recreate particles when params change
+  }, [density, minSize, maxSize, speed, moveRange, minOpacity, maxOpacity, opacitySpeed, opacityRange]); // Recreate particles when params change
 
   // Trigger reveal animation when revealed prop changes
   // Start reveal animation when revealed becomes true
@@ -152,7 +152,6 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
       const particles = particlesRef.current;
       const now = Date.now();
       const elapsed = now - revealStartTimeRef.current;
-      const revealDuration = 2000; // 2 seconds
       const revealProgress = revealed ? Math.min(elapsed / revealDuration, 1) : 0;
 
       // Easing function (power2.out)
@@ -162,8 +161,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
       // STATE 1: revealed = false - Show particles only
       if (!revealed) {
         particles.forEach((particle) => {
-          // Simple bouncing movement around base position
-          const moveRange = 15; // How far particles wander from base
+          // Bouncing movement around base position using moveRange parameter
           particle.x += particle.vx;
           particle.y += particle.vy;
           
@@ -178,9 +176,9 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
             particle.vy *= -1;
           }
           
-          // Oscillate opacity
+          // Oscillate opacity using debug parameters
           particle.opacity += particle.opacityVelocity;
-          if (particle.opacity > 0.8 || particle.opacity < 0.2) {
+          if (particle.opacity > maxOpacity || particle.opacity < minOpacity) {
             particle.opacityVelocity *= -1;
           }
           
@@ -269,7 +267,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [revealed, onRevealComplete, disperseSpeed]);
+  }, [revealed, onRevealComplete, disperseSpeed, moveRange, minOpacity, maxOpacity, revealDuration, vignetteFade]);
 
   return (
     <>
