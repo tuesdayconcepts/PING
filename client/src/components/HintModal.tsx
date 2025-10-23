@@ -233,7 +233,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   // Determine which hint to show centered
   let centerIndex: number;
   if (justPurchased !== null) {
-    // Keep just-purchased hint centered until user clicks "GET ANOTHER HINT"
+    // Keep just-purchased hint centered until user clicks "GET MORE!"
     centerIndex = hints.findIndex((h) => h.level === justPurchased);
   } else if (currentSlideIndex >= 0 && currentSlideIndex < hints.length) {
     // Use manual slide index if set
@@ -278,8 +278,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   let ctaDisabled = true;
 
   if (justPurchased !== null && nextHint) {
-    // Just purchased a hint, show "GET ANOTHER HINT" to advance
-    ctaText = 'GET ANOTHER HINT';
+    // Just purchased a hint, show "GET MORE!" to advance
+    ctaText = 'GET MORE!';
     ctaAction = () => {
       setJustPurchased(null);
       setCurrentSlideIndex(centerIndex + 1); // Advance to next hint
