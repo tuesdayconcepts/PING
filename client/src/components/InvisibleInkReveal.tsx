@@ -38,9 +38,9 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   const debugMode = useDebugMode();
   
   // Debug controllable parameters
-  const [density, setDensity] = useState(26); // Particle density divider
+  const [density, setDensity] = useState(25); // Particle density divider
   const [minSize, setMinSize] = useState(0.5); // Min particle size
-  const [maxSize, setMaxSize] = useState(1.9); // Max additional size
+  const [maxSize, setMaxSize] = useState(1.5); // Max additional size
   const [speed, setSpeed] = useState(0.1); // Movement speed multiplier
   const [moveRange, setMoveRange] = useState(5); // How far particles wander
   const [minOpacity, setMinOpacity] = useState(0.0); // Min opacity
