@@ -1029,6 +1029,7 @@ app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
     console.log('🔍 Backend Debug - hasHint1Purchase:', hasHint1Purchase);
     console.log('🔍 Backend Debug - isHint1Free:', isHint1Free);
     console.log('🔍 Backend Debug - shouldShowHint1:', shouldShowHint1);
+    console.log('🔄 Redeploy trigger - timestamp:', new Date().toISOString());
     
     const response = {
       hint1: shouldShowHint1
