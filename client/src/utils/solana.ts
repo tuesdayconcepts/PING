@@ -7,6 +7,7 @@ const SOLANA_RPC = import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.mainnet-b
 // Debug logging
 console.log('RPC URL being used:', SOLANA_RPC);
 console.log('Environment variable:', import.meta.env.VITE_SOLANA_RPC_URL);
+console.log('All env vars:', import.meta.env);
 
 /**
  * Create and send a dual-transfer transaction for hint purchase
