@@ -85,12 +85,19 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size to match container
+    // Disable anti-aliasing for pixel-sharp rendering
+    ctx.imageSmoothingEnabled = false;
+
+    // Set canvas size to match container with device pixel ratio scaling
     const updateCanvasSize = () => {
       const rect = containerRef.current?.getBoundingClientRect();
       if (rect) {
-        canvas.width = rect.width;
-        canvas.height = rect.height;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+        ctx.scale(dpr, dpr);
       }
     };
 
@@ -194,7 +201,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           const edgeFade = getEdgeFadeFactor(particle.x, particle.y, canvas.width, canvas.height);
           ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity * edgeFade})`;
           ctx.beginPath();
-          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          // Use rounded coordinates for pixel-perfect rendering
+          ctx.arc(Math.round(particle.x), Math.round(particle.y), Math.round(particle.size), 0, Math.PI * 2);
           ctx.fill();
         });
       }
@@ -256,7 +264,8 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
           const edgeFade = getEdgeFadeFactor(particle.x, particle.y, canvas.width, canvas.height);
           ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity * edgeFade})`;
           ctx.beginPath();
-          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          // Use rounded coordinates for pixel-perfect rendering
+          ctx.arc(Math.round(particle.x), Math.round(particle.y), Math.round(particle.size), 0, Math.PI * 2);
           ctx.fill();
         });
       }
