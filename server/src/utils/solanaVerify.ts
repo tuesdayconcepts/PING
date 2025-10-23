@@ -142,30 +142,45 @@ export async function verifyHintPurchaseTransaction(
 }
 
 /**
- * Get current $PING token price from Jupiter API
+ * Get current $PING token price from CoinGecko API
  * @param tokenMint - $PING SPL token mint address
  * @returns Price in USD or null if unavailable
  */
 export async function getPingPriceFromJupiter(tokenMint: string): Promise<number | null> {
   try {
-    const response = await fetch(
+    // First try to get price from Jupiter API (if available)
+    const jupiterResponse = await fetch(
       `https://api.jup.ag/price/v2?ids=${tokenMint}&showExtraInfo=true`
     );
     
-    if (!response.ok) {
-      console.error('Jupiter API error:', response.status);
+    if (jupiterResponse.ok) {
+      const jupiterData = await jupiterResponse.json();
+      const priceData = jupiterData.data?.[tokenMint];
+      
+      if (priceData && typeof priceData.price === 'number') {
+        return priceData.price; // Price in USD
+      }
+    }
+
+    // Fallback to CoinGecko API for Solana tokens
+    const coingeckoResponse = await fetch(
+      `https://api.coingecko.com/api/v3/simple/token_price/solana?contract_addresses=${tokenMint}&vs_currencies=usd`
+    );
+    
+    if (!coingeckoResponse.ok) {
+      console.error('CoinGecko API error:', coingeckoResponse.status);
       return null;
     }
 
-    const data = await response.json();
-    const priceData = data.data?.[tokenMint];
+    const coingeckoData = await coingeckoResponse.json();
+    const tokenData = coingeckoData[tokenMint.toLowerCase()];
     
-    if (!priceData || typeof priceData.price !== 'number') {
+    if (!tokenData || typeof tokenData.usd !== 'number') {
       console.warn('No price data found for token:', tokenMint);
       return null;
     }
 
-    return priceData.price; // Price in USD
+    return tokenData.usd; // Price in USD
   } catch (error) {
     console.error('Failed to fetch $PING price:', error);
     return null;
