@@ -89,6 +89,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [error, setError] = useState<string | null>(null);
   const [hotspot, setHotspot] = useState<any>(null);
   const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Manual navigation control
   
   const [showNavigation, setShowNavigation] = useState(true); // Control navigation visibility
   const [revealingHint, setRevealingHint] = useState<number | null>(null); // Track which hint is currently revealing
@@ -107,7 +108,29 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     console.log('🔍 Debug - Just purchased:', justPurchased);
   }, [connected, publicKey, purchasedHints, revealingHint, justPurchased]);
 
-
+  // Set initial slide index when modal opens - show last unlocked hint or first hint
+  useEffect(() => {
+    if (hotspot && purchasedHints && currentSlideIndex === 0) {
+      // Calculate hints array here to avoid dependency issues
+      const hints = [
+        { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: hotspot.firstHintFree },
+        { level: 2, text: hotspot.hint2, price: hotspot.hint2PriceUsd, free: false },
+        { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
+      ].filter((h) => h.text);
+      
+      const unlockedHints = hints.filter((h) => purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
+      
+      if (unlockedHints.length > 0) {
+        // Show the last unlocked hint (most recent progress)
+        const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
+        const newIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
+        if (newIndex !== -1) {
+          setCurrentSlideIndex(newIndex);
+        }
+      }
+      // If no hints unlocked, stay at index 0 (first hint)
+    }
+  }, [hotspot, purchasedHints, currentSlideIndex]);
 
   const fetchHotspotAndPurchases = async () => {
     try {
@@ -363,17 +386,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     // Keep just-purchased hint centered until user clicks "GET MORE!"
     centerIndex = hints.findIndex((h) => h.level === justPurchased);
   } else {
-    // Show the last unlocked hint, or first hint if none unlocked
-    const unlockedHints = hints.filter((h) => purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
-    
-    if (unlockedHints.length > 0) {
-      // Show the last unlocked hint (most recent progress)
-      const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
-      centerIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
-    } else {
-      // No hints unlocked yet, show the first hint (free hint)
-      centerIndex = 0;
-    }
+    // Use manual navigation state, but ensure it's within bounds
+    centerIndex = Math.max(0, Math.min(currentSlideIndex, hints.length - 1));
   }
   
   // Calculate how many hints are unlocked (purchased and not currently revealing)
@@ -410,12 +424,14 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   
   const handlePrevious = () => {
     if (canGoBack) {
+      setCurrentSlideIndex(centerIndex - 1);
       setJustPurchased(null);
     }
   };
   
   const handleNext = () => {
     if (canGoForward) {
+      setCurrentSlideIndex(centerIndex + 1);
       setJustPurchased(null);
     }
   };
@@ -430,6 +446,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     ctaText = 'GET MORE!';
     ctaAction = () => {
       setJustPurchased(null);
+      setCurrentSlideIndex(centerIndex + 1); // Advance to next hint
     };
     ctaDisabled = false;
   } else if (purchasing !== null) {
