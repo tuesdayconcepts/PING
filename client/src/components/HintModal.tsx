@@ -256,9 +256,17 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     ctaDisabled = false;
   } else if (currentHint?.status === 'revealed') {
     const hasNextHint = currentHintIndex < hints.length - 1;
-    ctaText = hasNextHint ? 'GET MORE!' : 'ALL HINTS UNLOCKED';
-    ctaAction = hasNextHint ? () => setCurrentHintIndex(currentHintIndex + 1) : null;
-    ctaDisabled = !hasNextHint;
+    if (hasNextHint) {
+      const nextHint = hints[currentHintIndex + 1];
+      const nextHintUnlocked = nextHint?.status === 'revealed';
+      ctaText = nextHintUnlocked ? 'NEXT HINT' : 'GET MORE!';
+      ctaAction = () => setCurrentHintIndex(currentHintIndex + 1);
+      ctaDisabled = false;
+    } else {
+      ctaText = 'ALL HINTS UNLOCKED';
+      ctaAction = null;
+      ctaDisabled = true;
+    }
   } else {
     ctaText = 'ALL HINTS UNLOCKED';
     ctaAction = null;
