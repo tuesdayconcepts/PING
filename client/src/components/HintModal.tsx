@@ -134,7 +134,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     if (hotspot && purchasedHints && currentSlideIndex === 0) {
       // Calculate hints array here to avoid dependency issues
       const hints = [
-        { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: hotspot.firstHintFree },
+        { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: true }, // First hint always free
         { level: 2, text: hotspot.hint2, price: hotspot.hint2PriceUsd, free: false },
         { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
       ].filter((h) => h.text);
@@ -186,32 +186,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         const data = await purchasedRes.json();
         console.log('🔍 API Response - Purchased hints:', data);
         
-        // Clean up old purchases if needed
-        if (data.hint1.purchased && !currentHotspot?.firstHintFree) {
-          console.log('🧹 Cleaning up old free purchases...');
-          const cleanupResponse = await fetch(`${API_URL}/api/debug/cleanup-purchases`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              hotspotId,
-              walletAddress: publicKey.toString(),
-            }),
-          });
-          const cleanupData = await cleanupResponse.json();
-          console.log('🧹 Cleanup result:', cleanupData);
-          
-          // Refresh purchased hints after cleanup
-          if (cleanupData.success) {
-            console.log('🔄 Refreshing purchased hints after cleanup...');
-            const refreshedResponse = await fetch(
-              `${API_URL}/api/hints/${hotspotId}/purchased?wallet=${publicKey.toString()}`
-            );
-            const refreshedData = await refreshedResponse.json();
-            console.log('🔄 Refreshed data:', refreshedData);
-            setPurchasedHints(refreshedData);
-            return; // Early return to avoid setting data twice
-          }
-        }
+        // No cleanup needed since first hint is always free
         
         setPurchasedHints(data);
       } else {
@@ -399,7 +374,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
 
   // Determine which hints exist
   const hints = [
-    { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: hotspot.firstHintFree },
+    { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: true }, // First hint always free
     { level: 2, text: hotspot.hint2, price: hotspot.hint2PriceUsd, free: false },
     { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
   ].filter((h) => h.text); // Only show hints that exist

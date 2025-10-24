@@ -1074,16 +1074,12 @@ app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
     });
 
     // Build response with hint text only for purchased hints
-    // Check firstHintFree flag for hint1 - if free, it's automatically available
+    // First hint is always free
     const hasHint1Purchase = purchases.some((p) => p.hintLevel === 1);
-    const isHint1Free = hotspot.firstHintFree;
-    const shouldShowHint1 = hasHint1Purchase || isHint1Free;
+    const shouldShowHint1 = hasHint1Purchase || true; // First hint always free
     
     console.log('🔍 Backend Debug - hasHint1Purchase:', hasHint1Purchase);
-    console.log('🔍 Backend Debug - isHint1Free:', isHint1Free);
     console.log('🔍 Backend Debug - shouldShowHint1:', shouldShowHint1);
-    console.log('🔍 Backend Debug - hotspot.firstHintFree type:', typeof hotspot.firstHintFree);
-    console.log('🔍 Backend Debug - hotspot.firstHintFree value:', hotspot.firstHintFree);
     console.log('🔍 Backend Debug - purchases:', purchases);
     console.log('🔍 Backend Debug - purchases.length:', purchases.length);
     console.log('🔍 Backend Debug - hint1 purchases:', purchases.filter(p => p.hintLevel === 1));
@@ -1183,8 +1179,8 @@ app.post("/api/hints/purchase", async (req, res) => {
       }
     }
 
-    // Handle free hint
-    if (isFree && hintLevel === 1 && hotspot.firstHintFree) {
+    // Handle free hint (first hint is always free)
+    if (isFree && hintLevel === 1) {
       // Record free purchase
       await prisma.hintPurchase.create({
         data: {
