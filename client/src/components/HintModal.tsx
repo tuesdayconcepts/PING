@@ -88,6 +88,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         const testHotspot = testHotspots.find((h: any) => h.id === hotspotId);
         console.log('🔍 Backend hotspot data - firstHintFree:', testHotspot?.firstHintFree);
         
+        // Test: Call debug endpoint to check database directly
+        console.log('🔍 Testing debug endpoint...');
+        const debugResponse = await fetch(`${API_URL}/api/debug/hotspot/${hotspotId}`);
+        const debugData = await debugResponse.json();
+        console.log('🔍 Debug endpoint data:', debugData);
+        
         setPurchasedHints(data);
       } else {
         // Not connected, show all as unpurchased
