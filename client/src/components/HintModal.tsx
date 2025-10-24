@@ -90,6 +90,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [hotspot, setHotspot] = useState<any>(null);
   const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Manual navigation control
+  
   const [showNavigation, setShowNavigation] = useState(true); // Control navigation visibility
   const [revealingHint, setRevealingHint] = useState<number | null>(null); // Track which hint is currently revealing
 
@@ -352,6 +353,23 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
   ].filter((h) => h.text); // Only show hints that exist
 
+  // Update currentSlideIndex to remember user's progress
+  useEffect(() => {
+    if (hints.length > 0) {
+      const unlockedHints = hints.filter((h) => purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
+      
+      if (unlockedHints.length > 0) {
+        // Set to the last unlocked hint (most recent progress)
+        const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
+        const newIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
+        setCurrentSlideIndex(newIndex);
+      } else {
+        // No hints unlocked yet, start at first hint
+        setCurrentSlideIndex(0);
+      }
+    }
+  }, [hints, purchasedHints]);
+
   // Find the first unpurchased hint
   const nextHint = hints.find((h) => !purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
 
@@ -360,13 +378,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   if (justPurchased !== null) {
     // Keep just-purchased hint centered until user clicks "GET MORE!"
     centerIndex = hints.findIndex((h) => h.level === justPurchased);
-  } else if (currentSlideIndex >= 0 && currentSlideIndex < hints.length) {
-    // Use manual slide index if set
-    centerIndex = currentSlideIndex;
   } else {
-    // Show next unpurchased hint, or last hint if all purchased
-    const currentHintIndex = hints.findIndex((h) => h === nextHint);
-    centerIndex = currentHintIndex === -1 ? hints.length - 1 : currentHintIndex;
+    // Use the currentSlideIndex which tracks user's progress
+    centerIndex = Math.max(0, Math.min(currentSlideIndex, hints.length - 1));
   }
   
   // Calculate how many hints are unlocked (purchased and not currently revealing)
