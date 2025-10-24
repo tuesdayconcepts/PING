@@ -360,7 +360,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       
       // Start reveal animation after purchase is processed (only for paid hints)
       if (!isFree) {
+        console.log(`🎬 Starting reveal animation for hint ${hintLevel}`);
         setRevealingHint(hintLevel);
+        console.log(`🎬 revealingHint set to: ${hintLevel}`);
       }
       
       // Keep processing state for 2 seconds total
@@ -615,6 +617,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                                   setRevealingHint(null); // Clear revealing state
                                 }}
                               />
+                              {/* Debug info */}
+                              {hint.level === 3 && (
+                                <div style={{position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '5px', fontSize: '12px', zIndex: 1000}}>
+                                  Debug: hint.free={hint.free.toString()}, purchased={purchased?.toString()}, revealingHint={revealingHint}, revealed={hint.free ? purchased : revealingHint === hint.level}
+                                </div>
+                              )}
                             </div>
                           )}
 
