@@ -37,8 +37,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
 
   // Track wallet connection state
   useEffect(() => {
+    console.log('🔗 Wallet connection state changed:', { connected, publicKey: publicKey?.toString() });
     setWalletConnected(connected);
-  }, [connected]);
+  }, [connected, publicKey]);
 
   // Fetch hotspot data on modal open
   useEffect(() => {
@@ -48,7 +49,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   // Fetch purchased hints when wallet connects
   useEffect(() => {
     if (hotspot && walletConnected && publicKey) {
-      fetchPurchasedHints();
+      // Small delay to ensure wallet is fully connected
+      const timer = setTimeout(() => {
+        fetchPurchasedHints();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [hotspot, walletConnected, publicKey]);
 
