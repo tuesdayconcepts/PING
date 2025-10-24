@@ -132,6 +132,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
   // Start reveal animation when revealed becomes true
   useEffect(() => {
     if (revealed) {
+      console.log('🎬 InvisibleInkReveal: Starting reveal animation');
       revealStartTimeRef.current = Date.now();
     }
   }, [revealed]);
@@ -155,6 +156,11 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
       const now = Date.now();
       const elapsed = now - revealStartTimeRef.current;
       const revealProgress = revealed ? Math.min(elapsed / revealDuration, 1) : 0;
+      
+      // Debug logging for reveal progress
+      if (revealed && elapsed % 1000 < 50) { // Log every second
+        console.log(`🎬 InvisibleInkReveal: elapsed=${elapsed}ms, revealProgress=${revealProgress.toFixed(3)}, revealDuration=${revealDuration}ms`);
+      }
 
       // STATE 1: revealed = false - Show particles only
       if (!revealed) {
@@ -266,6 +272,7 @@ export function InvisibleInkReveal({ text, revealed, onRevealComplete }: Invisib
       
       // Call onRevealComplete when transition is done
       if (revealed && revealProgress >= 1 && onRevealComplete) {
+        console.log('🎬 InvisibleInkReveal: Animation complete, calling onRevealComplete');
         onRevealComplete();
       }
     };
