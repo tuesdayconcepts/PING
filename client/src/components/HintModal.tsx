@@ -139,8 +139,11 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   }, [connected, publicKey, purchasedHints, revealingHint, justPurchased]);
 
   // Set initial slide index when modal opens - show last unlocked hint or first hint
+  // Only run once when modal first opens, not on every purchasedHints change
+  const [hasSetInitialIndex, setHasSetInitialIndex] = useState(false);
+  
   useEffect(() => {
-    if (hotspot && purchasedHints) {
+    if (hotspot && purchasedHints && !hasSetInitialIndex) {
       // Calculate hints array here to avoid dependency issues
       const hints = [
         { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: true }, // First hint always free
@@ -155,16 +158,18 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
         const newIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
         if (newIndex !== -1) {
-          console.log(`🔄 Setting slide index to ${newIndex} (hint ${lastUnlockedHint.level})`);
+          console.log(`🔄 Setting initial slide index to ${newIndex} (hint ${lastUnlockedHint.level})`);
           setCurrentSlideIndex(newIndex);
         }
       } else {
         // No hints unlocked yet, go to first hint
-        console.log(`🔄 No hints unlocked, setting slide index to 0`);
+        console.log(`🔄 No hints unlocked, setting initial slide index to 0`);
         setCurrentSlideIndex(0);
       }
+      
+      setHasSetInitialIndex(true);
     }
-  }, [hotspot, purchasedHints]);
+  }, [hotspot, purchasedHints, hasSetInitialIndex]);
 
   // Save slide index to localStorage whenever it changes
   useEffect(() => {
