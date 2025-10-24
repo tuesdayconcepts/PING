@@ -173,10 +173,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
 
   // Reset the initial index flag when modal closes/reopens
   useEffect(() => {
-    if (!isOpen) {
+    if (!open) {
       setHasSetInitialIndex(false);
     }
-  }, [isOpen]);
+  }, [open]);
 
   // Save slide index to localStorage whenever it changes
   useEffect(() => {
