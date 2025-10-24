@@ -88,6 +88,12 @@ export async function sendHintPayment(
     const treasuryLamports = Math.floor(totalLamports / 2);
     const burnLamports = totalLamports - treasuryLamports; // Ensure it adds up exactly
 
+    // Check if user has enough PING tokens before attempting transaction
+    const userBalance = await getPingBalance(wallet.publicKey.toString());
+    if (userBalance < totalAmount) {
+      throw new Error(`Insufficient PING tokens. You have ${userBalance.toFixed(2)} PING but need ${totalAmount.toFixed(2)} PING to purchase this hint. Please acquire more PING tokens first.`);
+    }
+
     // Create transaction
     const transaction = new Transaction();
 
@@ -169,6 +175,9 @@ export async function sendHintPayment(
       if (error.message.includes('Insufficient funds') || error.message.includes('insufficient lamports')) {
         throw new Error('Insufficient SOL balance. You need at least 0.003 SOL to create a token account and pay transaction fees.');
       }
+      if (error.message.includes('insufficient funds') && error.message.includes('Transfer')) {
+        throw new Error('Insufficient PING tokens. You need to have PING tokens in your wallet to purchase hints. Please acquire some PING tokens first.');
+      }
     }
     
     throw error;
@@ -200,6 +209,30 @@ export async function checkTokenBalance(
   } catch (error) {
     console.error('Failed to check balance:', error);
     return false;
+  }
+}
+
+/**
+ * Get user's PING token balance
+ */
+export async function getPingBalance(walletAddress: string): Promise<number> {
+  try {
+    const connection = new Connection(SOLANA_RPC, 'confirmed');
+    const { getAssociatedTokenAddress, getAccount } = await import('@solana/spl-token');
+
+    const tokenAccount = await getAssociatedTokenAddress(
+      new PublicKey(TOKEN_MINT),
+      new PublicKey(walletAddress)
+    );
+
+    const accountInfo = await getAccount(connection, tokenAccount);
+    const decimals = 9; // Adjust based on your token
+    const balance = Number(accountInfo.amount) / Math.pow(10, decimals);
+
+    return balance;
+  } catch (error) {
+    console.error('Failed to get PING balance:', error);
+    return 0;
   }
 }
 
