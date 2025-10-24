@@ -154,19 +154,17 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         // Show the last unlocked hint (most recent progress)
         const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
         const newIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
-        if (newIndex !== -1 && newIndex !== currentSlideIndex) {
-          console.log(`🔄 Correcting slide index from ${currentSlideIndex} to ${newIndex} (hint ${lastUnlockedHint.level})`);
+        if (newIndex !== -1) {
+          console.log(`🔄 Setting slide index to ${newIndex} (hint ${lastUnlockedHint.level})`);
           setCurrentSlideIndex(newIndex);
         }
       } else {
         // No hints unlocked yet, go to first hint
-        if (currentSlideIndex !== 0) {
-          console.log(`🔄 No hints unlocked, correcting slide index from ${currentSlideIndex} to 0`);
-          setCurrentSlideIndex(0);
-        }
+        console.log(`🔄 No hints unlocked, setting slide index to 0`);
+        setCurrentSlideIndex(0);
       }
     }
-  }, [hotspot, purchasedHints, currentSlideIndex]);
+  }, [hotspot, purchasedHints]);
 
   // Save slide index to localStorage whenever it changes
   useEffect(() => {
@@ -442,7 +440,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   
   const handlePrevious = () => {
     if (canGoBack) {
-      const newIndex = centerIndex - 1;
+      const newIndex = currentSlideIndex - 1;
+      console.log(`🔄 Previous: Moving from ${currentSlideIndex} to ${newIndex}`);
       setCurrentSlideIndex(newIndex);
       setStoredSlideIndex(hotspotId, newIndex);
       setJustPurchased(null);
@@ -451,7 +450,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   
   const handleNext = () => {
     if (canGoForward) {
-      const newIndex = centerIndex + 1;
+      const newIndex = currentSlideIndex + 1;
+      console.log(`🔄 Next: Moving from ${currentSlideIndex} to ${newIndex}`);
       setCurrentSlideIndex(newIndex);
       setStoredSlideIndex(hotspotId, newIndex);
       setJustPurchased(null);
@@ -468,7 +468,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     ctaText = 'GET MORE!';
     ctaAction = () => {
       setJustPurchased(null);
-      const newIndex = centerIndex + 1;
+      const newIndex = currentSlideIndex + 1;
+      console.log(`🔄 GET MORE (just purchased): Moving from ${currentSlideIndex} to ${newIndex}`);
       setCurrentSlideIndex(newIndex);
       setStoredSlideIndex(hotspotId, newIndex);
     };
@@ -480,13 +481,14 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   } else if (nextHint) {
     // Check if user is viewing a purchased hint and can advance
     const isViewingPurchasedHint = currentHint && purchasedHints[`hint${currentHint.level}` as keyof PurchasedHints]?.purchased;
-    const canAdvance = centerIndex < hints.length - 1;
+    const canAdvance = currentSlideIndex < hints.length - 1;
     
     if (isViewingPurchasedHint && canAdvance) {
       // User is viewing a purchased hint and can advance to next hint
       ctaText = 'GET MORE!';
       ctaAction = () => {
-        const newIndex = centerIndex + 1;
+        const newIndex = currentSlideIndex + 1;
+        console.log(`🔄 GET MORE (viewing purchased): Moving from ${currentSlideIndex} to ${newIndex}`);
         setCurrentSlideIndex(newIndex);
         setStoredSlideIndex(hotspotId, newIndex);
       };
