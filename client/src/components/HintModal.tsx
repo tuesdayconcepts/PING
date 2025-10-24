@@ -94,6 +94,32 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         const debugData = await debugResponse.json();
         console.log('🔍 Debug endpoint data:', debugData);
         
+        // Test: Clean up old purchases if needed
+        if (publicKey && data.hint1.purchased && !currentHotspot?.firstHintFree) {
+          console.log('🧹 Cleaning up old free purchases...');
+          const cleanupResponse = await fetch(`${API_URL}/api/debug/cleanup-purchases`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hotspotId,
+              walletAddress: publicKey.toString(),
+            }),
+          });
+          const cleanupData = await cleanupResponse.json();
+          console.log('🧹 Cleanup result:', cleanupData);
+          
+          // Refresh purchased hints after cleanup
+          if (cleanupData.success) {
+            console.log('🔄 Refreshing purchased hints after cleanup...');
+            const refreshedResponse = await fetch(
+              `${API_URL}/api/hints/${hotspotId}/purchased?wallet=${publicKey.toString()}`
+            );
+            const refreshedData = await refreshedResponse.json();
+            console.log('🔄 Refreshed data:', refreshedData);
+            setPurchasedHints(refreshedData);
+          }
+        }
+        
         setPurchasedHints(data);
       } else {
         // Not connected, show all as unpurchased

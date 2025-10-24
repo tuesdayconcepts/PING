@@ -1017,6 +1017,34 @@ app.get("/api/debug/hotspot/:id", async (req, res) => {
   }
 });
 
+// POST /api/debug/cleanup-purchases - Clean up old free purchases (public)
+app.post("/api/debug/cleanup-purchases", async (req, res) => {
+  try {
+    const { hotspotId, walletAddress } = req.body;
+    
+    if (!hotspotId || !walletAddress) {
+      return res.status(400).json({ error: "hotspotId and walletAddress required" });
+    }
+    
+    // Delete all purchases for this wallet + hotspot
+    const deleted = await prisma.hintPurchase.deleteMany({
+      where: {
+        hotspotId,
+        walletAddress,
+      },
+    });
+    
+    res.json({
+      success: true,
+      deletedCount: deleted.count,
+      message: `Deleted ${deleted.count} purchase records for wallet ${walletAddress} and hotspot ${hotspotId}`
+    });
+  } catch (error) {
+    console.error("Cleanup purchases error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/hints/:hotspotId/purchased - Get purchased hints for a wallet (public)
 app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
   try {
