@@ -36,9 +36,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     const key = `free_hints_${hotspotId}`;
     const localProgress = JSON.parse(localStorage.getItem(key) || '{}');
     return {
-      hint1: { purchased: localProgress.hint1 || false },
-      hint2: { purchased: localProgress.hint2 || false },
-      hint3: { purchased: localProgress.hint3 || false },
+      hint1: localProgress.hint1 || { purchased: false },
+      hint2: localProgress.hint2 || { purchased: false },
+      hint3: localProgress.hint3 || { purchased: false },
     };
   };
 
@@ -56,10 +56,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     
     // Create database records for local free hints
     for (const [hintKey, hintData] of Object.entries(localProgress)) {
+      console.log(`🔄 Checking ${hintKey}:`, hintData);
       if (hintData && typeof hintData === 'object' && 'purchased' in hintData && (hintData as any).purchased) {
         const hintLevel = parseInt(hintKey.replace('hint', ''));
+        console.log(`🔄 Migrating hint ${hintLevel}...`);
         try {
-          await fetch(`${API_URL}/api/hints/purchase`, {
+          const response = await fetch(`${API_URL}/api/hints/purchase`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -71,10 +73,17 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               isFree: true,
             }),
           });
-          console.log(`🔄 Migrated free hint ${hintLevel} to wallet ${walletAddress}`);
+          
+          if (response.ok) {
+            console.log(`✅ Successfully migrated free hint ${hintLevel} to wallet ${walletAddress}`);
+          } else {
+            console.error(`❌ Failed to migrate hint ${hintLevel}:`, await response.text());
+          }
         } catch (error) {
-          console.error(`Failed to migrate free hint ${hintLevel}:`, error);
+          console.error(`❌ Failed to migrate free hint ${hintLevel}:`, error);
         }
+      } else {
+        console.log(`⏭️ Skipping ${hintKey} - not purchased or invalid format`);
       }
     }
     
