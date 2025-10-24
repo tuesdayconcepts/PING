@@ -82,8 +82,8 @@ export async function sendHintPayment(
       throw new Error('Burn wallet does not have a token account for this token. Please contact support.');
     }
 
-    // Calculate split amounts (assuming 9 decimals for $PING token - adjust if needed)
-    const decimals = 9; // Check your $PING token decimals
+    // Calculate split amounts (PING token has 6 decimals)
+    const decimals = 6; // PING token has 6 decimals
     const totalLamports = Math.floor(totalAmount * Math.pow(10, decimals));
     const treasuryLamports = Math.floor(totalLamports / 2);
     const burnLamports = totalLamports - treasuryLamports; // Ensure it adds up exactly
@@ -202,7 +202,7 @@ export async function checkTokenBalance(
     );
 
     const accountInfo = await getAccount(connection, tokenAccount);
-    const decimals = 9; // Adjust based on your token
+    const decimals = 6; // PING token has 6 decimals
     const balance = Number(accountInfo.amount) / Math.pow(10, decimals);
 
     return balance >= requiredAmount;
@@ -226,7 +226,7 @@ export async function getPingBalance(walletAddress: string, tokenMint: string): 
     );
 
     const accountInfo = await getAccount(connection, tokenAccount);
-    const decimals = 9; // Adjust based on your token
+    const decimals = 6; // PING token has 6 decimals
     const balance = Number(accountInfo.amount) / Math.pow(10, decimals);
 
     return balance;
