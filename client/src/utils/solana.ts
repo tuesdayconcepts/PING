@@ -89,7 +89,7 @@ export async function sendHintPayment(
     const burnLamports = totalLamports - treasuryLamports; // Ensure it adds up exactly
 
     // Check if user has enough PING tokens before attempting transaction
-    const userBalance = await getPingBalance(wallet.publicKey.toString());
+    const userBalance = await getPingBalance(wallet.publicKey.toString(), tokenMint);
     if (userBalance < totalAmount) {
       throw new Error(`Insufficient PING tokens. You have ${userBalance.toFixed(2)} PING but need ${totalAmount.toFixed(2)} PING to purchase this hint. Please acquire more PING tokens first.`);
     }
@@ -215,13 +215,13 @@ export async function checkTokenBalance(
 /**
  * Get user's PING token balance
  */
-export async function getPingBalance(walletAddress: string): Promise<number> {
+export async function getPingBalance(walletAddress: string, tokenMint: string): Promise<number> {
   try {
     const connection = new Connection(SOLANA_RPC, 'confirmed');
     const { getAssociatedTokenAddress, getAccount } = await import('@solana/spl-token');
 
     const tokenAccount = await getAssociatedTokenAddress(
-      new PublicKey(TOKEN_MINT),
+      new PublicKey(tokenMint),
       new PublicKey(walletAddress)
     );
 
