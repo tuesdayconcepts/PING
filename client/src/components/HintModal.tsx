@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { usePingPrice } from '../hooks/usePingPrice';
@@ -139,11 +139,11 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   }, [connected, publicKey, purchasedHints, revealingHint, justPurchased]);
 
   // Set initial slide index when modal opens - show last unlocked hint or first hint
-  // Only run once when modal first opens, not on every purchasedHints change
-  const [hasSetInitialIndex, setHasSetInitialIndex] = useState(false);
+  // Use a ref to track if we've set the initial index for this modal session
+  const hasSetInitialIndexRef = useRef(false);
   
   useEffect(() => {
-    if (hotspot && purchasedHints && !hasSetInitialIndex) {
+    if (hotspot && purchasedHints && !hasSetInitialIndexRef.current) {
       // Calculate hints array here to avoid dependency issues
       const hints = [
         { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: true }, // First hint always free
@@ -167,14 +167,14 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         setCurrentSlideIndex(0);
       }
       
-      setHasSetInitialIndex(true);
+      hasSetInitialIndexRef.current = true;
     }
-  }, [hotspot, hasSetInitialIndex]); // Removed purchasedHints from dependencies
+  }, [hotspot, purchasedHints]); // Include purchasedHints but use ref to prevent re-running
 
   // Reset the initial index flag when modal closes/reopens
   useEffect(() => {
     if (!open) {
-      setHasSetInitialIndex(false);
+      hasSetInitialIndexRef.current = false;
     }
   }, [open]);
 
