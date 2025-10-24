@@ -89,7 +89,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [error, setError] = useState<string | null>(null);
   const [hotspot, setHotspot] = useState<any>(null);
   const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Manual navigation control
   
   const [showNavigation, setShowNavigation] = useState(true); // Control navigation visibility
   const [revealingHint, setRevealingHint] = useState<number | null>(null); // Track which hint is currently revealing
@@ -108,37 +107,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     console.log('🔍 Debug - Just purchased:', justPurchased);
   }, [connected, publicKey, purchasedHints, revealingHint, justPurchased]);
 
-  // Update currentSlideIndex to remember user's progress
-  useEffect(() => {
-    console.log('🔄 useEffect running - hotspot:', !!hotspot, 'purchasedHints:', !!purchasedHints);
-    
-    if (hotspot && purchasedHints) {
-      const hints = [
-        { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: hotspot.firstHintFree },
-        { level: 2, text: hotspot.hint2, price: hotspot.hint2PriceUsd, free: false },
-        { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
-      ].filter((h) => h.text);
-
-      console.log('🔄 Hints found:', hints.length);
-
-      if (hints.length > 0) {
-        const unlockedHints = hints.filter((h) => purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
-        console.log('🔄 Unlocked hints:', unlockedHints.length);
-        
-        if (unlockedHints.length > 0) {
-          // Set to the last unlocked hint (most recent progress)
-          const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
-          const newIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
-          console.log('🔄 Setting currentSlideIndex to:', newIndex);
-          setCurrentSlideIndex(newIndex);
-        } else {
-          // No hints unlocked yet, start at first hint
-          console.log('🔄 Setting currentSlideIndex to 0 (no hints unlocked)');
-          setCurrentSlideIndex(0);
-        }
-      }
-    }
-  }, [hotspot?.id, purchasedHints]);
 
 
   const fetchHotspotAndPurchases = async () => {
@@ -395,8 +363,17 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     // Keep just-purchased hint centered until user clicks "GET MORE!"
     centerIndex = hints.findIndex((h) => h.level === justPurchased);
   } else {
-    // Use the currentSlideIndex which tracks user's progress
-    centerIndex = Math.max(0, Math.min(currentSlideIndex, hints.length - 1));
+    // Show the last unlocked hint, or first hint if none unlocked
+    const unlockedHints = hints.filter((h) => purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
+    
+    if (unlockedHints.length > 0) {
+      // Show the last unlocked hint (most recent progress)
+      const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
+      centerIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
+    } else {
+      // No hints unlocked yet, show the first hint (free hint)
+      centerIndex = 0;
+    }
   }
   
   // Calculate how many hints are unlocked (purchased and not currently revealing)
@@ -433,14 +410,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   
   const handlePrevious = () => {
     if (canGoBack) {
-      setCurrentSlideIndex(centerIndex - 1);
       setJustPurchased(null);
     }
   };
   
   const handleNext = () => {
     if (canGoForward) {
-      setCurrentSlideIndex(centerIndex + 1);
       setJustPurchased(null);
     }
   };
@@ -455,7 +430,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     ctaText = 'GET MORE!';
     ctaAction = () => {
       setJustPurchased(null);
-      setCurrentSlideIndex(centerIndex + 1); // Advance to next hint
     };
     ctaDisabled = false;
   } else if (purchasing !== null) {
