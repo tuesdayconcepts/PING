@@ -1057,6 +1057,10 @@ app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
     console.log('🔍 Backend Debug - hotspot.firstHintFree type:', typeof hotspot.firstHintFree);
     console.log('🔍 Backend Debug - hotspot.firstHintFree value:', hotspot.firstHintFree);
     console.log('🔍 Backend Debug - purchases:', purchases);
+    console.log('🔍 Backend Debug - purchases.length:', purchases.length);
+    console.log('🔍 Backend Debug - hint1 purchases:', purchases.filter(p => p.hintLevel === 1));
+    console.log('🔍 Backend Debug - wallet address:', wallet);
+    console.log('🔍 Backend Debug - hotspotId:', hotspotId);
     console.log('🔄 Redeploy trigger - timestamp:', new Date().toISOString());
     
     const response = {
