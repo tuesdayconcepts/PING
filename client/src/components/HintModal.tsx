@@ -89,7 +89,28 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [error, setError] = useState<string | null>(null);
   const [hotspot, setHotspot] = useState<any>(null);
   const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Manual navigation control
+
+  // Helper functions for localStorage persistence
+  const getStoredSlideIndex = (hotspotId: string): number => {
+    try {
+      const stored = localStorage.getItem(`hint-slide-${hotspotId}`);
+      return stored ? parseInt(stored, 10) : 0;
+    } catch {
+      return 0;
+    }
+  };
+
+  const setStoredSlideIndex = (hotspotId: string, index: number): void => {
+    try {
+      localStorage.setItem(`hint-slide-${hotspotId}`, index.toString());
+    } catch {
+      // Ignore localStorage errors
+    }
+  };
+
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(() => 
+    hotspotId ? getStoredSlideIndex(hotspotId) : 0
+  ); // Manual navigation control with localStorage persistence
   
   const [showNavigation, setShowNavigation] = useState(true); // Control navigation visibility
   const [revealingHint, setRevealingHint] = useState<number | null>(null); // Track which hint is currently revealing
@@ -131,6 +152,13 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       // If no hints unlocked, stay at index 0 (first hint)
     }
   }, [hotspot, purchasedHints, currentSlideIndex]);
+
+  // Save slide index to localStorage whenever it changes
+  useEffect(() => {
+    if (hotspotId && currentSlideIndex > 0) {
+      setStoredSlideIndex(hotspotId, currentSlideIndex);
+    }
+  }, [currentSlideIndex, hotspotId]);
 
   const fetchHotspotAndPurchases = async () => {
     try {
@@ -424,14 +452,18 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   
   const handlePrevious = () => {
     if (canGoBack) {
-      setCurrentSlideIndex(centerIndex - 1);
+      const newIndex = centerIndex - 1;
+      setCurrentSlideIndex(newIndex);
+      setStoredSlideIndex(hotspotId, newIndex);
       setJustPurchased(null);
     }
   };
   
   const handleNext = () => {
     if (canGoForward) {
-      setCurrentSlideIndex(centerIndex + 1);
+      const newIndex = centerIndex + 1;
+      setCurrentSlideIndex(newIndex);
+      setStoredSlideIndex(hotspotId, newIndex);
       setJustPurchased(null);
     }
   };
@@ -446,7 +478,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     ctaText = 'GET MORE!';
     ctaAction = () => {
       setJustPurchased(null);
-      setCurrentSlideIndex(centerIndex + 1); // Advance to next hint
+      const newIndex = centerIndex + 1;
+      setCurrentSlideIndex(newIndex);
+      setStoredSlideIndex(hotspotId, newIndex);
     };
     ctaDisabled = false;
   } else if (purchasing !== null) {
