@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { usePingPrice } from '../hooks/usePingPrice';
@@ -7,7 +7,6 @@ import { InvisibleInkReveal } from './InvisibleInkReveal';
 import './HintModal.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-// Removed REVEAL_DURATION - no longer needed with simplified logic
 
 interface HintModalProps {
   hotspotId: string;
@@ -15,181 +14,51 @@ interface HintModalProps {
   onShowDetails: () => void;
 }
 
-interface HintData {
-  purchased: boolean;
-  text?: string;
-}
-
-interface PurchasedHints {
-  hint1: HintData;
-  hint2: HintData;
-  hint3: HintData;
+interface HintState {
+  level: number;
+  text: string;
+  priceUsd: number | null; // null = free
+  status: 'locked' | 'unlocked' | 'processing' | 'revealed';
 }
 
 export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps) {
   const wallet = useWallet();
   const { publicKey, connected } = wallet;
-  const { settings, usdToPing, formatPingAmount, pingPrice, loading: priceLoading } = usePingPrice();
+  const { settings, usdToPing, formatPingAmount } = usePingPrice();
 
-  // Local storage functions for free hint tracking
-  const getLocalFreeHints = (hotspotId: string): PurchasedHints => {
-    const key = `free_hints_${hotspotId}`;
-    const localProgress = JSON.parse(localStorage.getItem(key) || '{}');
-    return {
-      hint1: localProgress.hint1 || { purchased: false },
-      hint2: localProgress.hint2 || { purchased: false },
-      hint3: localProgress.hint3 || { purchased: false },
-    };
-  };
-
-  const setLocalFreeHint = (hotspotId: string, hintLevel: number, hintText: string) => {
-    const key = `free_hints_${hotspotId}`;
-    const localProgress = JSON.parse(localStorage.getItem(key) || '{}');
-    localProgress[`hint${hintLevel}`] = { purchased: true, text: hintText };
-    localStorage.setItem(key, JSON.stringify(localProgress));
-  };
-
-  const migrateLocalProgressToWallet = async (walletAddress: string, hotspotId: string) => {
-    const key = `free_hints_${hotspotId}`;
-    const localProgress = JSON.parse(localStorage.getItem(key) || '{}');
-    console.log('🔄 Migration - Local progress:', localProgress);
-    
-    // Create database records for local free hints
-    for (const [hintKey, hintData] of Object.entries(localProgress)) {
-      console.log(`🔄 Checking ${hintKey}:`, hintData);
-      if (hintData && typeof hintData === 'object' && 'purchased' in hintData && (hintData as any).purchased) {
-        const hintLevel = parseInt(hintKey.replace('hint', ''));
-        console.log(`🔄 Migrating hint ${hintLevel}...`);
-        try {
-          const response = await fetch(`${API_URL}/api/hints/purchase`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              hotspotId,
-              walletAddress,
-              hintLevel,
-              txSignature: null,
-              paidAmount: 0,
-              isFree: true,
-            }),
-          });
-          
-          if (response.ok) {
-            console.log(`✅ Successfully migrated free hint ${hintLevel} to wallet ${walletAddress}`);
-          } else {
-            console.error(`❌ Failed to migrate hint ${hintLevel}:`, await response.text());
-          }
-        } catch (error) {
-          console.error(`❌ Failed to migrate free hint ${hintLevel}:`, error);
-        }
-      } else {
-        console.log(`⏭️ Skipping ${hintKey} - not purchased or invalid format`);
-      }
-    }
-    
-    // Clear local storage after migration
-    localStorage.removeItem(key);
-    console.log('🔄 Local free hint progress migrated to database');
-  };
-  
-  const [purchasedHints, setPurchasedHints] = useState<PurchasedHints | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [purchasing, setPurchasing] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // New state machine
+  const [hints, setHints] = useState<HintState[]>([]);
+  const [currentHintIndex, setCurrentHintIndex] = useState(0);
+  const [walletConnected, setWalletConnected] = useState(false);
   const [hotspot, setHotspot] = useState<any>(null);
-  const [justPurchased, setJustPurchased] = useState<number | null>(null); // Track just-purchased hint to show it
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCheckmark, setShowCheckmark] = useState(false);
 
-  // Helper functions for localStorage persistence
-  const getStoredSlideIndex = (hotspotId: string): number => {
+  // Track wallet connection state
+  useEffect(() => {
+    setWalletConnected(connected);
+  }, [connected]);
+
+  // Fetch hotspot data on modal open
+  useEffect(() => {
+    fetchHotspotData();
+  }, [hotspotId]);
+
+  // Fetch purchased hints when wallet connects
+  useEffect(() => {
+    if (hotspot && walletConnected && publicKey) {
+      fetchPurchasedHints();
+    }
+  }, [hotspot, walletConnected, publicKey]);
+
+  const fetchHotspotData = async () => {
     try {
-      const stored = localStorage.getItem(`hint-slide-${hotspotId}`);
-      return stored ? parseInt(stored, 10) : 0;
-    } catch {
-      return 0;
-    }
-  };
+      setLoading(true);
+      setError(null);
 
-  const setStoredSlideIndex = (hotspotId: string, index: number): void => {
-    try {
-      localStorage.setItem(`hint-slide-${hotspotId}`, index.toString());
-    } catch {
-      // Ignore localStorage errors
-    }
-  };
-
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(() => 
-    hotspotId ? getStoredSlideIndex(hotspotId) : 0
-  ); // Manual navigation control with localStorage persistence
-  
-  const [showNavigation, setShowNavigation] = useState(true); // Control navigation visibility
-  const [revealingHint, setRevealingHint] = useState<number | null>(null); // Track which hint is currently revealing
-
-  // Fetch hotspot data and purchased hints
-  useEffect(() => {
-    fetchHotspotAndPurchases();
-  }, [hotspotId, publicKey]);
-
-  // Debug logging for state changes
-  useEffect(() => {
-    console.log('🔍 Debug - Wallet connected:', connected);
-    console.log('🔍 Debug - Public key:', publicKey?.toString());
-    console.log('🔍 Debug - Purchased hints:', purchasedHints);
-    console.log('🔍 Debug - Revealing hint:', revealingHint);
-    console.log('🔍 Debug - Just purchased:', justPurchased);
-  }, [connected, publicKey, purchasedHints, revealingHint, justPurchased]);
-
-  // Set initial slide index when modal opens - show last unlocked hint or first hint
-  // Use a ref to track if we've set the initial index for this modal session
-  const hasSetInitialIndexRef = useRef(false);
-  
-  useEffect(() => {
-    if (hotspot && purchasedHints && !hasSetInitialIndexRef.current) {
-      // Calculate hints array here to avoid dependency issues
-      const hints = [
-        { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: true }, // First hint always free
-        { level: 2, text: hotspot.hint2, price: hotspot.hint2PriceUsd, free: false },
-        { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
-      ].filter((h) => h.text);
-      
-      const unlockedHints = hints.filter((h) => purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
-      
-      if (unlockedHints.length > 0) {
-        // Show the last unlocked hint (most recent progress)
-        const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
-        const newIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
-        if (newIndex !== -1) {
-          console.log(`🔄 Setting initial slide index to ${newIndex} (hint ${lastUnlockedHint.level})`);
-          setCurrentSlideIndex(newIndex);
-        }
-      } else {
-        // No hints unlocked yet, go to first hint
-        console.log(`🔄 No hints unlocked, setting initial slide index to 0`);
-        setCurrentSlideIndex(0);
-      }
-      
-      hasSetInitialIndexRef.current = true;
-    }
-  }, [hotspot, purchasedHints]); // Include purchasedHints but use ref to prevent re-running
-
-  // Reset the initial index flag when modal closes/reopens
-  useEffect(() => {
-    if (!open) {
-      hasSetInitialIndexRef.current = false;
-    }
-  }, [open]);
-
-  // Save slide index to localStorage whenever it changes
-  useEffect(() => {
-    if (hotspotId && currentSlideIndex > 0) {
-      setStoredSlideIndex(hotspotId, currentSlideIndex);
-    }
-  }, [currentSlideIndex, hotspotId]);
-
-  const fetchHotspotAndPurchases = async () => {
-    try {
-      // Fetch hotspot data
-      const hotspotRes = await fetch(`${API_URL}/api/hotspots`);
-      const hotspots = await hotspotRes.json();
+      const response = await fetch(`${API_URL}/api/hotspots`);
+      const hotspots = await response.json();
       const currentHotspot = hotspots.find((h: any) => h.id === hotspotId);
       
       if (!currentHotspot) {
@@ -197,184 +66,198 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       }
       
       setHotspot(currentHotspot);
-      console.log('🔍 Hotspot data - firstHintFree:', currentHotspot.firstHintFree);
-      console.log('🔍 Hotspot data - hint1PriceUsd:', currentHotspot.hint1PriceUsd);
 
-      // Fetch purchased hints based on wallet connection
-      if (publicKey) {
-        // Wallet connected - migrate local progress first, then fetch from database
-        await migrateLocalProgressToWallet(publicKey.toString(), hotspotId);
-        
-        const purchasedRes = await fetch(
-          `${API_URL}/api/hints/${hotspotId}/purchased?wallet=${publicKey.toString()}`
-        );
-        const data = await purchasedRes.json();
-        console.log('🔍 API Response - Purchased hints:', data);
-        
-        // No cleanup needed since first hint is always free
-        
-        setPurchasedHints(data);
-      } else {
-        // No wallet connected - use local storage for free hints
-        const localHints = getLocalFreeHints(hotspotId);
-        console.log('🔍 Local free hints:', localHints);
-        setPurchasedHints(localHints);
-      }
+      // Initialize hints array
+      const hintsArray: HintState[] = [
+        { 
+          level: 1, 
+          text: currentHotspot.hint1, 
+          priceUsd: currentHotspot.hint1PriceUsd, 
+          status: 'unlocked' as const // First hint always unlocked
+        },
+        { 
+          level: 2, 
+          text: currentHotspot.hint2, 
+          priceUsd: currentHotspot.hint2PriceUsd, 
+          status: 'locked' as const 
+        },
+        { 
+          level: 3, 
+          text: currentHotspot.hint3, 
+          priceUsd: currentHotspot.hint3PriceUsd, 
+          status: 'locked' as const 
+        },
+      ].filter((h) => h.text); // Only show hints that exist
+
+      setHints(hintsArray);
     } catch (err) {
-      console.error('Failed to fetch hint data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load hints');
+      console.error('Failed to fetch hotspot data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load hotspot');
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePurchase = async (hintLevel: number, isFree: boolean) => {
-    if (!publicKey && !isFree) {
-      setError('Please connect your wallet first');
-      return;
-    }
-
-    if (!settings && !isFree) {
-      setError('Hint system not configured');
-      return;
-    }
-
-    setPurchasing(hintLevel);
-    setError(null);
+  const fetchPurchasedHints = async () => {
+    if (!publicKey) return;
 
     try {
-      let txSignature = null;
-      let paidAmount = 0;
+      const response = await fetch(
+        `${API_URL}/api/hints/${hotspotId}/purchased?wallet=${publicKey.toString()}`
+      );
+      const data = await response.json();
 
-      // Handle free hint (no wallet required)
-      if (isFree) {
-        const hintText = hotspot?.hint1 || hotspot?.hint2 || hotspot?.hint3;
-        
-        // Store in local storage for persistence
-        setLocalFreeHint(hotspotId, hintLevel, hintText || '');
-        
-        // Update local state immediately
-        setPurchasedHints((prev) => ({
-          ...prev!,
-          [`hint${hintLevel}`]: {
-            purchased: true,
-            text: hintText,
-          },
-        }));
-        
-        // Set just purchased to keep card visible
-        setJustPurchased(hintLevel);
-        setShowNavigation(false);
-        
-        // Start reveal animation
-        setRevealingHint(hintLevel);
-        
-        // Keep processing state for 2 seconds total
-        setTimeout(() => {
-          setPurchasing(null);
-        }, 2000);
-        
-        return; // Early return for free hints
-      }
-
-      // Handle paid purchase
-      if (!isFree) {
-        // Get price for this hint level (must be configured on hotspot)
-        const hintPriceUsd = hintLevel === 1
-          ? hotspot.hint1PriceUsd
-          : hintLevel === 2
-          ? hotspot.hint2PriceUsd
-          : hotspot.hint3PriceUsd;
-        
-        if (!hintPriceUsd) {
-          throw new Error('Hint price not configured for this hotspot');
-        }
-
-        // Calculate $PING amount
-        const pingAmount = usdToPing(hintPriceUsd);
-        
-        if (!pingAmount) {
-          if (!pingPrice) {
-            throw new Error('$PING price is not loaded yet. Please wait a moment and try again.');
-          }
-          throw new Error('Unable to calculate $PING price. Please try again.');
-        }
-
-        if (!settings?.pingTokenMint) {
-          throw new Error('$PING token mint address not configured. Please contact support.');
-        }
-
-        if (!settings?.treasuryWallet) {
-          throw new Error('Treasury wallet address not configured. Please contact support.');
-        }
-
-        if (!settings?.burnWallet) {
-          throw new Error('Burn wallet address not configured. Please contact support.');
-        }
-
-        paidAmount = pingAmount;
-
-        // Send transaction
-        txSignature = await sendHintPayment(
-          wallet,
-          settings.treasuryWallet,
-          settings.burnWallet,
-          pingAmount,
-          settings.pingTokenMint
-        );
-      }
-
-      // Submit purchase to backend
-      const response = await fetch(`${API_URL}/api/hints/purchase`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          hotspotId,
-          walletAddress: publicKey?.toString() || 'anonymous',
-          hintLevel,
-          txSignature,
-          paidAmount,
-          isFree, // Include free hint flag
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Purchase failed');
-      }
-
-      const result = await response.json();
-
-      // Update purchased hints with the new hint text immediately (but still hidden)
-      setPurchasedHints((prev) => ({
-        ...prev!,
-        [`hint${hintLevel}`]: {
-          purchased: true,
-          text: result.hintText,
-        },
-      }));
-      
-      // Set just purchased to keep card visible
-      setJustPurchased(hintLevel);
-      setShowNavigation(false); // Hide navigation initially
-      
-      // Start reveal animation after purchase is processed (only for paid hints)
-      if (!isFree) {
-        console.log(`🎬 Starting reveal animation for hint ${hintLevel}`);
-        setRevealingHint(hintLevel);
-        console.log(`🎬 revealingHint set to: ${hintLevel}`);
-      }
-      
-      // Keep processing state for 2 seconds total
-      setTimeout(() => {
-        setPurchasing(null);
-      }, 2000);
+      // Update hints status based on purchased data
+      setHints(prevHints => 
+        prevHints.map(hint => {
+          const purchased = data[`hint${hint.level}`]?.purchased;
+          return {
+            ...hint,
+            status: purchased ? 'revealed' : hint.status
+          };
+        })
+      );
     } catch (err) {
-      console.error('Purchase failed:', err);
-      setError(err instanceof Error ? err.message : 'Purchase failed');
-      setPurchasing(null); // Clear processing state on error
+      console.error('Failed to fetch purchased hints:', err);
     }
   };
+
+  const updateHintStatus = (hintLevel: number, status: HintState['status']) => {
+    setHints(prevHints => 
+      prevHints.map(hint => 
+        hint.level === hintLevel ? { ...hint, status } : hint
+      )
+    );
+  };
+
+  const handleUnlock = async (hintLevel: number) => {
+    const hint = hints.find(h => h.level === hintLevel);
+    if (!hint) return;
+    
+    // Update status to processing
+    updateHintStatus(hintLevel, 'processing');
+    
+    try {
+      // If free (priceUsd === null)
+      if (hint.priceUsd === null) {
+        await recordFreePurchase(hintLevel);
+        updateHintStatus(hintLevel, 'revealed');
+        showCheckmarkAnimation();
+        return;
+      }
+      
+      // If paid
+      if (!settings) {
+        throw new Error('Hint system not configured');
+      }
+      
+      const pingAmount = usdToPing(hint.priceUsd);
+      if (!pingAmount) {
+        throw new Error('Unable to calculate PING amount');
+      }
+      
+      const txSignature = await sendHintPayment(
+        wallet,
+        settings.treasuryWallet,
+        settings.burnWallet,
+        pingAmount,
+        settings.pingTokenMint
+      );
+      
+      await recordPaidPurchase(hintLevel, txSignature, pingAmount);
+      updateHintStatus(hintLevel, 'revealed');
+      showCheckmarkAnimation();
+      
+    } catch (error) {
+      // Revert to unlocked on error
+      updateHintStatus(hintLevel, 'unlocked');
+      setError(error instanceof Error ? error.message : 'Unlock failed');
+    }
+  };
+
+  const recordFreePurchase = async (hintLevel: number) => {
+    const response = await fetch(`${API_URL}/api/hints/purchase`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        hotspotId,
+        walletAddress: publicKey?.toString() || 'anonymous',
+        hintLevel,
+        txSignature: null,
+        paidAmount: 0,
+      }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to record free purchase');
+    }
+  };
+
+  const recordPaidPurchase = async (hintLevel: number, txSignature: string, paidAmount: number) => {
+    const response = await fetch(`${API_URL}/api/hints/purchase`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        hotspotId,
+        walletAddress: publicKey?.toString() || 'anonymous',
+        hintLevel,
+        txSignature,
+        paidAmount,
+      }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to record paid purchase');
+    }
+  };
+
+  const showCheckmarkAnimation = () => {
+    setShowCheckmark(true);
+    setTimeout(() => setShowCheckmark(false), 2000);
+  };
+
+  // Navigation handlers
+  const canGoBack = currentHintIndex > 0;
+  const canGoForward = currentHintIndex < hints.length - 1;
+
+  const handlePrevious = () => {
+    if (canGoBack) setCurrentHintIndex(currentHintIndex - 1);
+  };
+
+  const handleNext = () => {
+    if (canGoForward) setCurrentHintIndex(currentHintIndex + 1);
+  };
+
+  // CTA Logic
+  const currentHint = hints[currentHintIndex];
+  let ctaText: string;
+  let ctaAction: (() => void) | null;
+  let ctaDisabled: boolean;
+
+  if (!walletConnected) {
+    ctaText = 'CONNECT WALLET';
+    ctaAction = null; // WalletMultiButton handles this
+    ctaDisabled = false;
+  } else if (currentHint?.status === 'processing') {
+    ctaText = 'PROCESSING...';
+    ctaAction = null;
+    ctaDisabled = true;
+  } else if (currentHint?.status === 'locked' || currentHint?.status === 'unlocked') {
+    ctaText = 'UNLOCK HINT';
+    ctaAction = () => handleUnlock(currentHint.level);
+    ctaDisabled = false;
+  } else if (currentHint?.status === 'revealed') {
+    const hasNextHint = currentHintIndex < hints.length - 1;
+    ctaText = hasNextHint ? 'GET MORE!' : 'ALL HINTS UNLOCKED';
+    ctaAction = hasNextHint ? () => setCurrentHintIndex(currentHintIndex + 1) : null;
+    ctaDisabled = !hasNextHint;
+  } else {
+    ctaText = 'ALL HINTS UNLOCKED';
+    ctaAction = null;
+    ctaDisabled = true;
+  }
 
   if (loading) {
     return (
@@ -395,143 +278,42 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     );
   }
 
-  if (!hotspot || !purchasedHints) {
-    return null;
+  if (error) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-wrapper">
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={onClose}>
+              ✕
+            </button>
+            <div className="modal-sections">
+              <div className="modal-section">
+                <div className="hint-error-banner">{error}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  // Determine which hints exist
-  const hints = [
-    { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: true }, // First hint always free
-    { level: 2, text: hotspot.hint2, price: hotspot.hint2PriceUsd, free: false },
-    { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
-  ].filter((h) => h.text); // Only show hints that exist
-
-
-  // Determine which hint to show centered
-  let centerIndex: number;
-  if (justPurchased !== null) {
-    // Keep just-purchased hint centered until user clicks "GET MORE!"
-    centerIndex = hints.findIndex((h) => h.level === justPurchased);
-  } else {
-    // Use manual navigation state, but ensure it's within bounds
-    centerIndex = Math.max(0, Math.min(currentSlideIndex, hints.length - 1));
-  }
-
-  // Find the current hint being viewed and next unpurchased hint
-  const currentHint = hints[centerIndex];
-  const nextHint = hints.find((h) => !purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
-  
-  // Calculate how many hints are unlocked (purchased and not currently revealing)
-  const unlockedCount = hints.filter((h) => 
-    purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased && 
-    revealingHint !== h.level
-  ).length;
-  
-  // Max index user can navigate to (unlocked hints + 1 for current locked)
-  const maxNavigableIndex = Math.min(unlockedCount, hints.length - 1);
-  
-  // Check if current centered hint needs previous hint unlocked
-  const currentHintNeedsPrevious = currentHint && currentHint.level > 1 && 
-    !purchasedHints[`hint${currentHint.level - 1}` as keyof PurchasedHints]?.purchased;
-  
-  // Debug logging for navigation state
-  console.log('🧭 Debug - Center index:', centerIndex);
-  console.log('🧭 Debug - Current hint:', currentHint);
-  console.log('🧭 Debug - Unlocked count:', unlockedCount);
-  console.log('🧭 Debug - Current hint needs previous:', currentHintNeedsPrevious);
-  console.log('🧭 Debug - Show navigation:', showNavigation);
-  
-  // Navigation handlers - only allow navigation within unlocked + current locked
-  // BUT: disable arrows if user just purchased (must use CTA to advance first)
-  const canGoBack = centerIndex > 0 && justPurchased === null && showNavigation && revealingHint === null;
-  const canGoForward = centerIndex < maxNavigableIndex && 
-    justPurchased === null && 
-    !purchasing && 
-    showNavigation && 
-    revealingHint === null && 
-    unlockedCount > 0 &&
-    !currentHintNeedsPrevious; // Prevent navigation if current hint needs previous hint unlocked
-  
-  const handlePrevious = () => {
-    if (canGoBack) {
-      const newIndex = currentSlideIndex - 1;
-      console.log(`🔄 Previous: Moving from ${currentSlideIndex} to ${newIndex}`);
-      setCurrentSlideIndex(newIndex);
-      setStoredSlideIndex(hotspotId, newIndex);
-      setJustPurchased(null);
-    }
-  };
-  
-  const handleNext = () => {
-    if (canGoForward) {
-      const newIndex = currentSlideIndex + 1;
-      console.log(`🔄 Next: Moving from ${currentSlideIndex} to ${newIndex}`);
-      setCurrentSlideIndex(newIndex);
-      setStoredSlideIndex(hotspotId, newIndex);
-      setJustPurchased(null);
-    }
-  };
-
-  // Determine CTA text and action
-  let ctaText = 'ALL HINTS UNLOCKED';
-  let ctaAction = null;
-  let ctaDisabled = true;
-
-  if (justPurchased !== null && nextHint) {
-    // Just purchased a hint, show "GET MORE!" to advance
-    ctaText = 'GET MORE!';
-    ctaAction = () => {
-      setJustPurchased(null);
-      const newIndex = currentSlideIndex + 1;
-      console.log(`🔄 GET MORE (just purchased): Moving from ${currentSlideIndex} to ${newIndex}`);
-      setCurrentSlideIndex(newIndex);
-      setStoredSlideIndex(hotspotId, newIndex);
-    };
-    ctaDisabled = false;
-  } else if (purchasing !== null) {
-    // Currently processing a purchase
-    ctaText = 'PROCESSING...';
-    ctaDisabled = true;
-  } else if (nextHint) {
-    // Check if user is viewing a purchased hint and can advance
-    const isViewingPurchasedHint = currentHint && purchasedHints[`hint${currentHint.level}` as keyof PurchasedHints]?.purchased;
-    const canAdvance = currentSlideIndex < hints.length - 1;
-    
-    if (isViewingPurchasedHint && canAdvance) {
-      // User is viewing a purchased hint and can advance to next hint
-      ctaText = 'GET MORE!';
-      ctaAction = () => {
-        const newIndex = currentSlideIndex + 1;
-        console.log(`🔄 GET MORE (viewing purchased): Moving from ${currentSlideIndex} to ${newIndex}`);
-        setCurrentSlideIndex(newIndex);
-        setStoredSlideIndex(hotspotId, newIndex);
-      };
-      ctaDisabled = false;
-    } else {
-      // Show unlock CTA for the next hint
-      const needsPreviousHint = nextHint.level > 1 && 
-        !purchasedHints[`hint${nextHint.level - 1}` as keyof PurchasedHints]?.purchased;
-
-      if (needsPreviousHint) {
-        ctaText = `UNLOCK HINT ${nextHint.level - 1} FIRST`;
-        ctaDisabled = true;
-      } else if (nextHint.free) {
-        ctaText = 'REVEAL HINT';
-        ctaAction = () => handlePurchase(nextHint.level, true);
-        ctaDisabled = false;
-      } else if (!connected) {
-        // Will show WalletMultiButton instead
-        ctaText = 'CONNECT_WALLET';
-        ctaDisabled = false;
-      } else if (priceLoading || !pingPrice) {
-        ctaText = 'LOADING PRICE...';
-        ctaDisabled = true;
-      } else {
-        ctaText = 'UNLOCK HINT';
-        ctaAction = () => handlePurchase(nextHint.level, false);
-        ctaDisabled = false;
-      }
-    }
+  if (!hotspot || hints.length === 0) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-wrapper">
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={onClose}>
+              ✕
+            </button>
+            <div className="modal-sections">
+              <div className="modal-section">
+                <div className="hint-error-banner">No hints available for this hotspot</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -543,7 +325,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
           </button>
 
           <div className="modal-sections">
-            {/* Header Section - Enhanced Messaging */}
+            {/* Header Section */}
             <div className="modal-section hint-header-section">
               <h2>Unlock the Secret</h2>
               <p className="hint-subtitle">
@@ -551,96 +333,66 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               </p>
             </div>
 
-            {/* Hints Slider - Each hint is its own modal-section */}
-            {hints.length === 0 ? (
-              <div className="modal-section">
-                <p className="no-hints">No hints available for this hotspot</p>
-              </div>
-            ) : (
-              <div className="hints-slider-wrapper">
-                {/* Navigation Arrows */}
-                {canGoBack && (
-                  <button className="slider-nav prev" onClick={handlePrevious} aria-label="Previous hint">
-                    ‹
-                  </button>
-                )}
-                {canGoForward && (
-                  <button className="slider-nav next" onClick={handleNext} aria-label="Next hint">
-                    ›
-                  </button>
-                )}
-                
-                <div className="hints-slider-track" style={{ transform: `translateX(calc(-${centerIndex * 100}% - ${centerIndex * 15}px))` }}>
-                  {hints.map((hint, index) => {
-                    const purchased = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.purchased;
-                    const hintText = purchasedHints[`hint${hint.level}` as keyof PurchasedHints]?.text || hint.text;
-                    const pingAmount = hint.free ? 0 : (hint.price && pingPrice ? usdToPing(hint.price) : null);
-                    const needsPreviousHint = hint.level > 1 && 
-                      !purchasedHints[`hint${hint.level - 1}` as keyof PurchasedHints]?.purchased;
-                    const isCenter = index === centerIndex; // Check if this is the centered slide
-
-                    return (
-                      <div 
-                        key={hint.level} 
-                        className={`modal-section hint-slide ${isCenter ? 'center' : 'side'} ${needsPreviousHint ? 'disabled' : ''}`}
-                      >
-                        {/* Price text floating in center */}
-                        {!purchased && !revealingHint && (
-                          <div className="hint-price-text">
-                            {hint.free ? (
-                              <span className="free-text">FREE HINT</span>
-                            ) : (
-                              <div className="paid-text">
-                                <div className="paid-line-1">UNLOCK FOR</div>
-                                <div className="paid-line-2">{formatPingAmount(pingAmount || 0)} $PING</div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Hint title at middle bottom */}
-                        <div className="hint-title">
-                          Hint {hint.level} of {hints.length}
+            {/* Hints Slider */}
+            <div className="hints-slider-wrapper">
+              {/* Navigation Arrows - only show when wallet connected */}
+              {walletConnected && canGoBack && (
+                <button className="slider-nav prev" onClick={handlePrevious} aria-label="Previous hint">
+                  ‹
+                </button>
+              )}
+              {walletConnected && canGoForward && (
+                <button className="slider-nav next" onClick={handleNext} aria-label="Next hint">
+                  ›
+                </button>
+              )}
+              
+              <div className="hints-slider-track" style={{ transform: `translateX(calc(-${currentHintIndex * 100}% - ${currentHintIndex * 15}px))` }}>
+                {hints.map((hint, index) => {
+                  const isCenter = index === currentHintIndex;
+                  const revealed = hint.status === 'revealed';
+                  
+                  return (
+                    <div key={hint.level} className={`modal-section hint-slide ${isCenter ? 'center' : 'side'}`}>
+                      {/* Price badge (only show if not revealed) */}
+                      {!revealed && (
+                        <div className="hint-price-text">
+                          {hint.priceUsd === null ? (
+                            <div className="free-text">FREE</div>
+                          ) : (
+                            <div className="paid-text">
+                              <div className="paid-line-1">UNLOCK FOR</div>
+                              <div className="paid-line-2">{formatPingAmount(usdToPing(hint.priceUsd) || 0)} $PING</div>
+                              <div className="paid-line-3">USD ${hint.priceUsd.toFixed(2)}</div>
+                            </div>
+                          )}
                         </div>
+                      )}
 
-                        {/* Hint content area - canvas renders everything */}
-                        <div className="hint-content-area">
-                          {/* Canvas handles both particles and text rendering */}
-                          {!needsPreviousHint && (
-                            <div className="hint-ink-overlay">
-                              <InvisibleInkReveal 
-                                text={purchased ? hintText : 'Hint will be revealed after purchase'} 
-                                revealed={hint.free ? purchased : revealingHint === hint.level}
-                                onRevealComplete={() => {
-                                  // Animation complete - show navigation after reveal
-                                  setShowNavigation(true);
-                                  setRevealingHint(null); // Clear revealing state
-                                }}
-                              />
-                              {/* Debug info */}
-                              {hint.level === 3 && (
-                                <div style={{position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '5px', fontSize: '12px', zIndex: 1000}}>
-                                  Debug: hint.free={hint.free.toString()}, purchased={purchased?.toString()}, revealingHint={revealingHint}, revealed={hint.free ? purchased : revealingHint === hint.level}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                      {/* Hint title */}
+                      <div className="hint-title">
+                        Hint {hint.level} of {hints.length}
+                      </div>
 
-                          {/* Requirement message for locked hints */}
-                          {needsPreviousHint && (
-                            <div className="hint-locked-content">
-                              <p className="hint-requirement">Unlock Hint {hint.level - 1} first</p>
-                            </div>
-                          )}
+                      {/* Hint content area */}
+                      <div className="hint-content-area">
+                        <div className="hint-ink-overlay">
+                          <InvisibleInkReveal
+                            text={revealed ? hint.text : `Hint ${hint.level}`}
+                            revealed={revealed}
+                            onRevealComplete={() => {
+                              // Animation complete - no state change needed, already marked as revealed
+                            }}
+                          />
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
 
-            {/* Error Message - positioned under hints-slider-wrapper */}
+            {/* Error Message */}
             {error && (
               <div className="hint-error-banner">
                 {error}
@@ -653,15 +405,15 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                 PING DETAILS
               </button>
               
-              {ctaText === 'CONNECT_WALLET' ? (
+              {ctaText === 'CONNECT WALLET' ? (
                 <WalletMultiButton />
               ) : (
                 <button
-                  className={`hint-cta-btn ${nextHint && !nextHint.free ? 'paid' : 'free'}`}
+                  className={`hint-cta-btn ${currentHint?.priceUsd === null ? 'free' : 'paid'}`}
                   onClick={ctaAction || undefined}
-                  disabled={ctaDisabled || purchasing !== null}
+                  disabled={ctaDisabled}
                 >
-                  {purchasing !== null ? 'PROCESSING...' : ctaText}
+                  {showCheckmark ? '✓' : ctaText}
                 </button>
               )}
             </div>

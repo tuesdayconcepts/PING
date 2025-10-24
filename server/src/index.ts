@@ -1073,30 +1073,20 @@ app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
       orderBy: { hintLevel: 'asc' },
     });
 
-    // Build response with hint text only for purchased hints
-    // First hint is always free
-    const hasHint1Purchase = purchases.some((p) => p.hintLevel === 1);
-    const shouldShowHint1 = hasHint1Purchase || true; // First hint always free
-    
-    console.log('🔍 Backend Debug - hasHint1Purchase:', hasHint1Purchase);
-    console.log('🔍 Backend Debug - shouldShowHint1:', shouldShowHint1);
-    console.log('🔍 Backend Debug - purchases:', purchases);
-    console.log('🔍 Backend Debug - purchases.length:', purchases.length);
-    console.log('🔍 Backend Debug - hint1 purchases:', purchases.filter(p => p.hintLevel === 1));
-    console.log('🔍 Backend Debug - wallet address:', wallet);
-    console.log('🔍 Backend Debug - hotspotId:', hotspotId);
-    console.log('🔄 Redeploy trigger - timestamp:', new Date().toISOString());
-    
+    // Build response - no special handling for firstHintFree
     const response = {
-      hint1: shouldShowHint1
-        ? { purchased: true, text: hotspot.hint1 }
-        : { purchased: false },
-      hint2: purchases.some((p) => p.hintLevel === 2)
-        ? { purchased: true, text: hotspot.hint2 }
-        : { purchased: false },
-      hint3: purchases.some((p) => p.hintLevel === 3)
-        ? { purchased: true, text: hotspot.hint3 }
-        : { purchased: false },
+      hint1: {
+        purchased: purchases.some(p => p.hintLevel === 1),
+        text: purchases.some(p => p.hintLevel === 1) ? hotspot.hint1 : undefined,
+      },
+      hint2: {
+        purchased: purchases.some(p => p.hintLevel === 2),
+        text: purchases.some(p => p.hintLevel === 2) ? hotspot.hint2 : undefined,
+      },
+      hint3: {
+        purchased: purchases.some(p => p.hintLevel === 3),
+        text: purchases.some(p => p.hintLevel === 3) ? hotspot.hint3 : undefined,
+      },
     };
 
     res.json(response);
@@ -1109,7 +1099,7 @@ app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
 // POST /api/hints/purchase - Purchase a hint (public)
 app.post("/api/hints/purchase", async (req, res) => {
   try {
-    const { hotspotId, walletAddress, hintLevel, txSignature, paidAmount, isFree } = req.body;
+    const { hotspotId, walletAddress, hintLevel, txSignature, paidAmount } = req.body;
 
     // Validation
     if (!hotspotId || !walletAddress || !hintLevel) {
@@ -1157,7 +1147,7 @@ app.post("/api/hints/purchase", async (req, res) => {
 
     if (existingPurchase) {
       // Already purchased, return the hint
-      return res.json({ success: true, hint: hintText, alreadyPurchased: true });
+      return res.json({ success: true, hintText, alreadyPurchased: true });
     }
 
     // Validate progressive unlock (need hint 1 before 2, need hint 2 before 3)
@@ -1179,14 +1169,23 @@ app.post("/api/hints/purchase", async (req, res) => {
       }
     }
 
-    // Handle free hint (first hint is always free)
-    if (isFree && hintLevel === 1) {
+    // Get hint price for this level
+    const hintPriceUsd = hintLevel === 1
+      ? hotspot.hint1PriceUsd
+      : hintLevel === 2
+      ? hotspot.hint2PriceUsd
+      : hotspot.hint3PriceUsd;
+
+    const isFree = hintPriceUsd === null;
+
+    // Handle free hint
+    if (isFree) {
       // Record free purchase
       await prisma.hintPurchase.create({
         data: {
           hotspotId,
           walletAddress,
-          hintLevel: 1,
+          hintLevel,
           paidAmount: 0,
           paidUsd: 0,
           txSignature: null,
@@ -1196,20 +1195,9 @@ app.post("/api/hints/purchase", async (req, res) => {
       return res.json({ success: true, hintText, free: true });
     }
 
-    // Handle paid purchase
+    // Handle paid hint
     if (!txSignature) {
       return res.status(400).json({ error: "Transaction signature required for paid hints" });
-    }
-
-    // Get expected price for this hint (must be set on hotspot)
-    const hintPriceUsd = hintLevel === 1
-      ? hotspot.hint1PriceUsd
-      : hintLevel === 2
-      ? hotspot.hint2PriceUsd
-      : hotspot.hint3PriceUsd;
-    
-    if (!hintPriceUsd) {
-      return res.status(400).json({ error: "Hint price not configured for this hotspot" });
     }
 
     // Get current $PING price
@@ -1250,7 +1238,7 @@ app.post("/api/hints/purchase", async (req, res) => {
     // Return hint text
     res.json({ 
       success: true, 
-      hint: hintText,
+      hintText,
       treasuryAmount: verification.treasuryAmount,
       burnAmount: verification.burnAmount,
     });

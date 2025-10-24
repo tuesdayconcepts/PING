@@ -55,7 +55,6 @@ function AdminPage() {
     hint1PriceUsd: '' as string | number,
     hint2PriceUsd: '' as string | number,
     hint3PriceUsd: '' as string | number,
-    firstHintFree: false,
   });
 
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
@@ -469,7 +468,6 @@ function AdminPage() {
       hint1PriceUsd: '',
       hint2PriceUsd: '',
       hint3PriceUsd: '',
-      firstHintFree: false,
     });
     setImagePreview(null);
     setHintsExpanded(false);
@@ -556,7 +554,6 @@ function AdminPage() {
       hint1PriceUsd: hotspot.hint1PriceUsd || '',
       hint2PriceUsd: hotspot.hint2PriceUsd || '',
       hint3PriceUsd: hotspot.hint3PriceUsd || '',
-      firstHintFree: hotspot.firstHintFree || false,
     });
     setImagePreview(hotspot.imageUrl || null);
     
@@ -598,10 +595,9 @@ function AdminPage() {
         hint1: formData.hint1 || null,
         hint2: formData.hint2 || null,
         hint3: formData.hint3 || null,
-        hint1PriceUsd: formData.hint1PriceUsd || null,
-        hint2PriceUsd: formData.hint2PriceUsd || null,
-        hint3PriceUsd: formData.hint3PriceUsd || null,
-        firstHintFree: formData.firstHintFree,
+        hint1PriceUsd: formData.hint1PriceUsd === '' ? null : parseFloat(formData.hint1PriceUsd.toString()),
+        hint2PriceUsd: formData.hint2PriceUsd === '' ? null : parseFloat(formData.hint2PriceUsd.toString()),
+        hint3PriceUsd: formData.hint3PriceUsd === '' ? null : parseFloat(formData.hint3PriceUsd.toString()),
       };
 
       // Only include endDate if expiration toggle is enabled
@@ -713,7 +709,6 @@ function AdminPage() {
         hint1PriceUsd: '',
         hint2PriceUsd: '',
         hint3PriceUsd: '',
-        firstHintFree: false,
       });
       // Don't reset map center - let user keep their current view
       setFormClosing(false);
@@ -1347,17 +1342,6 @@ function AdminPage() {
                               
                               {hintsExpanded && (
                                 <div className="hints-content">
-                                  {/* First Hint Free Toggle */}
-                                  <div className="form-group checkbox">
-                                    <label>
-                                      <input
-                                        type="checkbox"
-                                        checked={formData.firstHintFree}
-                                        onChange={(e) => setFormData({ ...formData, firstHintFree: e.target.checked })}
-                                      />
-                                      <span>First Hint Free</span>
-                                    </label>
-                                  </div>
 
                                   {/* Hint 1 */}
                                   <div className="hint-group">
@@ -1370,21 +1354,19 @@ function AdminPage() {
                                       placeholder="e.g., Near the downtown library"
                                       rows={2}
                                     />
-                                    {!formData.firstHintFree && (
-                                      <div className="hint-price-input">
-                                        <label htmlFor="edit-hint1Price">Price (USD)</label>
-                                        <input
-                                          type="number"
-                                          id="edit-hint1Price"
-                                          name="hint1PriceUsd"
-                                          value={formData.hint1PriceUsd}
-                                          onChange={handleInputChange}
-                                          placeholder="Leave empty for default"
-                                          step="0.01"
-                                          min="0"
-                                        />
-                                      </div>
-                                    )}
+                                    <div className="hint-price-input">
+                                      <label htmlFor="edit-hint1Price">Price (USD)</label>
+                                      <input
+                                        type="number"
+                                        id="edit-hint1Price"
+                                        name="hint1PriceUsd"
+                                        value={formData.hint1PriceUsd}
+                                        onChange={handleInputChange}
+                                        placeholder="Leave empty for free"
+                                        step="0.01"
+                                        min="0"
+                                      />
+                                    </div>
                                   </div>
 
                                   {/* Hint 2 */}
@@ -1406,7 +1388,7 @@ function AdminPage() {
                                         name="hint2PriceUsd"
                                         value={formData.hint2PriceUsd}
                                         onChange={handleInputChange}
-                                        placeholder="Leave empty for default"
+                                        placeholder="Leave empty for free"
                                         step="0.01"
                                         min="0"
                                       />
@@ -1432,7 +1414,7 @@ function AdminPage() {
                                         name="hint3PriceUsd"
                                         value={formData.hint3PriceUsd}
                                         onChange={handleInputChange}
-                                        placeholder="Leave empty for default"
+                                        placeholder="Leave empty for free"
                                         step="0.01"
                                         min="0"
                                       />
@@ -1624,17 +1606,6 @@ function AdminPage() {
                       
                       {hintsExpanded && (
                         <div className="hints-content">
-                          {/* First Hint Free Toggle */}
-                          <div className="form-group checkbox">
-                            <label>
-                              <input
-                                type="checkbox"
-                                checked={formData.firstHintFree}
-                                onChange={(e) => setFormData({ ...formData, firstHintFree: e.target.checked })}
-                              />
-                              <span>First Hint Free</span>
-                            </label>
-                          </div>
 
                           {/* Hint 1 */}
                           <div className="hint-group">
@@ -1647,21 +1618,19 @@ function AdminPage() {
                               placeholder="e.g., Near the downtown library"
                               rows={2}
                             />
-                            {!formData.firstHintFree && (
-                              <div className="hint-price-input">
-                                <label htmlFor="hint1Price">Price (USD)</label>
-                                <input
-                                  type="number"
-                                  id="hint1Price"
-                                  name="hint1PriceUsd"
-                                  value={formData.hint1PriceUsd}
-                                  onChange={handleInputChange}
-                                  placeholder="Leave empty for default"
-                                  step="0.01"
-                                  min="0"
-                                />
-                              </div>
-                            )}
+                            <div className="hint-price-input">
+                              <label htmlFor="hint1Price">Price (USD)</label>
+                              <input
+                                type="number"
+                                id="hint1Price"
+                                name="hint1PriceUsd"
+                                value={formData.hint1PriceUsd}
+                                onChange={handleInputChange}
+                                placeholder="Leave empty for free"
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
                           </div>
 
                           {/* Hint 2 */}
