@@ -405,9 +405,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   ].filter((h) => h.text); // Only show hints that exist
 
 
-  // Find the first unpurchased hint
-  const nextHint = hints.find((h) => !purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
-
   // Determine which hint to show centered
   let centerIndex: number;
   if (justPurchased !== null) {
@@ -417,6 +414,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     // Use manual navigation state, but ensure it's within bounds
     centerIndex = Math.max(0, Math.min(currentSlideIndex, hints.length - 1));
   }
+
+  // Find the current hint being viewed and next unpurchased hint
+  const currentHint = hints[centerIndex];
+  const nextHint = hints.find((h) => !purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
   
   // Calculate how many hints are unlocked (purchased and not currently revealing)
   const unlockedCount = hints.filter((h) => 
@@ -428,7 +429,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const maxNavigableIndex = Math.min(unlockedCount, hints.length - 1);
   
   // Check if current centered hint needs previous hint unlocked
-  const currentHint = hints[centerIndex];
   const currentHintNeedsPrevious = currentHint && currentHint.level > 1 && 
     !purchasedHints[`hint${currentHint.level - 1}` as keyof PurchasedHints]?.purchased;
   
@@ -488,27 +488,43 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     ctaText = 'PROCESSING...';
     ctaDisabled = true;
   } else if (nextHint) {
-    const needsPreviousHint = nextHint.level > 1 && 
-      !purchasedHints[`hint${nextHint.level - 1}` as keyof PurchasedHints]?.purchased;
-
-    if (needsPreviousHint) {
-      ctaText = `UNLOCK HINT ${nextHint.level - 1} FIRST`;
-      ctaDisabled = true;
-    } else if (nextHint.free) {
-      ctaText = 'REVEAL HINT';
-      ctaAction = () => handlePurchase(nextHint.level, true);
+    // Check if user is viewing a purchased hint and can advance
+    const isViewingPurchasedHint = currentHint && purchasedHints[`hint${currentHint.level}` as keyof PurchasedHints]?.purchased;
+    const canAdvance = centerIndex < hints.length - 1;
+    
+    if (isViewingPurchasedHint && canAdvance) {
+      // User is viewing a purchased hint and can advance to next hint
+      ctaText = 'GET MORE!';
+      ctaAction = () => {
+        const newIndex = centerIndex + 1;
+        setCurrentSlideIndex(newIndex);
+        setStoredSlideIndex(hotspotId, newIndex);
+      };
       ctaDisabled = false;
-    } else if (!connected) {
-      // Will show WalletMultiButton instead
-      ctaText = 'CONNECT_WALLET';
-      ctaDisabled = false;
-    } else if (priceLoading || !pingPrice) {
-      ctaText = 'LOADING PRICE...';
-      ctaDisabled = true;
     } else {
-      ctaText = 'UNLOCK HINT';
-      ctaAction = () => handlePurchase(nextHint.level, false);
-      ctaDisabled = false;
+      // Show unlock CTA for the next hint
+      const needsPreviousHint = nextHint.level > 1 && 
+        !purchasedHints[`hint${nextHint.level - 1}` as keyof PurchasedHints]?.purchased;
+
+      if (needsPreviousHint) {
+        ctaText = `UNLOCK HINT ${nextHint.level - 1} FIRST`;
+        ctaDisabled = true;
+      } else if (nextHint.free) {
+        ctaText = 'REVEAL HINT';
+        ctaAction = () => handlePurchase(nextHint.level, true);
+        ctaDisabled = false;
+      } else if (!connected) {
+        // Will show WalletMultiButton instead
+        ctaText = 'CONNECT_WALLET';
+        ctaDisabled = false;
+      } else if (priceLoading || !pingPrice) {
+        ctaText = 'LOADING PRICE...';
+        ctaDisabled = true;
+      } else {
+        ctaText = 'UNLOCK HINT';
+        ctaAction = () => handlePurchase(nextHint.level, false);
+        ctaDisabled = false;
+      }
     }
   }
 
