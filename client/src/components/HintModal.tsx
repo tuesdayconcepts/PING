@@ -42,20 +42,21 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     };
   };
 
-  const setLocalFreeHint = (hotspotId: string, hintLevel: number) => {
+  const setLocalFreeHint = (hotspotId: string, hintLevel: number, hintText: string) => {
     const key = `free_hints_${hotspotId}`;
     const localProgress = JSON.parse(localStorage.getItem(key) || '{}');
-    localProgress[`hint${hintLevel}`] = true;
+    localProgress[`hint${hintLevel}`] = { purchased: true, text: hintText };
     localStorage.setItem(key, JSON.stringify(localProgress));
   };
 
   const migrateLocalProgressToWallet = async (walletAddress: string, hotspotId: string) => {
     const key = `free_hints_${hotspotId}`;
     const localProgress = JSON.parse(localStorage.getItem(key) || '{}');
+    console.log('🔄 Migration - Local progress:', localProgress);
     
     // Create database records for local free hints
-    for (const [hintKey, unlocked] of Object.entries(localProgress)) {
-      if (unlocked) {
+    for (const [hintKey, hintData] of Object.entries(localProgress)) {
+      if (hintData && typeof hintData === 'object' && 'purchased' in hintData && (hintData as any).purchased) {
         const hintLevel = parseInt(hintKey.replace('hint', ''));
         try {
           await fetch(`${API_URL}/api/hints/purchase`, {
@@ -195,15 +196,17 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
 
       // Handle free hint (no wallet required)
       if (isFree) {
+        const hintText = hotspot?.hint1 || hotspot?.hint2 || hotspot?.hint3;
+        
         // Store in local storage for persistence
-        setLocalFreeHint(hotspotId, hintLevel);
+        setLocalFreeHint(hotspotId, hintLevel, hintText || '');
         
         // Update local state immediately
         setPurchasedHints((prev) => ({
           ...prev!,
           [`hint${hintLevel}`]: {
             purchased: true,
-            text: hotspot?.hint1 || hotspot?.hint2 || hotspot?.hint3,
+            text: hintText,
           },
         }));
         
