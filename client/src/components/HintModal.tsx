@@ -30,6 +30,57 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const wallet = useWallet();
   const { publicKey, connected } = wallet;
   const { settings, usdToPing, formatPingAmount, pingPrice, loading: priceLoading } = usePingPrice();
+
+  // Local storage functions for free hint tracking
+  const getLocalFreeHints = (hotspotId: string): PurchasedHints => {
+    const key = `free_hints_${hotspotId}`;
+    const localProgress = JSON.parse(localStorage.getItem(key) || '{}');
+    return {
+      hint1: { purchased: localProgress.hint1 || false },
+      hint2: { purchased: localProgress.hint2 || false },
+      hint3: { purchased: localProgress.hint3 || false },
+    };
+  };
+
+  const setLocalFreeHint = (hotspotId: string, hintLevel: number) => {
+    const key = `free_hints_${hotspotId}`;
+    const localProgress = JSON.parse(localStorage.getItem(key) || '{}');
+    localProgress[`hint${hintLevel}`] = true;
+    localStorage.setItem(key, JSON.stringify(localProgress));
+  };
+
+  const migrateLocalProgressToWallet = async (walletAddress: string, hotspotId: string) => {
+    const key = `free_hints_${hotspotId}`;
+    const localProgress = JSON.parse(localStorage.getItem(key) || '{}');
+    
+    // Create database records for local free hints
+    for (const [hintKey, unlocked] of Object.entries(localProgress)) {
+      if (unlocked) {
+        const hintLevel = parseInt(hintKey.replace('hint', ''));
+        try {
+          await fetch(`${API_URL}/api/hints/purchase`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hotspotId,
+              walletAddress,
+              hintLevel,
+              txSignature: null,
+              paidAmount: 0,
+              isFree: true,
+            }),
+          });
+          console.log(`🔄 Migrated free hint ${hintLevel} to wallet ${walletAddress}`);
+        } catch (error) {
+          console.error(`Failed to migrate free hint ${hintLevel}:`, error);
+        }
+      }
+    }
+    
+    // Clear local storage after migration
+    localStorage.removeItem(key);
+    console.log('🔄 Local free hint progress migrated to database');
+  };
   
   const [purchasedHints, setPurchasedHints] = useState<PurchasedHints | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,31 +122,19 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       console.log('🔍 Hotspot data - firstHintFree:', currentHotspot.firstHintFree);
       console.log('🔍 Hotspot data - hint1PriceUsd:', currentHotspot.hint1PriceUsd);
 
-      // Fetch purchased hints if wallet connected
+      // Fetch purchased hints based on wallet connection
       if (publicKey) {
+        // Wallet connected - migrate local progress first, then fetch from database
+        await migrateLocalProgressToWallet(publicKey.toString(), hotspotId);
+        
         const purchasedRes = await fetch(
           `${API_URL}/api/hints/${hotspotId}/purchased?wallet=${publicKey.toString()}`
         );
         const data = await purchasedRes.json();
         console.log('🔍 API Response - Purchased hints:', data);
-        console.log('🔍 API Response - hint1 details:', data.hint1);
-        console.log('🔍 API Response - firstHintFree from hotspot:', currentHotspot?.firstHintFree);
         
-        // Test: Let's also check what the backend thinks about this hotspot
-        console.log('🔍 Testing backend API directly...');
-        const testResponse = await fetch(`${API_URL}/api/hotspots`);
-        const testHotspots = await testResponse.json();
-        const testHotspot = testHotspots.find((h: any) => h.id === hotspotId);
-        console.log('🔍 Backend hotspot data - firstHintFree:', testHotspot?.firstHintFree);
-        
-        // Test: Call debug endpoint to check database directly
-        console.log('🔍 Testing debug endpoint...');
-        const debugResponse = await fetch(`${API_URL}/api/debug/hotspot/${hotspotId}`);
-        const debugData = await debugResponse.json();
-        console.log('🔍 Debug endpoint data:', debugData);
-        
-        // Test: Clean up old purchases if needed
-        if (publicKey && data.hint1.purchased && !currentHotspot?.firstHintFree) {
+        // Clean up old purchases if needed
+        if (data.hint1.purchased && !currentHotspot?.firstHintFree) {
           console.log('🧹 Cleaning up old free purchases...');
           const cleanupResponse = await fetch(`${API_URL}/api/debug/cleanup-purchases`, {
             method: 'POST',
@@ -117,17 +156,16 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
             const refreshedData = await refreshedResponse.json();
             console.log('🔄 Refreshed data:', refreshedData);
             setPurchasedHints(refreshedData);
+            return; // Early return to avoid setting data twice
           }
         }
         
         setPurchasedHints(data);
       } else {
-        // Not connected, show all as unpurchased
-        setPurchasedHints({
-          hint1: { purchased: false },
-          hint2: { purchased: false },
-          hint3: { purchased: false },
-        });
+        // No wallet connected - use local storage for free hints
+        const localHints = getLocalFreeHints(hotspotId);
+        console.log('🔍 Local free hints:', localHints);
+        setPurchasedHints(localHints);
       }
     } catch (err) {
       console.error('Failed to fetch hint data:', err);
@@ -143,7 +181,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       return;
     }
 
-    if (!settings) {
+    if (!settings && !isFree) {
       setError('Hint system not configured');
       return;
     }
@@ -154,6 +192,35 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     try {
       let txSignature = null;
       let paidAmount = 0;
+
+      // Handle free hint (no wallet required)
+      if (isFree) {
+        // Store in local storage for persistence
+        setLocalFreeHint(hotspotId, hintLevel);
+        
+        // Update local state immediately
+        setPurchasedHints((prev) => ({
+          ...prev!,
+          [`hint${hintLevel}`]: {
+            purchased: true,
+            text: hotspot?.hint1 || hotspot?.hint2 || hotspot?.hint3,
+          },
+        }));
+        
+        // Set just purchased to keep card visible
+        setJustPurchased(hintLevel);
+        setShowNavigation(false);
+        
+        // Start reveal animation
+        setRevealingHint(hintLevel);
+        
+        // Keep processing state for 2 seconds total
+        setTimeout(() => {
+          setPurchasing(null);
+        }, 2000);
+        
+        return; // Early return for free hints
+      }
 
       // Handle paid purchase
       if (!isFree) {
@@ -178,15 +245,15 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
           throw new Error('Unable to calculate $PING price. Please try again.');
         }
 
-        if (!settings.pingTokenMint) {
+        if (!settings?.pingTokenMint) {
           throw new Error('$PING token mint address not configured. Please contact support.');
         }
 
-        if (!settings.treasuryWallet) {
+        if (!settings?.treasuryWallet) {
           throw new Error('Treasury wallet address not configured. Please contact support.');
         }
 
-        if (!settings.burnWallet) {
+        if (!settings?.burnWallet) {
           throw new Error('Burn wallet address not configured. Please contact support.');
         }
 
