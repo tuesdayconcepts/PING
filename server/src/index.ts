@@ -992,6 +992,31 @@ app.get("/api/hints/settings", async (req, res) => {
   }
 });
 
+// GET /api/debug/hotspot/:id - Debug endpoint to check hotspot data (public)
+app.get("/api/debug/hotspot/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const hotspot = await prisma.hotspot.findUnique({
+      where: { id },
+    });
+    
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+    
+    res.json({
+      id: hotspot.id,
+      firstHintFree: hotspot.firstHintFree,
+      firstHintFreeType: typeof hotspot.firstHintFree,
+      hint1: hotspot.hint1,
+      hint1PriceUsd: hotspot.hint1PriceUsd,
+    });
+  } catch (error) {
+    console.error("Debug hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/hints/:hotspotId/purchased - Get purchased hints for a wallet (public)
 app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
   try {
@@ -1029,6 +1054,9 @@ app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
     console.log('🔍 Backend Debug - hasHint1Purchase:', hasHint1Purchase);
     console.log('🔍 Backend Debug - isHint1Free:', isHint1Free);
     console.log('🔍 Backend Debug - shouldShowHint1:', shouldShowHint1);
+    console.log('🔍 Backend Debug - hotspot.firstHintFree type:', typeof hotspot.firstHintFree);
+    console.log('🔍 Backend Debug - hotspot.firstHintFree value:', hotspot.firstHintFree);
+    console.log('🔍 Backend Debug - purchases:', purchases);
     console.log('🔄 Redeploy trigger - timestamp:', new Date().toISOString());
     
     const response = {
