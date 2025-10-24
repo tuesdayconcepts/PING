@@ -108,6 +108,31 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     console.log('🔍 Debug - Just purchased:', justPurchased);
   }, [connected, publicKey, purchasedHints, revealingHint, justPurchased]);
 
+  // Update currentSlideIndex to remember user's progress
+  useEffect(() => {
+    if (hotspot && purchasedHints) {
+      const hints = [
+        { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: hotspot.firstHintFree },
+        { level: 2, text: hotspot.hint2, price: hotspot.hint2PriceUsd, free: false },
+        { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
+      ].filter((h) => h.text);
+
+      if (hints.length > 0) {
+        const unlockedHints = hints.filter((h) => purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
+        
+        if (unlockedHints.length > 0) {
+          // Set to the last unlocked hint (most recent progress)
+          const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
+          const newIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
+          setCurrentSlideIndex(newIndex);
+        } else {
+          // No hints unlocked yet, start at first hint
+          setCurrentSlideIndex(0);
+        }
+      }
+    }
+  }, [hotspot, purchasedHints]);
+
 
   const fetchHotspotAndPurchases = async () => {
     try {
@@ -353,22 +378,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
   ].filter((h) => h.text); // Only show hints that exist
 
-  // Update currentSlideIndex to remember user's progress
-  useEffect(() => {
-    if (hints.length > 0) {
-      const unlockedHints = hints.filter((h) => purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
-      
-      if (unlockedHints.length > 0) {
-        // Set to the last unlocked hint (most recent progress)
-        const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
-        const newIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
-        setCurrentSlideIndex(newIndex);
-      } else {
-        // No hints unlocked yet, start at first hint
-        setCurrentSlideIndex(0);
-      }
-    }
-  }, [hints, purchasedHints]);
 
   // Find the first unpurchased hint
   const nextHint = hints.find((h) => !purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
