@@ -110,6 +110,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
 
   // Update currentSlideIndex to remember user's progress
   useEffect(() => {
+    console.log('🔄 useEffect running - hotspot:', !!hotspot, 'purchasedHints:', !!purchasedHints);
+    
     if (hotspot && purchasedHints) {
       const hints = [
         { level: 1, text: hotspot.hint1, price: hotspot.hint1PriceUsd, free: hotspot.firstHintFree },
@@ -117,21 +119,26 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         { level: 3, text: hotspot.hint3, price: hotspot.hint3PriceUsd, free: false },
       ].filter((h) => h.text);
 
+      console.log('🔄 Hints found:', hints.length);
+
       if (hints.length > 0) {
         const unlockedHints = hints.filter((h) => purchasedHints[`hint${h.level}` as keyof PurchasedHints]?.purchased);
+        console.log('🔄 Unlocked hints:', unlockedHints.length);
         
         if (unlockedHints.length > 0) {
           // Set to the last unlocked hint (most recent progress)
           const lastUnlockedHint = unlockedHints[unlockedHints.length - 1];
           const newIndex = hints.findIndex((h) => h.level === lastUnlockedHint.level);
+          console.log('🔄 Setting currentSlideIndex to:', newIndex);
           setCurrentSlideIndex(newIndex);
         } else {
           // No hints unlocked yet, start at first hint
+          console.log('🔄 Setting currentSlideIndex to 0 (no hints unlocked)');
           setCurrentSlideIndex(0);
         }
       }
     }
-  }, [hotspot, purchasedHints]);
+  }, [hotspot?.id, purchasedHints]);
 
 
   const fetchHotspotAndPurchases = async () => {
