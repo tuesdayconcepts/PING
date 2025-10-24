@@ -34,6 +34,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCheckmark, setShowCheckmark] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   // Track wallet connection state
   useEffect(() => {
@@ -236,6 +238,37 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     if (canGoForward) setCurrentHintIndex(currentHintIndex + 1);
   };
 
+  // Touch gesture handlers for mobile swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 75;
+    const isRightSwipe = distance < -75;
+    
+    if (isLeftSwipe && canGoForward) {
+      // Swiped left - go to next hint
+      handleNext();
+    }
+    
+    if (isRightSwipe && canGoBack) {
+      // Swiped right - go to previous hint
+      handlePrevious();
+    }
+    
+    // Reset values
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
   // CTA Logic
   const currentHint = hints[currentHintIndex];
   let ctaText: string;
@@ -348,19 +381,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
             </div>
 
             {/* Hints Slider */}
-            <div className="hints-slider-wrapper">
-              {/* Navigation Arrows - only show when wallet connected */}
-              {walletConnected && canGoBack && (
-                <button className="slider-nav prev" onClick={handlePrevious} aria-label="Previous hint">
-                  ‹
-                </button>
-              )}
-              {walletConnected && canGoForward && (
-                <button className="slider-nav next" onClick={handleNext} aria-label="Next hint">
-                  ›
-                </button>
-              )}
-              
+            <div 
+              className="hints-slider-wrapper"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               <div className="hints-slider-track" style={{ transform: `translateX(calc(-${currentHintIndex * 100}% - ${currentHintIndex * 15}px))` }}>
                 {hints.map((hint, index) => {
                   const isCenter = index === currentHintIndex;
@@ -383,10 +409,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                         </div>
                       )}
 
-                      {/* Hint title */}
-                      <div className="hint-title">
-                        Hint {hint.level} of {hints.length}
-                      </div>
 
                       {/* Hint content area */}
                       <div className="hint-content-area">
@@ -405,6 +427,25 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                 })}
               </div>
             </div>
+
+            {/* Dot Navigation */}
+            {walletConnected && hints.length > 1 && (
+              <div className="hint-dot-nav">
+                {hints.map((hint, index) => (
+                  <button
+                    key={hint.level}
+                    className={`hint-dot ${index === currentHintIndex ? 'active' : ''}`}
+                    onClick={() => setCurrentHintIndex(index)}
+                    aria-label={`Go to hint ${hint.level}`}
+                    data-revealed={hint.status === 'revealed'}
+                  >
+                    {index === currentHintIndex && (
+                      <span className="hint-dot-text">HINT {hint.level}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Error Message */}
             {error && (
