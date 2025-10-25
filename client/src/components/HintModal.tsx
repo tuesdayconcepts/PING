@@ -38,6 +38,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [touchEnd, setTouchEnd] = useState(0);
   const [peekDirection, setPeekDirection] = useState<'left' | 'right' | null>(null);
   const [autoPeekTriggered, setAutoPeekTriggered] = useState<Set<number>>(new Set());
+  const [touchUsed, setTouchUsed] = useState(false); // Track if touch was used to prevent click
 
   // Track wallet connection state
   useEffect(() => {
@@ -265,6 +266,21 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     if (canGoForward) setCurrentHintIndex(currentHintIndex + 1);
   };
 
+  // Prevent click events when touch was used
+  const handlePeekClick = (direction: 'left' | 'right', e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Only handle click if touch wasn't used recently
+    if (touchUsed) return;
+    
+    if (direction === 'left') {
+      handlePrevious();
+    } else {
+      handleNext();
+    }
+  };
+
   // Calculate slider transform with peek support
   const getSliderTransform = () => {
     const baseTransform = -currentHintIndex * 100;
@@ -286,6 +302,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     const touch = e.targetTouches[0];
     setTouchStart(touch.clientX);
     setTouchEnd(touch.clientX); // Initialize touchEnd to prevent NaN
+    setTouchUsed(true); // Mark that touch was used
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -313,6 +330,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     // Reset values
     setTouchStart(0);
     setTouchEnd(0);
+    
+    // Reset touch flag after a short delay to allow click prevention
+    setTimeout(() => setTouchUsed(false), 100);
   };
 
   // CTA Logic
@@ -436,6 +456,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                 // Reset on touch cancel to prevent stuck state
                 setTouchStart(0);
                 setTouchEnd(0);
+                setTouchUsed(false);
               }}
             >
               {/* Left peek zone - only show if there's a previous slide */}
@@ -447,9 +468,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                   onTouchStart={() => setPeekDirection('left')}
                   onTouchEnd={() => {
                     setPeekDirection(null);
-                    handlePrevious();
+                    // Only navigate if it's a tap (not a swipe)
+                    if (Math.abs(touchStart - touchEnd) < 10) {
+                      handlePrevious();
+                    }
                   }}
-                  onClick={handlePrevious}
+                  onClick={(e) => handlePeekClick('left', e)}
                 />
               )}
               
@@ -462,9 +486,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                   onTouchStart={() => setPeekDirection('right')}
                   onTouchEnd={() => {
                     setPeekDirection(null);
-                    handleNext();
+                    // Only navigate if it's a tap (not a swipe)
+                    if (Math.abs(touchStart - touchEnd) < 10) {
+                      handleNext();
+                    }
                   }}
-                  onClick={handleNext}
+                  onClick={(e) => handlePeekClick('right', e)}
                 />
               )}
               

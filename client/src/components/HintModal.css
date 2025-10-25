@@ -383,6 +383,8 @@
   .peek-zone {
     /* Larger touch targets on mobile */
     width: 60px;
+    /* Prevent double-tap zoom */
+    touch-action: manipulation;
   }
   
   .hint-slide {
