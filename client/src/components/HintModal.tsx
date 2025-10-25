@@ -270,8 +270,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     const baseTransform = -currentHintIndex * 100;
     
     if (peekDirection === 'left') {
+      // Peek left: move slider right to show previous slide
       return `translateX(calc(${baseTransform}% + 10% - ${currentHintIndex * 15}px))`;
     } else if (peekDirection === 'right') {
+      // Peek right: move slider left to show next slide
       return `translateX(calc(${baseTransform}% - 10% - ${currentHintIndex * 15}px))`;
     }
     
@@ -427,8 +429,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              {/* Left peek zone */}
-              {canGoBack && (
+              {/* Left peek zone - only show if there's a previous slide */}
+              {canGoBack && currentHintIndex > 0 && (
                 <div 
                   className="peek-zone left"
                   onMouseEnter={() => setPeekDirection('left')}
@@ -437,8 +439,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                 />
               )}
               
-              {/* Right peek zone */}
-              {canGoForward && (
+              {/* Right peek zone - only show if there's a next slide */}
+              {canGoForward && currentHintIndex < hints.length - 1 && (
                 <div 
                   className="peek-zone right"
                   onMouseEnter={() => setPeekDirection('right')}
