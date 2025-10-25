@@ -268,9 +268,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     const baseTransform = -currentHintIndex * 100;
     
     if (peekDirection === 'left') {
-      return `translateX(calc(${baseTransform}% + 20% - ${currentHintIndex * 15}px))`;
+      return `translateX(calc(${baseTransform}% + 10% - ${currentHintIndex * 15}px))`;
     } else if (peekDirection === 'right') {
-      return `translateX(calc(${baseTransform}% - 20% - ${currentHintIndex * 15}px))`;
+      return `translateX(calc(${baseTransform}% - 10% - ${currentHintIndex * 15}px))`;
     }
     
     return `translateX(calc(${baseTransform}% - ${currentHintIndex * 15}px))`;

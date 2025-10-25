@@ -55,7 +55,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 50%; /* Right half or left half of slide */
+  width: 30px; /* 30px hover zones on edges */
   z-index: 15;
   cursor: pointer;
 }
