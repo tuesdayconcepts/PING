@@ -36,12 +36,37 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [showCheckmark, setShowCheckmark] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [peekDirection, setPeekDirection] = useState<'left' | 'right' | null>(null);
+  const [autoPeekTriggered, setAutoPeekTriggered] = useState<Set<number>>(new Set());
 
   // Track wallet connection state
   useEffect(() => {
     console.log('🔗 Wallet connection state changed:', { connected, publicKey: publicKey?.toString() });
     setWalletConnected(connected);
   }, [connected, publicKey]);
+
+  // Auto-peek effect when hint is unlocked
+  useEffect(() => {
+    const currentHint = hints[currentHintIndex];
+    if (currentHint?.status === 'revealed' && !autoPeekTriggered.has(currentHintIndex)) {
+      // Mark as triggered
+      setAutoPeekTriggered(prev => new Set(prev).add(currentHintIndex));
+      
+      // Show peek to next hint if available
+      if (currentHintIndex < hints.length - 1) {
+        setPeekDirection('right');
+        setTimeout(() => setPeekDirection(null), 1500); // 1.5 second peek
+      }
+    }
+  }, [hints, currentHintIndex, autoPeekTriggered]);
+
+  // Reset auto-peek on modal close
+  useEffect(() => {
+    if (!open) {
+      setAutoPeekTriggered(new Set());
+      setPeekDirection(null);
+    }
+  }, [open]);
 
   // Fetch hotspot data on modal open
   useEffect(() => {
@@ -238,6 +263,19 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     if (canGoForward) setCurrentHintIndex(currentHintIndex + 1);
   };
 
+  // Calculate slider transform with peek support
+  const getSliderTransform = () => {
+    const baseTransform = -currentHintIndex * 100;
+    
+    if (peekDirection === 'left') {
+      return `translateX(calc(${baseTransform}% + 20% - ${currentHintIndex * 15}px))`;
+    } else if (peekDirection === 'right') {
+      return `translateX(calc(${baseTransform}% - 20% - ${currentHintIndex * 15}px))`;
+    }
+    
+    return `translateX(calc(${baseTransform}% - ${currentHintIndex * 15}px))`;
+  };
+
   // Touch gesture handlers for mobile swipe
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
@@ -387,7 +425,27 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              <div className="hints-slider-track" style={{ transform: `translateX(calc(-${currentHintIndex * 100}% - ${currentHintIndex * 15}px))` }}>
+              {/* Left peek zone */}
+              {canGoBack && (
+                <div 
+                  className="peek-zone left"
+                  onMouseEnter={() => setPeekDirection('left')}
+                  onMouseLeave={() => setPeekDirection(null)}
+                  onClick={handlePrevious}
+                />
+              )}
+              
+              {/* Right peek zone */}
+              {canGoForward && (
+                <div 
+                  className="peek-zone right"
+                  onMouseEnter={() => setPeekDirection('right')}
+                  onMouseLeave={() => setPeekDirection(null)}
+                  onClick={handleNext}
+                />
+              )}
+              
+              <div className="hints-slider-track" style={{ transform: getSliderTransform() }}>
                 {hints.map((hint, index) => {
                   const isCenter = index === currentHintIndex;
                   const revealed = hint.status === 'revealed';
@@ -428,24 +486,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               </div>
             </div>
 
-            {/* Dot Navigation */}
-            {walletConnected && hints.length > 1 && (
-              <div className="hint-dot-nav">
-                {hints.map((hint, index) => (
-                  <button
-                    key={hint.level}
-                    className={`hint-dot ${index === currentHintIndex ? 'active' : ''}`}
-                    onClick={() => setCurrentHintIndex(index)}
-                    aria-label={`Go to hint ${hint.level}`}
-                    data-revealed={hint.status === 'revealed'}
-                  >
-                    {index === currentHintIndex && (
-                      <span className="hint-dot-text">HINT {hint.level}</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* Error Message */}
             {error && (

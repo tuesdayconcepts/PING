@@ -50,112 +50,50 @@
   position: relative;
 }
 
-/* Dot Navigation */
-.hint-dot-nav {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin-top: 20px;
-  padding: 0;
-}
-
-.hint-dot {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 12px;
-  width: 12px;
-  background: rgba(255, 255, 255, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  padding: 0;
-  overflow: hidden;
-}
-
-/* Active dot expands to pill */
-.hint-dot.active {
-  width: auto;
-  min-width: 80px;
-  padding: 6px 16px;
-  background: rgba(255, 215, 0, 0.2);
-  border-color: rgba(255, 215, 0, 0.6);
-  border-radius: 20px;
-  height: 28px;
-}
-
-/* Hover effect for inactive dots */
-.hint-dot:not(.active):hover {
-  background: rgba(255, 255, 255, 0.4);
-  border-color: rgba(255, 255, 255, 0.7);
-  transform: scale(1.2);
-}
-
-/* Text inside active pill */
-.hint-dot-text {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #fff;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  opacity: 0;
-  transform: scale(0.8);
-  transition: all 0.3s ease 0.25s;
-}
-
-/* Show text when pill is fully expanded */
-.hint-dot.active .hint-dot-text {
-  opacity: 1;
-  transform: scale(1);
-}
-
-
-/* Unlocked indicator for revealed hints */
-.hint-dot[data-revealed="true"]:not(.active) {
-  background: rgba(255, 215, 0, 0.3);
-  border-color: rgba(255, 215, 0, 0.5);
-}
-
-.hint-dot[data-revealed="true"]:not(.active)::after {
-  content: '✓';
-  font-size: 8px;
-  color: rgba(255, 215, 0, 0.8);
+/* Peek zones - invisible hover/tap areas */
+.peek-zone {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  bottom: 0;
+  width: 50%; /* Right half or left half of slide */
+  z-index: 15;
+  cursor: pointer;
 }
 
-/* Mobile adjustments */
-@media (max-width: 768px) {
-  .hint-dot-nav {
-    gap: 10px;
-    margin-top: 16px;
-  }
-  
-  .hint-dot {
-    height: 10px;
-    width: 10px;
-  }
-  
-  .hint-dot.active {
-    min-width: 70px;
-    padding: 5px 14px;
-    height: 26px;
-  }
-  
-  .hint-dot-text {
-    font-size: 0.7rem;
-  }
+.peek-zone.left {
+  left: 0;
+}
+
+.peek-zone.right {
+  right: 0;
+}
+
+/* Visual feedback for peek zones on hover */
+.peek-zone:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  pointer-events: none;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.peek-zone.left:hover::after {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.peek-zone.right:hover::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.1), transparent);
 }
 
 .hints-slider-track {
   display: flex;
   gap: 15px;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Each hint slide is a full modal-section */
