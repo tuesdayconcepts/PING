@@ -268,33 +268,37 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   // Calculate slider transform with peek support
   const getSliderTransform = () => {
     const baseTransform = -currentHintIndex * 100;
+    const gapOffset = currentHintIndex * 15; // 15px gap between slides
     
     if (peekDirection === 'left') {
-      // Peek left: move slider right to show previous slide
-      return `translateX(calc(${baseTransform}% + 10% - ${currentHintIndex * 15}px))`;
+      // Peek left: move slider right to show more of previous slide
+      return `translateX(calc(${baseTransform}% + 20% - ${gapOffset}px))`;
     } else if (peekDirection === 'right') {
-      // Peek right: move slider left to show next slide
-      return `translateX(calc(${baseTransform}% - 10% - ${currentHintIndex * 15}px))`;
+      // Peek right: move slider left to show more of next slide
+      return `translateX(calc(${baseTransform}% - 20% - ${gapOffset}px))`;
     }
     
-    return `translateX(calc(${baseTransform}% - ${currentHintIndex * 15}px))`;
+    return `translateX(calc(${baseTransform}% - ${gapOffset}px))`;
   };
 
   // Touch gesture handlers for mobile swipe
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
+    const touch = e.targetTouches[0];
+    setTouchStart(touch.clientX);
+    setTouchEnd(touch.clientX); // Initialize touchEnd to prevent NaN
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    const touch = e.targetTouches[0];
+    setTouchEnd(touch.clientX);
   };
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 75;
-    const isRightSwipe = distance < -75;
+    const isLeftSwipe = distance > 50; // Reduced threshold for easier swiping
+    const isRightSwipe = distance < -50;
     
     if (isLeftSwipe && canGoForward) {
       // Swiped left - go to next hint
@@ -428,6 +432,11 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
+              onTouchCancel={() => {
+                // Reset on touch cancel to prevent stuck state
+                setTouchStart(0);
+                setTouchEnd(0);
+              }}
             >
               {/* Left peek zone - only show if there's a previous slide */}
               {canGoBack && currentHintIndex > 0 && (
@@ -435,6 +444,11 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                   className="peek-zone left"
                   onMouseEnter={() => setPeekDirection('left')}
                   onMouseLeave={() => setPeekDirection(null)}
+                  onTouchStart={() => setPeekDirection('left')}
+                  onTouchEnd={() => {
+                    setPeekDirection(null);
+                    handlePrevious();
+                  }}
                   onClick={handlePrevious}
                 />
               )}
@@ -445,6 +459,11 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                   className="peek-zone right"
                   onMouseEnter={() => setPeekDirection('right')}
                   onMouseLeave={() => setPeekDirection(null)}
+                  onTouchStart={() => setPeekDirection('right')}
+                  onTouchEnd={() => {
+                    setPeekDirection(null);
+                    handleNext();
+                  }}
                   onClick={handleNext}
                 />
               )}

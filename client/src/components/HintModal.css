@@ -48,6 +48,9 @@
   overflow: hidden;
   width: 100%;
   position: relative;
+  /* Improve mobile touch handling */
+  touch-action: pan-y pinch-zoom;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Peek zones - invisible hover/tap areas */
@@ -55,7 +58,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 30px; /* 30px hover zones on edges */
+  width: 50px; /* Increased to 50px for better mobile touch targets */
   z-index: 15;
   cursor: pointer;
 }
@@ -94,6 +97,7 @@
   display: flex;
   gap: 15px;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform; /* Optimize for mobile performance */
 }
 
 /* Each hint slide is a full modal-section */
@@ -110,6 +114,8 @@
   justify-content: center;
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
               transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Ensure proper positioning for peek effects */
+  box-sizing: border-box;
 }
 
 .hint-slide.center {
@@ -357,5 +363,30 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  .hints-slider-wrapper {
+    /* Ensure smooth scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+  
+  .hints-slider-track {
+    /* Prevent sub-pixel rendering issues on mobile */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  
+  .peek-zone {
+    /* Larger touch targets on mobile */
+    width: 60px;
+  }
+  
+  .hint-slide {
+    /* Ensure proper alignment on mobile */
+    transform-origin: center center;
   }
 }
