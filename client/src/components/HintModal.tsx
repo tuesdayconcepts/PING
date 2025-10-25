@@ -52,10 +52,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       // Mark as triggered
       setAutoPeekTriggered(prev => new Set(prev).add(currentHintIndex));
       
-      // Show peek to next hint if available
+      // Show peek to next hint if available after 1 second delay
       if (currentHintIndex < hints.length - 1) {
-        setPeekDirection('right');
-        setTimeout(() => setPeekDirection(null), 1000); // 1 second peek
+        setTimeout(() => {
+          setPeekDirection('right');
+          setTimeout(() => setPeekDirection(null), 1000); // 1 second peek
+        }, 1000); // 1 second delay before peek starts
       }
     }
   }, [hints, currentHintIndex, autoPeekTriggered]);
