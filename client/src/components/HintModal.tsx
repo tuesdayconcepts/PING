@@ -272,9 +272,11 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     setTimeout(() => setShowCheckmark(false), 2000);
   };
 
-  // Navigation handlers
+  // Navigation handlers - only allow forward if current hint is revealed
   const canGoBack = currentHintIndex > 0;
-  const canGoForward = currentHintIndex < hints.length - 1;
+  const currentHint = hints[currentHintIndex];
+  const canGoForward = currentHintIndex < hints.length - 1 && 
+    currentHint?.status === 'revealed';
 
   const handlePrevious = () => {
     if (canGoBack) setCurrentHintIndex(currentHintIndex - 1);
@@ -332,12 +334,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     const isRightSwipe = distance < -50;
     
     if (isLeftSwipe && canGoForward) {
-      // Swiped left - go to next hint
+      // Swiped left - go to next hint (only if current is revealed)
       handleNext();
     }
     
     if (isRightSwipe && canGoBack) {
-      // Swiped right - go to previous hint
+      // Swiped right - go to previous hint (always allowed)
       handlePrevious();
     }
     
@@ -347,7 +349,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   };
 
   // CTA Logic
-  const currentHint = hints[currentHintIndex];
   let ctaText: string;
   let ctaAction: (() => void) | null;
   let ctaDisabled: boolean;
@@ -528,6 +529,13 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                   );
                 })}
               </div>
+              
+              {/* Navigation restriction indicator */}
+              {!canGoForward && currentHint?.status !== 'revealed' && (
+                <div className="navigation-restriction-indicator">
+                  <p>Unlock this hint to access the next one</p>
+                </div>
+              )}
             </div>
 
 
