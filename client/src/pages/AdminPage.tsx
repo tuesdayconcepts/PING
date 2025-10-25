@@ -87,6 +87,21 @@ function AdminPage() {
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
   const [adminMapInstance, setAdminMapInstance] = useState<google.maps.Map | null>(null);
 
+  // Set theme color for mobile Safari chrome
+  useEffect(() => {
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', '#000e82');
+    }
+    
+    // Reset to default on unmount
+    return () => {
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', '#000000');
+      }
+    };
+  }, []);
+
   // Toast functionality
   const { showToast } = useToast();
   
