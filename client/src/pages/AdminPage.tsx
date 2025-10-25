@@ -1,13 +1,14 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X } from 'lucide-react';
+import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
-import { getLocationName } from '../utils/geocoding';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
+import { HotspotSkeletonList } from '../components/HotspotSkeleton';
+import { ToastProvider, useToast } from '../components/Toast';
 import './AdminPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -21,8 +22,11 @@ function AdminPage() {
 
   // Ref for create form to enable auto-scroll
   const createFormRef = useRef<HTMLDivElement>(null);
-  // Ref for tabs container to track active tab position
-  const tabsRef = useRef<HTMLDivElement>(null);
+  // Refs for tabs containers to track active tab position
+  const tabsRef = useRef<HTMLDivElement>(null); // Desktop tabs
+  const mobileTabsRef = useRef<HTMLDivElement>(null); // Mobile tabs
+  // Ref to prevent double-firing on mobile (touch + click)
+  const lastTabChangeRef = useRef<number>(0);
   
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,6 +38,7 @@ function AdminPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [logs, setLogs] = useState<AdminLog[]>([]);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
+  const [hotspotsLoading, setHotspotsLoading] = useState(true);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -42,32 +47,44 @@ function AdminPage() {
     lng: -74.0060,
     prize: '' as string | number, // Number for prize amount in SOL
     endDate: '',
-    active: true,
     imageUrl: '',
     privateKey: '',
+    hint1: '',
+    hint2: '',
+    hint3: '',
+    hint1PriceUsd: '' as string | number,
+    hint2PriceUsd: '' as string | number,
+    hint3PriceUsd: '' as string | number,
   });
 
-  const [hasExpiration, setHasExpiration] = useState(false);
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
-  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access' | 'hints'>('active');
   const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'editor'>('editor'); // Default to editor, will be updated by API
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [drawerExpanded, setDrawerExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [formClosing, setFormClosing] = useState(false);
+  const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
+  const [hintsExpanded, setHintsExpanded] = useState(false);
   
   // State for sliding tab indicator
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const [indicatorReady, setIndicatorReady] = useState(false);
   
   // Access Control state
   const [adminUsers, setAdminUsers] = useState<Array<{id: string, username: string, role: 'admin' | 'editor', createdAt: string}>>([]);
   const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'editor' as 'admin' | 'editor' });
   const [showNewUserForm, setShowNewUserForm] = useState(false);
+  
+  // Hint Settings state (only wallets + token mint, no default prices)
+  const [hintSettings, setHintSettings] = useState({
+    treasuryWallet: '',
+    burnWallet: '',
+    pingTokenMint: '',
+  });
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
-  const [locationNames, setLocationNames] = useState<Record<string, string>>({});
   const [adminMapInstance, setAdminMapInstance] = useState<google.maps.Map | null>(null);
 
   // Set theme color for mobile Safari chrome
@@ -85,46 +102,99 @@ function AdminPage() {
     };
   }, []);
 
+  // Toast functionality
+  const { showToast } = useToast();
+  
+  // Delete confirmation state
+  const [deletingHotspotId, setDeletingHotspotId] = useState<string | null>(null);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
+
   useEffect(() => {
     if (getToken()) {
       setIsAuthenticated(true);
-      fetchHotspots();
-      fetchLogs();
-      fetchPendingClaims();
-      fetchAdminUsers();
+      
+      // Load data sequentially with priority to avoid overwhelming server
+      const loadData = async () => {
+        // 1. Load critical data first (main content)
+        await fetchHotspots();
+        
+        // 2. Load secondary data in parallel
+        await Promise.all([
+          fetchLogs(),
+          fetchAdminUsers(),
+          fetchHintSettings()
+        ]);
+        
+        // 3. Load polling data last (will refresh via interval anyway)
+        fetchPendingClaims();
+      };
+      
+      loadData();
     }
   }, []);
 
-  // Poll for pending claims every 10 seconds
+  // Poll for pending claims every 30 seconds (reduced from 10s)
   useEffect(() => {
     if (isAuthenticated) {
-      const interval = setInterval(fetchPendingClaims, 10000);
+      const interval = setInterval(fetchPendingClaims, 30000);
       return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
 
   // Calculate active tab position and width for sliding indicator
   useEffect(() => {
-    const activeButton = tabsRef.current?.querySelector('.tab-btn.active');
-    if (activeButton) {
-      const { offsetLeft, offsetWidth } = activeButton as HTMLElement;
-      setIndicatorStyle({ left: offsetLeft, width: offsetWidth });
-      // Enable transition after first calculation
-      if (!indicatorReady) {
-        setIndicatorReady(true);
-      }
-    }
+    // Use requestAnimationFrame to avoid forced reflow
+    const calculateIndicator = () => {
+      requestAnimationFrame(() => {
+        // Check both desktop and mobile tabs
+        const desktopTabs = tabsRef.current;
+        const mobileTabs = mobileTabsRef.current;
+        const desktopButton = desktopTabs?.querySelector('.tab-btn.active');
+        const mobileButton = mobileTabs?.querySelector('.tab-btn.active');
+        
+        // Update desktop tabs
+        if (desktopTabs && desktopButton) {
+          const { offsetLeft, offsetWidth } = desktopButton as HTMLElement;
+          desktopTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
+          desktopTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
+        }
+        
+        // Update mobile tabs
+        if (mobileTabs && mobileButton) {
+          const { offsetLeft, offsetWidth } = mobileButton as HTMLElement;
+          mobileTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
+          mobileTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
+        }
+
+        // Enable transitions after first render
+        if (!indicatorReady) {
+          if (desktopTabs) desktopTabs.classList.add('indicator-ready');
+          if (mobileTabs) mobileTabs.classList.add('indicator-ready');
+          setIndicatorReady(true);
+        }
+      });
+    };
+
+    // Calculate on next frame
+    calculateIndicator();
   }, [activeTab, isAuthenticated, indicatorReady]);
 
   // Handle tab click with auto-scroll
-  const handleTabClick = (tab: 'active' | 'history' | 'activity' | 'access', event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleTabClick = (tab: 'active' | 'history' | 'activity' | 'access' | 'hints', event: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
+    // Prevent double-firing on mobile (touch event followed by click event)
+    const now = Date.now();
+    if (now - lastTabChangeRef.current < 300) {
+      return; // Ignore if called within 300ms (touch+click both fire)
+    }
+    lastTabChangeRef.current = now;
+    
     setActiveTab(tab);
     setDrawerExpanded(true);
     
-    // Scroll clicked tab into view
+    // Scroll clicked tab into view - use 'auto' instead of 'smooth' for Safari touch compatibility
     const button = event.currentTarget;
     button.scrollIntoView({
-      behavior: 'smooth',
+      behavior: 'auto', // Changed from 'smooth' to fix Safari touch blocking
       block: 'nearest',
       inline: 'center'
     });
@@ -170,61 +240,100 @@ function AdminPage() {
 
   // Fetch hotspots (all, including inactive)
   const fetchHotspots = async () => {
+    setHotspotsLoading(true);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
       const response = await fetch(`${API_URL}/api/hotspots?admin=true`, {
         headers: getAuthHeaders(),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data = await response.json();
         setHotspots(data);
         
-        // Fetch location names for all hotspots
-        data.forEach(async (hotspot: Hotspot) => {
-          const name = await getLocationName(hotspot.lat, hotspot.lng);
-          setLocationNames(prev => ({ ...prev, [hotspot.id]: name }));
-        });
+        // Auto-center map on active ping only on initial load
+        if (!hasInitiallyLoaded) {
+          const activePing = data.find((h: Hotspot) => h.claimStatus === 'unclaimed' && h.queuePosition === 1);
+          if (activePing && adminMapInstance) {
+            // Use smooth pan animation instead of instant center
+            adminMapInstance.panTo({ lat: activePing.lat, lng: activePing.lng });
+          } else if (activePing) {
+            // Fallback if map not loaded yet
+            setMapCenter({ lat: activePing.lat, lng: activePing.lng });
+          }
+          setHasInitiallyLoaded(true);
+        }
       }
     } catch (err) {
-      console.error('Failed to fetch hotspots:', err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Hotspots fetch timed out');
+      } else {
+        console.error('Failed to fetch hotspots:', err);
+      }
+    } finally {
+      setHotspotsLoading(false);
     }
   };
 
   // Fetch admin logs
   const fetchLogs = async () => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+      
       const response = await fetch(`${API_URL}/api/admin/logs`, {
         headers: getAuthHeaders(),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data = await response.json();
         setLogs(data);
       }
     } catch (err) {
-      console.error('Failed to fetch logs:', err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Logs fetch timed out');
+      } else {
+        console.error('Failed to fetch logs:', err);
+      }
     }
   };
 
   // Fetch pending claims
   const fetchPendingClaims = async () => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+      
       const response = await fetch(`${API_URL}/api/admin/claims`, {
         headers: getAuthHeaders(),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data = await response.json();
         setPendingClaims(data);
       }
     } catch (err) {
-      console.error('Failed to fetch pending claims:', err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Pending claims fetch timed out - will retry on next poll');
+      } else {
+        console.error('Failed to fetch pending claims:', err);
+      }
     }
   };
 
   // Approve a claim
   const handleApprove = async (hotspotId: string) => {
-    if (!confirm('Approve this claim? The private key will be revealed to the user.')) {
-      return;
-    }
-
     try {
       const response = await fetch(`${API_URL}/api/hotspots/${hotspotId}/approve`, {
         method: 'POST',
@@ -235,11 +344,21 @@ function AdminPage() {
         throw new Error('Failed to approve claim');
       }
 
-      alert('Claim approved! Private key revealed to user.');
+      // Add checkmark animation to the hotspot item
+      const hotspotElement = document.querySelector(`[data-hotspot-id="${hotspotId}"]`) as HTMLElement;
+      if (hotspotElement) {
+        hotspotElement.classList.add('approving-complete');
+        // Remove the item after animation completes
+        setTimeout(() => {
+          hotspotElement.remove();
+        }, 1000);
+      }
+
+      showToast('Claim approved! Private key revealed to user.', 'success');
       fetchPendingClaims();
       fetchHotspots();
     } catch (err) {
-      alert(`Error: ${err instanceof Error ? err.message : 'Failed to approve claim'}`);
+      showToast(`Error: ${err instanceof Error ? err.message : 'Failed to approve claim'}`, 'error');
     }
   };
 
@@ -252,6 +371,15 @@ function AdminPage() {
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
     });
+
+    // Update preview marker when lat/lng changes manually
+    if (name === 'lat' || name === 'lng') {
+      const lat = name === 'lat' ? parseFloat(value) : formData.lat;
+      const lng = name === 'lng' ? parseFloat(value) : formData.lng;
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setPreviewMarker({ lat, lng });
+      }
+    }
 
     // Don't auto-center map when manually typing coordinates
     // (removed to prevent unwanted map jumping)
@@ -331,7 +459,7 @@ function AdminPage() {
       });
       setImagePreview(compressed);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to process image');
+      showToast(error instanceof Error ? error.message : 'Failed to process image', 'error');
     }
   };
 
@@ -347,35 +475,58 @@ function AdminPage() {
       lng: mapCenter.lng,
       prize: '',
       endDate: '',
-      active: true,
       imageUrl: '',
       privateKey: '',
+      hint1: '',
+      hint2: '',
+      hint3: '',
+      hint1PriceUsd: '',
+      hint2PriceUsd: '',
+      hint3PriceUsd: '',
     });
     setImagePreview(null);
-    setHasExpiration(false);
+    setHintsExpanded(false);
     
-    // Scroll to create form after state updates
-    setTimeout(() => {
-      createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+    // Scroll to create form after state updates - use requestAnimationFrame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
   };
 
   // Handle map click to set location and open form
   const handleMapClickOpen = (lat: number, lng: number) => {
+    // Show preview marker immediately
+    setPreviewMarker({ lat, lng });
+    
+    // Center map on clicked location with smooth animation
+    if (adminMapInstance) {
+      adminMapInstance.panTo({ lat, lng });
+    } else {
+      // Fallback if map instance not ready
+      setMapCenter({ lat, lng });
+    }
+    
     // Only update form data, don't move the map center
     setFormData({ ...formData, lat, lng });
+    
+    // Always switch to active tab and expand drawer (map click works from any tab)
+    setActiveTab('active');
+    setDrawerExpanded(true);
     
     // If form is not open, open it in create mode
     if (!formOpen) {
       setFormMode('create');
       setFormOpen(true);
       setSelectedHotspot(null);
-      setDrawerExpanded(true); // Expand drawer on mobile
       
-      // Scroll to create form after state updates
-      setTimeout(() => {
-        createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      // Scroll to create form after state updates - use requestAnimationFrame
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
     }
   };
 
@@ -385,6 +536,18 @@ function AdminPage() {
     setFormMode('edit');
     setFormOpen(true);
     setActiveTab('active'); // Switch to active tab to show form
+    setDrawerExpanded(true); // Expand drawer on mobile
+    
+    // Show preview marker at hotspot location
+    setPreviewMarker({ lat: hotspot.lat, lng: hotspot.lng });
+    
+    // Center map on the ping being edited with smooth animation
+    if (adminMapInstance) {
+      adminMapInstance.panTo({ lat: hotspot.lat, lng: hotspot.lng });
+    } else {
+      // Fallback if map instance not ready
+      setMapCenter({ lat: hotspot.lat, lng: hotspot.lng });
+    }
     
     // Check if endDate is far in future (>50 years = no expiration)
     const endDate = new Date(hotspot.endDate);
@@ -392,19 +555,37 @@ function AdminPage() {
     const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
     const hasExpiry = yearsDiff < 50;
     
-    setHasExpiration(hasExpiry);
     setFormData({
       title: hotspot.title,
       lat: hotspot.lat,
       lng: hotspot.lng,
       prize: hotspot.prize || '',
       endDate: hasExpiry ? hotspot.endDate.slice(0, 16) : '',
-      active: hotspot.active,
       imageUrl: hotspot.imageUrl || '',
       privateKey: hotspot.privateKey || '', // Show existing key (encrypted display from backend)
+      hint1: hotspot.hint1 || '',
+      hint2: hotspot.hint2 || '',
+      hint3: hotspot.hint3 || '',
+      hint1PriceUsd: hotspot.hint1PriceUsd || '',
+      hint2PriceUsd: hotspot.hint2PriceUsd || '',
+      hint3PriceUsd: hotspot.hint3PriceUsd || '',
     });
     setImagePreview(hotspot.imageUrl || null);
-    // Don't center map when editing - let user keep current view
+    
+    // Expand hints section if any hints exist
+    if (hotspot.hint1 || hotspot.hint2 || hotspot.hint3) {
+      setHintsExpanded(true);
+    }
+    
+    // Scroll to the hotspot item after state updates - use requestAnimationFrame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const hotspotElement = document.getElementById(`hotspot-${hotspot.id}`);
+        if (hotspotElement) {
+          hotspotElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
   };
 
   // Save hotspot (create or update)
@@ -423,13 +604,19 @@ function AdminPage() {
         lat: parseFloat(formData.lat.toString()),
         lng: parseFloat(formData.lng.toString()),
         prize: formData.prize,
-        active: formData.active,
         imageUrl: formData.imageUrl,
         privateKey: formData.privateKey,
+        // Hint system fields
+        hint1: formData.hint1 || null,
+        hint2: formData.hint2 || null,
+        hint3: formData.hint3 || null,
+        hint1PriceUsd: formData.hint1PriceUsd === '' ? null : parseFloat(formData.hint1PriceUsd.toString()),
+        hint2PriceUsd: formData.hint2PriceUsd === '' ? null : parseFloat(formData.hint2PriceUsd.toString()),
+        hint3PriceUsd: formData.hint3PriceUsd === '' ? null : parseFloat(formData.hint3PriceUsd.toString()),
       };
 
       // Only include endDate if expiration toggle is enabled
-      if (hasExpiration && formData.endDate) {
+      if (formData.endDate) {
         payload.endDate = formData.endDate;
       }
 
@@ -447,22 +634,24 @@ function AdminPage() {
         throw new Error(data.error || 'Failed to save hotspot');
       }
 
-      // Reset form and refresh
+      // Clear preview marker and reset form
+      setPreviewMarker(null);
       handleCancel();
       fetchHotspots();
       fetchLogs();
-      alert(selectedHotspot ? 'Hotspot updated!' : 'Hotspot created!');
+      showToast(selectedHotspot ? 'Hotspot updated!' : 'Hotspot created!', 'success');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to save hotspot');
+      showToast(err instanceof Error ? err.message : 'Failed to save hotspot', 'error');
     }
   };
 
-  // Delete hotspot
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this hotspot?')) {
-      return;
-    }
+  // Show delete confirmation
+  const handleDeleteClick = (id: string) => {
+    setDeletingHotspotId(id);
+  };
 
+  // Confirm delete
+  const handleDeleteConfirm = async (id: string) => {
     try {
       const response = await fetch(`${API_URL}/api/hotspots/${id}`, {
         method: 'DELETE',
@@ -473,35 +662,73 @@ function AdminPage() {
         throw new Error('Failed to delete hotspot');
       }
 
-      fetchHotspots();
-      fetchLogs();
-      if (selectedHotspot?.id === id) {
-        handleCancel();
+      // Add shrink-out animation to the hotspot item
+      const hotspotElement = document.querySelector(`[data-hotspot-id="${id}"]`) as HTMLElement;
+      if (hotspotElement) {
+        hotspotElement.style.animation = 'shrinkOut 0.5s ease-out forwards';
+        // Wait for animation to complete, then refresh list with updated queue positions
+        setTimeout(() => {
+          setDeletingHotspotId(null);
+          fetchHotspots();
+          fetchLogs();
+          if (selectedHotspot?.id === id) {
+            handleCancel();
+          }
+          showToast('PING deleted successfully', 'success');
+        }, 500);
+      } else {
+        // If element not found, update immediately
+        setDeletingHotspotId(null);
+        fetchHotspots();
+        fetchLogs();
+        if (selectedHotspot?.id === id) {
+          handleCancel();
+        }
+        showToast('PING deleted successfully', 'success');
       }
-      alert('Hotspot deleted!');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete hotspot');
+      showToast(err instanceof Error ? err.message : 'Failed to delete hotspot', 'error');
+      setDeletingHotspotId(null);
     }
   };
 
-  // Cancel editing
+  // Cancel delete
+  const handleDeleteCancel = () => {
+    setDeletingHotspotId(null);
+  };
+
+  // Cancel editing with smooth closing animation
   const handleCancel = () => {
-    setSelectedHotspot(null);
-    setFormOpen(false);
-    setFormMode('create');
-    setHasExpiration(false);
-    setImagePreview(null);
-    setFormData({
-      title: '',
-      lat: 40.7128,
-      lng: -74.0060,
-      prize: '',
-      endDate: '',
-      active: true,
-      imageUrl: '',
-      privateKey: '',
-    });
-    setMapCenter({ lat: 40.7128, lng: -74.0060 });
+    setFormClosing(true);
+    
+    // Clear preview marker immediately
+    setPreviewMarker(null);
+    
+    // Wait for animation to complete before clearing state
+    setTimeout(() => {
+      setSelectedHotspot(null);
+      setFormOpen(false);
+      setFormMode('create');
+      setImagePreview(null);
+      setFormData({
+        title: '',
+        lat: 40.7128,
+        lng: -74.0060,
+        prize: '',
+        endDate: '',
+        imageUrl: '',
+        privateKey: '',
+        hint1: '',
+        hint2: '',
+        hint3: '',
+        hint1PriceUsd: '',
+        hint2PriceUsd: '',
+        hint3PriceUsd: '',
+      });
+      // Don't reset map center - let user keep their current view
+      setFormClosing(false);
+      setHintsExpanded(false); // Collapse hints section
+    }, 300); // Match animation duration
   };
 
   // Copy PING URL to clipboard
@@ -511,19 +738,94 @@ function AdminPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // Center map on active ping
+  const centerOnActivePing = () => {
+    const activePing = hotspots.find(h => h.claimStatus === 'unclaimed' && h.queuePosition === 1);
+    if (activePing && adminMapInstance) {
+      // Use smooth pan animation
+      adminMapInstance.panTo({ lat: activePing.lat, lng: activePing.lng });
+      adminMapInstance.setZoom(15); // Zoom in for better view
+    }
+  };
+
+  // Fetch hint settings
+  const fetchHintSettings = async () => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      
+      const response = await fetch(`${API_URL}/api/admin/hints/settings`, {
+        headers: getAuthHeaders(),
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setHintSettings({
+          treasuryWallet: data.treasuryWallet || '',
+          burnWallet: data.burnWallet || '',
+          pingTokenMint: data.pingTokenMint || '',
+        });
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Hint settings fetch timed out');
+      } else {
+        console.error('Failed to fetch hint settings:', err);
+      }
+    }
+  };
+
+  // Save hint settings
+  const handleSaveHintSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_URL}/api/admin/hints/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(hintSettings),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save hint settings');
+      }
+
+      showToast('Hint settings updated successfully!', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to save hint settings', 'error');
+    }
+  };
+
   // Fetch admin users
   const fetchAdminUsers = async () => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+      
       const response = await fetch(`${API_URL}/api/admin/users`, {
         headers: getAuthHeaders(),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data = await response.json();
         setAdminUsers(data.users);
         setCurrentUserRole(data.currentUserRole);
       }
     } catch (err) {
-      console.error('Failed to fetch admin users:', err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Admin users fetch timed out');
+      } else {
+        console.error('Failed to fetch admin users:', err);
+      }
     }
   };
 
@@ -545,12 +847,12 @@ function AdminPage() {
         throw new Error(data.error || 'Failed to create user');
       }
 
-      alert('User created successfully!');
+      showToast('User created successfully!', 'success');
       setNewUserForm({ username: '', password: '', role: 'editor' });
       setShowNewUserForm(false);
       fetchAdminUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to create user');
+      showToast(err instanceof Error ? err.message : 'Failed to create user', 'error');
     }
   };
 
@@ -570,10 +872,10 @@ function AdminPage() {
         throw new Error('Failed to update role');
       }
 
-      alert('Role updated successfully!');
+      showToast('Role updated successfully!', 'success');
       fetchAdminUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update role');
+      showToast(err instanceof Error ? err.message : 'Failed to update role', 'error');
     }
   };
 
@@ -593,10 +895,10 @@ function AdminPage() {
         throw new Error('Failed to delete user');
       }
 
-      alert('User deleted successfully!');
+      showToast('User deleted successfully!', 'success');
       fetchAdminUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete user');
+      showToast(err instanceof Error ? err.message : 'Failed to delete user', 'error');
     }
   };
 
@@ -645,9 +947,14 @@ function AdminPage() {
       {/* Mobile Top Bar (logo + logout) */}
       <div className="mobile-top-bar">
         <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
-        <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
-          <LogOut size={24} />
-        </button>
+        <div className="header-actions">
+          <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
+            <LocateFixed size={24} />
+          </button>
+          <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
+            <LogOut size={24} />
+          </button>
+        </div>
       </div>
 
       {/* Full viewport map */}
@@ -693,6 +1000,16 @@ function AdminPage() {
                   map={adminMapInstance || undefined}
                 />
               ))}
+            
+            {/* Preview marker for create/edit mode */}
+            {previewMarker && (
+              <CustomMarker
+                position={previewMarker}
+                isActive={false}
+                onClick={() => {}} // No action on preview marker
+                map={adminMapInstance || undefined}
+              />
+            )}
           </GoogleMap>
         )}
       </div>
@@ -702,17 +1019,18 @@ function AdminPage() {
         {/* Desktop: Logo and Logout */}
         <div className="sidebar-header">
           <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
-          <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
-            <LogOut size={24} />
-          </button>
+          <div className="header-actions">
+            <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
+              <LocateFixed size={24} />
+            </button>
+            <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
+              <LogOut size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Mobile drag handle */}
         <div className="drag-handle" onClick={() => {
-          // If closing drawer, reset form state
-          if (drawerExpanded) {
-            handleCancel();
-          }
           setDrawerExpanded(!drawerExpanded);
         }}>
           <div className="handle-bar"></div>
@@ -720,38 +1038,44 @@ function AdminPage() {
 
         {/* Tabs */}
         <div className="admin-tabs" ref={tabsRef}>
-          <div 
-            className={`tab-indicator ${indicatorReady ? 'ready' : ''}`}
-            style={{
-              left: `${indicatorStyle.left}px`,
-              width: `${indicatorStyle.width}px`
-            }}
-          />
           <button 
             className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('active', e)}
+            onTouchStart={(e) => handleTabClick('active', e)}
           >
             Active PINGs
           </button>
           <button 
             className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('history', e)}
+            onTouchStart={(e) => handleTabClick('history', e)}
           >
             Claimed History
           </button>
           <button 
             className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('activity', e)}
+            onTouchStart={(e) => handleTabClick('activity', e)}
           >
             Recent Activity
           </button>
           {currentUserRole === 'admin' && (
-            <button 
-              className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
-              onClick={(e) => handleTabClick('access', e)}
-            >
-              Access Control
-            </button>
+            <>
+              <button 
+                className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
+                onClick={(e) => handleTabClick('access', e)}
+                onTouchStart={(e) => handleTabClick('access', e)}
+              >
+                Access Control
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'hints' ? 'active' : ''}`}
+                onClick={(e) => handleTabClick('hints', e)}
+                onTouchStart={(e) => handleTabClick('hints', e)}
+              >
+                Hint Settings
+              </button>
+            </>
           )}
         </div>
 
@@ -760,11 +1084,16 @@ function AdminPage() {
           {/* Active PINGs Tab */}
           {activeTab === 'active' && (
             <div className="active-pings-content">
-              {/* Active/Queued PINGs List */}
-              {hotspots
-                .filter(h => h.claimStatus !== 'claimed')
-                .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0))
-                .map((hotspot, index) => {
+              {/* Show skeleton while loading */}
+              {hotspotsLoading ? (
+                <HotspotSkeletonList count={1} />
+              ) : (
+                <>
+                  {/* Active/Queued PINGs List */}
+                  {hotspots
+                    .filter(h => h.claimStatus !== 'claimed')
+                    .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0))
+                    .map((hotspot, index) => {
                   const nfcUrl = `${window.location.origin}/ping/${hotspot.id}`;
                   const isActive = index === 0; // First item is active
                   const displayPosition = index + 1; // Display position: 1, 2, 3, etc.
@@ -773,21 +1102,24 @@ function AdminPage() {
                   
                   return (
                     <div 
-                      key={hotspot.id} 
+                      key={hotspot.id}
+                      id={`hotspot-${hotspot.id}`}
+                      data-hotspot-id={hotspot.id}
                       className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''}`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
                     >
                       <div className="hotspot-header">
                         <div className="header-title-section">
                           <strong>{hotspot.title}</strong>
-                          {locationNames[hotspot.id] && (
+                          {hotspot.locationName && (
                             <div className="hotspot-location">
                               <MapPin size={12} />
-                              <span>{locationNames[hotspot.id]}</span>
+                              <span>{hotspot.locationName}</span>
                             </div>
                           )}
                         </div>
                         <span className={`status-badge ${hasPendingClaim ? 'badge-pending' : (isActive ? 'badge-active' : 'badge-queued')}`}>
-                          {hasPendingClaim ? 'Pending Claim' : (isActive ? 'Active' : `Queue #${displayPosition}`)}
+                          {hasPendingClaim ? 'Pending' : (isActive ? 'Active' : `Queue #${displayPosition}`)}
                         </span>
                       </div>
                       <div className="hotspot-footer">
@@ -817,11 +1149,37 @@ function AdminPage() {
                           >
                             {copiedId === hotspot.id ? <Check size={18} /> : <Copy size={18} />}
                           </button>
-                          <button onClick={() => handleDelete(hotspot.id)} className="action-icon-btn" aria-label="Delete PING">
+                          <button 
+                            onClick={() => handleDeleteClick(hotspot.id)}
+                            className="action-icon-btn"
+                            aria-label="Delete PING"
+                          >
                             <Trash2 size={18} />
                           </button>
                         </div>
                       </div>
+
+                      {/* Delete Confirmation - Pops in from center */}
+                      {deletingHotspotId === hotspot.id && (
+                        <div className="delete-confirmation">
+                          <div className="delete-confirmation-content">
+                            <div className="delete-confirmation-buttons">
+                              <button 
+                                onClick={() => handleDeleteConfirm(hotspot.id)}
+                                className="delete-confirm-btn"
+                              >
+                                Confirm Deletion
+                              </button>
+                              <button 
+                                onClick={handleDeleteCancel}
+                                className="delete-cancel-btn"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       
                       {/* Inline Pending Claim Details */}
                       {hasPendingClaim && pendingClaim && (
@@ -840,13 +1198,13 @@ function AdminPage() {
                       
                       {/* Inline Edit Form - Show under this hotspot if it's being edited */}
                       {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id && (
-                        <div className="inline-form-container inline-edit-form" style={{ marginTop: '15px' }}>
+                        <div className={`inline-form-container inline-edit-form ${formClosing ? 'closing' : ''}`} style={{ marginTop: '15px' }}>
                           <form onSubmit={handleSave}>
                             <div className="form-group">
-                              <label htmlFor="title">Title *</label>
+                              <label htmlFor="edit-title">Title *</label>
                               <input
                                 type="text"
-                                id="title"
+                                id="edit-title"
                                 name="title"
                                 value={formData.title}
                                 onChange={handleInputChange}
@@ -856,10 +1214,10 @@ function AdminPage() {
 
                             <div className="form-row">
                               <div className="form-group">
-                                <label htmlFor="lat">Latitude *</label>
+                                <label htmlFor="edit-lat">Latitude *</label>
                                 <input
                                   type="number"
-                                  id="lat"
+                                  id="edit-lat"
                                   name="lat"
                                   value={formData.lat}
                                   onChange={handleInputChange}
@@ -870,10 +1228,10 @@ function AdminPage() {
                                 />
                               </div>
                               <div className="form-group">
-                                <label htmlFor="lng">Longitude *</label>
+                                <label htmlFor="edit-lng">Longitude *</label>
                                 <input
                                   type="number"
-                                  id="lng"
+                                  id="edit-lng"
                                   name="lng"
                                   value={formData.lng}
                                   onChange={handleInputChange}
@@ -890,10 +1248,10 @@ function AdminPage() {
                             </div>
 
                             <div className="form-group">
-                              <label htmlFor="prize">Prize (SOL) *</label>
+                              <label htmlFor="edit-prize">Prize (SOL) *</label>
                               <input
                                 type="number"
-                                id="prize"
+                                id="edit-prize"
                                 name="prize"
                                 value={formData.prize}
                                 onChange={handleInputChange}
@@ -907,10 +1265,10 @@ function AdminPage() {
                             </div>
 
                             <div className="form-group">
-                              <label htmlFor="privateKey">Solana Private Key *</label>
+                              <label htmlFor="edit-privateKey">Solana Private Key *</label>
                               <input
                                 type="text"
-                                id="privateKey"
+                                id="edit-privateKey"
                                 name="privateKey"
                                 value={formData.privateKey}
                                 onChange={handleInputChange}
@@ -924,48 +1282,162 @@ function AdminPage() {
                               </small>
                             </div>
 
-                            <div className="form-group checkbox">
-                              <label>
-                                <input
-                                  type="checkbox"
-                                  checked={hasExpiration}
-                                  onChange={(e) => setHasExpiration(e.target.checked)}
-                                />
-                                Set Expiration Date
-                              </label>
-                            </div>
-
-                            {hasExpiration && (
-                              <div className="form-group">
-                                <label htmlFor="endDate">Expiration Date & Time</label>
-                                <input
-                                  type="datetime-local"
-                                  id="endDate"
-                                  name="endDate"
-                                  value={formData.endDate}
-                                  onChange={handleInputChange}
-                                  required={hasExpiration}
-                                />
-                              </div>
-                            )}
-
                             <div className="form-group">
-                              <label htmlFor="imageUrl">Image URL (Optional)</label>
+                              <label htmlFor="edit-endDate">Expiration Date & Time (Optional)</label>
                               <input
-                                type="url"
-                                id="imageUrl"
-                                name="imageUrl"
-                                value={formData.imageUrl}
+                                type="datetime-local"
+                                id="edit-endDate"
+                                name="endDate"
+                                value={formData.endDate}
                                 onChange={handleInputChange}
-                                placeholder="https://example.com/image.jpg"
                               />
                             </div>
 
-                            {imagePreview && (
-                              <div className="image-preview">
-                                <img src={imagePreview} alt="Preview" />
+                            <div className="form-group">
+                              <label htmlFor="image-edit">PING Image</label>
+                              {!imagePreview ? (
+                                <div className="file-input-wrapper">
+                                  <input
+                                    type="file"
+                                    id="image-edit"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="file-input"
+                                  />
+                                  <div className="file-input-card">
+                                    <div className="plus-icon">+</div>
+                                    <span>Add Image</span>
+                                    <small className="form-hint">Max 2MB • JPG, PNG, GIF, WebP</small>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="image-preview">
+                                  <img src={imagePreview} alt="Preview" />
+                                  <div className="image-actions">
+                                    <button 
+                                      type="button" 
+                                      onClick={() => {
+                                        const fileInput = document.getElementById('image-edit-replace') as HTMLInputElement;
+                                        fileInput?.click();
+                                      }}
+                                      className="replace-image-btn"
+                                      aria-label="Replace image"
+                                    >
+                                      <ImageUp size={40} />
+                                    </button>
+                                    <button 
+                                      type="button" 
+                                      onClick={() => {
+                                        setImagePreview(null);
+                                        setFormData({ ...formData, imageUrl: '' });
+                                      }}
+                                      className="remove-image-btn"
+                                      aria-label="Remove image"
+                                    >
+                                      <Trash2 size={40} />
+                                    </button>
+                                  </div>
+                                  <input
+                                    type="file"
+                                    id="image-edit-replace"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    style={{ display: 'none' }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Hints Section - Collapsible */}
+                            <div className="hints-section">
+                              <div className="hints-header" onClick={() => setHintsExpanded(!hintsExpanded)}>
+                                <h4>Hints (Optional)</h4>
+                                <span className="expand-icon">{hintsExpanded ? '−' : '+'}</span>
                               </div>
-                            )}
+                              
+                              {hintsExpanded && (
+                                <div className="hints-content">
+
+                                  {/* Hint 1 */}
+                                  <div className="hint-group">
+                                    <label htmlFor="edit-hint1">Hint 1 (General Area)</label>
+                                    <textarea
+                                      id="edit-hint1"
+                                      name="hint1"
+                                      value={formData.hint1}
+                                      onChange={handleInputChange}
+                                      placeholder="e.g., Near the downtown library"
+                                      rows={2}
+                                    />
+                                    <div className="hint-price-input">
+                                      <label htmlFor="edit-hint1Price">Price (USD)</label>
+                                      <input
+                                        type="number"
+                                        id="edit-hint1Price"
+                                        name="hint1PriceUsd"
+                                        value={formData.hint1PriceUsd}
+                                        onChange={handleInputChange}
+                                        placeholder="Leave empty for free"
+                                        step="0.01"
+                                        min="0"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Hint 2 */}
+                                  <div className="hint-group">
+                                    <label htmlFor="edit-hint2">Hint 2 (Specific Location)</label>
+                                    <textarea
+                                      id="edit-hint2"
+                                      name="hint2"
+                                      value={formData.hint2}
+                                      onChange={handleInputChange}
+                                      placeholder="e.g., Third floor reading room"
+                                      rows={2}
+                                    />
+                                    <div className="hint-price-input">
+                                      <label htmlFor="edit-hint2Price">Price (USD)</label>
+                                      <input
+                                        type="number"
+                                        id="edit-hint2Price"
+                                        name="hint2PriceUsd"
+                                        value={formData.hint2PriceUsd}
+                                        onChange={handleInputChange}
+                                        placeholder="Leave empty for free"
+                                        step="0.01"
+                                        min="0"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Hint 3 */}
+                                  <div className="hint-group">
+                                    <label htmlFor="edit-hint3">Hint 3 (Exact Spot)</label>
+                                    <textarea
+                                      id="edit-hint3"
+                                      name="hint3"
+                                      value={formData.hint3}
+                                      onChange={handleInputChange}
+                                      placeholder="e.g., Behind the encyclopedias, section D"
+                                      rows={2}
+                                    />
+                                    <div className="hint-price-input">
+                                      <label htmlFor="edit-hint3Price">Price (USD)</label>
+                                      <input
+                                        type="number"
+                                        id="edit-hint3Price"
+                                        name="hint3PriceUsd"
+                                        value={formData.hint3PriceUsd}
+                                        onChange={handleInputChange}
+                                        placeholder="Leave empty for free"
+                                        step="0.01"
+                                        min="0"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
 
                             <div className="form-actions">
                               <button type="submit" className="save-btn">
@@ -989,7 +1461,7 @@ function AdminPage() {
                   <span>Add New PING</span>
                 </div>
               ) : (
-                <div ref={createFormRef} className="inline-form-container inline-create-form">
+                <div ref={createFormRef} className={`inline-form-container inline-create-form ${formClosing ? 'closing' : ''}`}>
                   <h4>Create New PING</h4>
                   <form onSubmit={handleSave}>
                     <div className="form-group">
@@ -1074,68 +1546,161 @@ function AdminPage() {
                       </small>
                     </div>
 
-                    <div className="form-group checkbox">
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={hasExpiration}
-                          onChange={(e) => setHasExpiration(e.target.checked)}
-                        />
-                        <span>Set expiration date</span>
-                      </label>
+                    <div className="form-group">
+                      <label htmlFor="endDate">Expiration Date & Time (Optional)</label>
+                      <input
+                        type="datetime-local"
+                        id="endDate"
+                        name="endDate"
+                        value={formData.endDate}
+                        onChange={handleInputChange}
+                      />
                     </div>
-
-                    {hasExpiration && (
-                      <div className="form-group">
-                        <label htmlFor="endDate">Expiration Date & Time *</label>
-                        <input
-                          type="datetime-local"
-                          id="endDate"
-                          name="endDate"
-                          value={formData.endDate}
-                          onChange={handleInputChange}
-                          required={hasExpiration}
-                        />
-                      </div>
-                    )}
 
                     <div className="form-group">
                       <label htmlFor="image">PING Image</label>
-                      <input
-                        type="file"
-                        id="image"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="file-input"
-                      />
-                      {imagePreview && (
+                      {!imagePreview ? (
+                        <div className="file-input-wrapper">
+                          <input
+                            type="file"
+                            id="image"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="file-input"
+                          />
+                          <div className="file-input-card">
+                            <div className="plus-icon">+</div>
+                            <span>Add Image</span>
+                            <small className="form-hint">Max 2MB • JPG, PNG, GIF, WebP</small>
+                          </div>
+                        </div>
+                      ) : (
                         <div className="image-preview">
                           <img src={imagePreview} alt="Preview" />
-                          <button 
-                            type="button" 
-                            onClick={() => {
-                              setImagePreview(null);
-                              setFormData({ ...formData, imageUrl: '' });
-                            }}
-                            className="remove-image-btn"
-                          >
-                            ✕ Remove
-                          </button>
+                          <div className="image-actions">
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                const fileInput = document.getElementById('image-replace') as HTMLInputElement;
+                                fileInput?.click();
+                              }}
+                              className="replace-image-btn"
+                              aria-label="Replace image"
+                            >
+                              <ImageUp size={40} />
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                setImagePreview(null);
+                                setFormData({ ...formData, imageUrl: '' });
+                              }}
+                              className="remove-image-btn"
+                              aria-label="Remove image"
+                            >
+                              <Trash2 size={40} />
+                            </button>
+                          </div>
+                          <input
+                            type="file"
+                            id="image-replace"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            style={{ display: 'none' }}
+                          />
                         </div>
                       )}
-                      <small className="form-hint">Max size: 2MB. Supported: JPG, PNG, GIF, WebP</small>
                     </div>
 
-                    <div className="form-group checkbox">
-                      <label>
-                        <input
-                          type="checkbox"
-                          name="active"
-                          checked={formData.active}
-                          onChange={handleInputChange}
-                        />
-                        <span>Active</span>
-                      </label>
+                    {/* Hints Section - Collapsible */}
+                    <div className="hints-section">
+                      <div className="hints-header" onClick={() => setHintsExpanded(!hintsExpanded)}>
+                        <h4>Hints (Optional)</h4>
+                        <span className="expand-icon">{hintsExpanded ? '−' : '+'}</span>
+                      </div>
+                      
+                      {hintsExpanded && (
+                        <div className="hints-content">
+
+                          {/* Hint 1 */}
+                          <div className="hint-group">
+                            <label htmlFor="hint1">Hint 1 (General Area)</label>
+                            <textarea
+                              id="hint1"
+                              name="hint1"
+                              value={formData.hint1}
+                              onChange={handleInputChange}
+                              placeholder="e.g., Near the downtown library"
+                              rows={2}
+                            />
+                            <div className="hint-price-input">
+                              <label htmlFor="hint1Price">Price (USD)</label>
+                              <input
+                                type="number"
+                                id="hint1Price"
+                                name="hint1PriceUsd"
+                                value={formData.hint1PriceUsd}
+                                onChange={handleInputChange}
+                                placeholder="Leave empty for free"
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Hint 2 */}
+                          <div className="hint-group">
+                            <label htmlFor="hint2">Hint 2 (Specific Location)</label>
+                            <textarea
+                              id="hint2"
+                              name="hint2"
+                              value={formData.hint2}
+                              onChange={handleInputChange}
+                              placeholder="e.g., Third floor reading room"
+                              rows={2}
+                            />
+                            <div className="hint-price-input">
+                              <label htmlFor="hint2Price">Price (USD)</label>
+                              <input
+                                type="number"
+                                id="hint2Price"
+                                name="hint2PriceUsd"
+                                value={formData.hint2PriceUsd}
+                                onChange={handleInputChange}
+                                placeholder="Leave empty for default"
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Hint 3 */}
+                          <div className="hint-group">
+                            <label htmlFor="hint3">Hint 3 (Exact Spot)</label>
+                            <textarea
+                              id="hint3"
+                              name="hint3"
+                              value={formData.hint3}
+                              onChange={handleInputChange}
+                              placeholder="e.g., Behind the encyclopedias, section D"
+                              rows={2}
+                            />
+                            <div className="hint-price-input">
+                              <label htmlFor="hint3Price">Price (USD)</label>
+                              <input
+                                type="number"
+                                id="hint3Price"
+                                name="hint3PriceUsd"
+                                value={formData.hint3PriceUsd}
+                                onChange={handleInputChange}
+                                placeholder="Leave empty for default"
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="form-actions">
@@ -1149,17 +1714,27 @@ function AdminPage() {
                   </form>
                 </div>
               )}
+                </>
+              )}
             </div>
           )}
 
           {/* Claimed History Tab */}
           {activeTab === 'history' && (
             <div className="history-content">
-              <h3>📜 Claimed PINGs History</h3>
-              {hotspots
-                .filter(h => h.claimStatus === 'claimed')
-                .map((hotspot) => (
-                  <div key={hotspot.id} className="hotspot-item claimed-hotspot">
+              {hotspotsLoading ? (
+                <HotspotSkeletonList count={1} />
+              ) : (
+                hotspots
+                  .filter(h => h.claimStatus === 'claimed')
+                  .sort((a, b) => {
+                    // Sort by claimedAt date, most recent first
+                    const dateA = a.claimedAt ? new Date(a.claimedAt).getTime() : 0;
+                    const dateB = b.claimedAt ? new Date(b.claimedAt).getTime() : 0;
+                    return dateB - dateA;
+                  })
+                  .map((hotspot, index) => (
+                  <div key={hotspot.id} data-hotspot-id={hotspot.id} className="hotspot-item claimed-hotspot" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="hotspot-header">
                       <span className="status-badge badge-claimed">CLAIMED</span>
                       <strong>{hotspot.title}</strong>
@@ -1174,8 +1749,9 @@ function AdminPage() {
                       )}
                     </div>
                   </div>
-                ))}
-              {hotspots.filter(h => h.claimStatus === 'claimed').length === 0 && (
+                ))
+              )}
+              {!hotspotsLoading && hotspots.filter(h => h.claimStatus === 'claimed').length === 0 && (
                 <p className="empty-message">No claimed PINGs yet.</p>
               )}
             </div>
@@ -1184,7 +1760,6 @@ function AdminPage() {
           {/* Recent Activity Tab */}
           {activeTab === 'activity' && (
             <div className="activity-content">
-              <h3>Recent Activity</h3>
               {logs.map((log) => (
                 <div key={log.id} className="log-item">
                   <span className="log-action">{log.action}</span>
@@ -1198,23 +1773,65 @@ function AdminPage() {
             </div>
           )}
 
+
+          {/* Hint Settings Tab */}
+          {activeTab === 'hints' && currentUserRole === 'admin' && (
+            <div className="hint-settings-content">
+              <div className="hint-settings-section">
+                <h3>Hint System Configuration</h3>
+                <form onSubmit={handleSaveHintSettings}>
+                  <div className="form-group">
+                    <label htmlFor="treasury-wallet-hints">Treasury Wallet Address</label>
+                    <input
+                      type="text"
+                      id="treasury-wallet-hints"
+                      value={hintSettings.treasuryWallet}
+                      onChange={(e) => setHintSettings({ ...hintSettings, treasuryWallet: e.target.value })}
+                      placeholder="Solana wallet address (receives 50%)"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="burn-wallet-hints">Burn Wallet Address</label>
+                    <input
+                      type="text"
+                      id="burn-wallet-hints"
+                      value={hintSettings.burnWallet}
+                      onChange={(e) => setHintSettings({ ...hintSettings, burnWallet: e.target.value })}
+                      placeholder="Solana wallet address (receives 50% for manual burning)"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="ping-token-mint-hints">$PING Token Mint Address</label>
+                    <input
+                      type="text"
+                      id="ping-token-mint-hints"
+                      value={hintSettings.pingTokenMint}
+                      onChange={(e) => setHintSettings({ ...hintSettings, pingTokenMint: e.target.value })}
+                      placeholder="SPL Token mint address for $PING"
+                    />
+                  </div>
+
+                  <button type="submit" className="save-btn">
+                    Save Hint Settings
+                  </button>
+                </form>
+                
+                <div className="hint-instructions">
+                  <h4>How Hint Pricing Works</h4>
+                  <p>Hint prices are configured individually per hotspot when creating or editing PINGs. Set the USD price for each hint level (1, 2, 3) in the PING creation form, and the app will automatically calculate the $PING token amount based on the current market price.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Access Control Tab */}
           {activeTab === 'access' && currentUserRole === 'admin' && (
             <div className="access-control-content">
-              <h3>Access Control</h3>
-              
-              {/* Add New User Button */}
-              {!showNewUserForm && (
-                <div className="add-user-card" onClick={() => setShowNewUserForm(true)}>
-                  <div className="plus-icon">+</div>
-                  <span>Add New Admin User</span>
-                </div>
-              )}
-
               {/* New User Form */}
               {showNewUserForm && (
                 <div className="new-user-form">
-                  <h4>Create New Admin User</h4>
                   <form onSubmit={handleCreateUser}>
                     <div className="form-group">
                       <label htmlFor="new-username">Username *</label>
@@ -1263,42 +1880,46 @@ function AdminPage() {
 
               {/* Admin Users List */}
               <div className="admin-users-list">
-                <h4>Admin Users</h4>
                 {adminUsers.map((user) => (
                   <div key={user.id} className="user-item">
                     <div className="user-info">
                       <strong>{user.username}</strong>
-                      <span className={`role-badge role-${user.role}`}>
-                        {user.role === 'admin' ? 'Admin' : 'Editor'}
-                      </span>
+                      <div className="role-toggle">
+                        <button
+                          className={`role-option ${user.role === 'editor' ? 'active' : ''}`}
+                          onClick={() => handleUpdateRole(user.id, 'editor')}
+                        >
+                          Editor
+                        </button>
+                        <button
+                          className={`role-option ${user.role === 'admin' ? 'active' : ''}`}
+                          onClick={() => handleUpdateRole(user.id, 'admin')}
+                        >
+                          Admin
+                        </button>
+                      </div>
                     </div>
                     <div className="user-actions">
-                      {user.role === 'editor' ? (
-                        <button 
-                          onClick={() => handleUpdateRole(user.id, 'admin')} 
-                          className="action-btn promote-btn"
-                        >
-                          Promote to Admin
-                        </button>
-                      ) : (
-                        <button 
-                          onClick={() => handleUpdateRole(user.id, 'editor')} 
-                          className="action-btn demote-btn"
-                        >
-                          Demote to Editor
-                        </button>
-                      )}
                       <button 
                         onClick={() => handleDeleteUser(user.id)} 
-                        className="action-btn delete-btn"
+                        className="action-icon-btn"
+                        aria-label="Delete User"
                       >
-                        Delete
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </div>
                 ))}
                 {adminUsers.length === 0 && (
                   <p className="empty-message">No users found.</p>
+                )}
+                
+                {/* Add New User Card - At Bottom */}
+                {!showNewUserForm && (
+                  <div className="add-user-card" onClick={() => setShowNewUserForm(true)}>
+                    <h3>+ Add New User</h3>
+                    <p>Click to create a new admin user</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -1310,49 +1931,51 @@ function AdminPage() {
       <div className="mobile-footer">
         {/* Drag Handle */}
         <div className="mobile-drag-handle" onClick={() => {
-          // If closing drawer, reset form state
-          if (drawerExpanded) {
-            handleCancel();
-          }
           setDrawerExpanded(!drawerExpanded);
         }}>
           <div className="handle-bar"></div>
         </div>
 
         {/* Mobile Tabs */}
-        <div className="admin-tabs mobile-tabs">
-          <div 
-            className={`tab-indicator ${indicatorReady ? 'ready' : ''}`}
-            style={{
-              left: `${indicatorStyle.left}px`,
-              width: `${indicatorStyle.width}px`
-            }}
-          />
+        <div className="admin-tabs mobile-tabs" ref={mobileTabsRef}>
           <button 
             className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('active', e)}
+            onTouchStart={(e) => handleTabClick('active', e)}
           >
             Active PINGs
           </button>
           <button 
             className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('history', e)}
+            onTouchStart={(e) => handleTabClick('history', e)}
           >
             Claimed History
           </button>
           <button 
             className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('activity', e)}
+            onTouchStart={(e) => handleTabClick('activity', e)}
           >
             Recent Activity
           </button>
           {currentUserRole === 'admin' && (
-            <button 
-              className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
-              onClick={(e) => handleTabClick('access', e)}
-            >
-              Access Control
-            </button>
+            <>
+              <button 
+                className={`tab-btn ${activeTab === 'access' ? 'active' : ''}`}
+                onClick={(e) => handleTabClick('access', e)}
+                onTouchStart={(e) => handleTabClick('access', e)}
+              >
+                Access Control
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'hints' ? 'active' : ''}`}
+                onClick={(e) => handleTabClick('hints', e)}
+                onTouchStart={(e) => handleTabClick('hints', e)}
+              >
+                Hint Settings
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -1360,5 +1983,14 @@ function AdminPage() {
   );
 }
 
-export default AdminPage;
+// Wrap AdminPage with ToastProvider
+const AdminPageWithToast = () => {
+  return (
+    <ToastProvider>
+      <AdminPage />
+    </ToastProvider>
+  );
+};
+
+export default AdminPageWithToast;
 

@@ -266,31 +266,47 @@
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 700;
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 25px 30px;
+  border-radius: 25px;
   text-align: center;
+  max-width: 400px;
+  width: 90%;
 }
 
 .map-overlay.error {
-  background: #fee;
-  border: 2px solid #e74c3c;
+  background: rgba(231, 76, 60, 0.15);
+  border: 2px solid rgba(231, 76, 60, 0.4);
+  color: #fff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.map-overlay.error p {
+  margin: 0 0 15px;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .map-overlay button {
   margin-top: 10px;
-  padding: 8px 20px;
-  background: #3498db;
+  padding: 10px 24px;
+  background: rgba(255, 255, 255, 0.2);
   color: white;
-  border: none;
-  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .map-overlay button:hover {
-  background: #2980b9;
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 /* Popup styles */
@@ -434,6 +450,22 @@
   opacity: 0;
 }
 
+/* Marker slide-up entrance animation */
+.marker-slide-up {
+  animation: markerSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes markerSlideUp {
+  0% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 /* Modal Overlay (Backdrop) */
 .modal-overlay {
   position: fixed;
@@ -485,6 +517,23 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  position: relative;
+}
+
+/* Smooth view transitions - children fade/slide when view changes */
+.modal-sections > * {
+  animation: fadeSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUp {
@@ -564,13 +613,14 @@
   border-radius: 25px;
   transform: translateZ(0); /* GPU acceleration */
   -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  /* backdrop-filter: blur(8px); */
   contain: layout style paint; /* Rendering optimization */
+  background: #ffffff40;
 }
 
 /* Combined Header Section (Title + Time Info) */
 .modal-header {
-  background: #ffffff30;
+  background: #ffffff40;
   padding: 20px;
 }
 
@@ -707,11 +757,6 @@
   text-align: center;
 }
 
-.hint-cta:hover {
-  background: #ffd700;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
-}
 
 .hint-cta:active {
   transform: translateY(0);
@@ -774,7 +819,7 @@
 
 /* Image Section */
 .modal-image {
-  background: rgba(0, 0, 0, 0.2);
+  /* background: #0003; */
   padding: 0;
   overflow: hidden;
 }
@@ -849,7 +894,7 @@
 
 /* Claim Intro State */
 .modal-claim-intro {
-  background: #ffffff30;
+  background: #ffffff40;
   text-align: center;
   padding: 30px 25px !important;
   position: relative;
@@ -923,7 +968,7 @@
 
 /* Queued State */
 .modal-queued {
-  background: #ffffff30;
+  background: #ffffff40;
   text-align: left;
   padding: 25px 25px !important;
 }
@@ -972,7 +1017,7 @@
 
 /* Pending State */
 .modal-pending {
-  background: #ffffff30;
+  background: #ffffff40;
   text-align: center;
   padding: 30px 25px !important;
 }
@@ -1123,7 +1168,7 @@
 
 /* Claimed/Reveal State */
 .modal-reveal {
-  background: #ffffff30;
+  background: #ffffff40;
   text-align: center;
   padding: 20px 20px !important;
 }

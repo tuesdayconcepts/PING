@@ -1,0 +1,361 @@
+/* Hint Modal uses the same modal-overlay and modal-content from MapPage.css */
+/* Smooth fade-in transition for hint modal */
+.hint-modal-overlay {
+  animation: fadeIn 0.3s ease;
+}
+
+.hint-header-section {
+  text-align: center;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 20px;
+  padding: 28px 24px;
+}
+
+.hint-header-section h2 {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  /* letter-spacing: -.5px; */
+  text-transform: uppercase;
+}
+
+.hint-subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.hint-error-banner {
+  background: #ff625191;
+  border: 2px solid rgb(255 255 255 / 12%);
+  border-radius: 25px;
+  padding: 16px;
+  /* margin: -5px 0 0; */
+  color: #ffffff;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ===================
+   HORIZONTAL SLIDER LAYOUT
+   Each hint is a modal-section that slides
+   =================== */
+
+.hints-slider-wrapper {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Peek zones - invisible hover/tap areas */
+.peek-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30px; /* 30px hover zones on edges */
+  z-index: 15;
+  cursor: pointer;
+}
+
+.peek-zone.left {
+  left: 0;
+}
+
+.peek-zone.right {
+  right: 0;
+}
+
+/* Visual feedback for peek zones on hover */
+.peek-zone:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  pointer-events: none;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.peek-zone.left:hover::after {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.peek-zone.right:hover::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.hints-slider-track {
+  display: flex;
+  gap: 15px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Each hint slide is a full modal-section */
+.hint-slide {
+  position: relative;
+  min-height: 200px;
+  min-width: 100%;
+  flex-shrink: 0;
+  opacity: 0;
+  transform: scale(0.9);
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hint-slide.center {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hint-slide.side {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+/* Hint slide states - override modal-section defaults */
+.hint-slide {
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  background: #091dadc2 !important;
+}
+
+.hint-slide.unlocked {
+  background: rgba(46, 213, 115, 0.1) !important;
+  border-color: rgba(46, 213, 115, 0.5) !important;
+  box-shadow: 0 0 20px rgba(46, 213, 115, 0.2);
+}
+
+.hint-slide.locked {
+  background: #ffffff40 !important;
+  border-color: #ffffff1a !important;
+}
+
+.hint-slide.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Price badge floating in center of hint slide */
+.hint-price-text {
+  /* position: absolute; */
+  top: 50%;
+  left: 50%;
+  /* transform: translate(-50%, -50%); */
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+
+
+.free-text {
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 0 30px rgb(2 5 28);
+}
+
+.paid-text {
+  color: #fff;
+  line-height: 1.2;
+  text-shadow: 0 0 30px rgba(0, 0, 0, .8);
+}
+
+.paid-line-1 {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.paid-line-2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding-bottom: 1.5rem;
+}
+
+
+
+/* Invisible ink overlay - covers entire hint content area */
+.hint-ink-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Hint content area - covers entire hint slide like background */
+.hint-content-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Locked content (requirement message) */
+.hint-locked-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hint-requirement {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Action Buttons Section */
+.hint-actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 !important;
+  background: none !important;
+  border: none !important;
+}
+
+.hint-actions .details-btn {
+  flex-shrink: 0;
+  padding: 6px 16px !important;
+  background: #00000024 !important;
+  color: #fff !important;
+  border: solid 3px #00000005 !important;
+  border-radius: 50px !important;
+  cursor: pointer;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  transition: background 0.3s;
+}
+
+.hint-actions .details-btn:hover {
+  padding: 6px 16px !important;
+  background: #00000040 !important;
+  color: #fff !important;
+  border: solid 3px #00000005 !important;
+  border-radius: 50px !important;
+  cursor: pointer;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  transition: background 0.3s;
+}
+
+.hint-cta-btn {
+  flex: 1;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Wallet Adapter Button Styling */
+.hint-actions .wallet-adapter-dropdown {
+  position: relative;
+  display: flex;
+  flex: 1;
+}
+
+.hint-actions .wallet-adapter-button {
+  flex: 1;
+  background-color: #ab9ff2;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  font-size: 1rem !important;
+  font-weight: 600;
+  height: 48px;
+  line-height: 48px;
+  padding: 0 20px !important;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.hint-actions .wallet-adapter-button:hover:not(:disabled) {
+  background-color: #9b8fe8;
+}
+
+.hint-cta-btn.free {
+  background: linear-gradient(135deg, gold, #ffed4e);
+  color: #000;
+  /* box-shadow: 0 4px 15px #ffd7004d; */
+}
+
+
+.hint-cta-btn.paid {
+  background: linear-gradient(135deg, gold, #ffed4e);
+  color: #000;
+  /* box-shadow: 0 4px 15px #ffd7004d; */
+}
+
+
+.hint-cta-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.hint-loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+}
+
+.no-hints {
+  text-align: center;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

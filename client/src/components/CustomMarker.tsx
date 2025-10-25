@@ -5,10 +5,12 @@ interface CustomMarkerProps {
   isActive: boolean;
   onClick: () => void;
   map?: google.maps.Map;
+  animate?: boolean; // Control whether to show slide-up animation
 }
 
-export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, onClick, map }) => {
+export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, onClick, map, animate = false }) => {
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  const hasAnimated = useRef(false); // Track if animation has played
 
   useEffect(() => {
     if (!map) return;
@@ -29,8 +31,15 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({ position, isActive, 
 
       onAdd() {
         const div = document.createElement('div');
-        div.className = `pulse-marker ${isActive ? '' : 'inactive'}`;
+        // Only add slide-up animation class if animate prop is true AND hasn't animated yet
+        const animationClass = (animate && !hasAnimated.current) ? 'marker-slide-up' : '';
+        div.className = `pulse-marker ${isActive ? '' : 'inactive'} ${animationClass}`;
         div.style.cssText = 'cursor: pointer; width: 80px; height: 80px; position: absolute;';
+        
+        // Mark as animated after first render (if animation was requested)
+        if (animate && !hasAnimated.current) {
+          hasAnimated.current = true;
+        }
         
         // Add SVGs
         for (let i = 0; i < 3; i++) {

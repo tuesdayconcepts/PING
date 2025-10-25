@@ -8,6 +8,7 @@ import { Hotspot } from '../types';
 import { getHotspotStatus, getTimeUntilExpiration, calculateETA } from '../utils/time';
 import { getLocationName } from '../utils/geocoding';
 import { GoldenTicket } from '../components/GoldenTicket';
+import { HintModal } from '../components/HintModal';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import './MapPage.css';
@@ -56,6 +57,7 @@ function MapPage() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [markersLoaded, setMarkersLoaded] = useState(false);
   const [center, setCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 }); // Default: NYC
   const [zoom, setZoom] = useState(13);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -78,6 +80,7 @@ function MapPage() {
   const [twitterHandle, setTwitterHandle] = useState<string>('');
   const [claimedAt, setClaimedAt] = useState<string>('');
   const [locationName, setLocationName] = useState<string>('');
+  const [showHintModal, setShowHintModal] = useState(false);
 
   // Extract Twitter handle from tweet URL
   const extractTwitterHandle = (tweetUrl: string): string => {
@@ -168,6 +171,10 @@ function MapPage() {
 
   useEffect(() => {
     fetchHotspots();
+    
+    // Poll for hotspot updates every 30 seconds
+    const interval = setInterval(fetchHotspots, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Expand certificate after 2 seconds
@@ -235,28 +242,20 @@ function MapPage() {
           setCenter({ lat: activeHotspot.lat, lng: activeHotspot.lng });
           setZoom(14);
         }
+        
+        // Small delay to show loading pill before marker appears with slide-up animation
+        setTimeout(() => setMarkersLoaded(true), 500);
       } else {
-        // Try to get user's geolocation for map centering
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const userLat = position.coords.latitude;
-              const userLng = position.coords.longitude;
-              setCenter({ lat: userLat, lng: userLng });
-              setZoom(13);
-            },
-            (err) => {
-              console.log('Geolocation not available:', err.message);
-              // Keep default NYC location
-            }
-          );
-        }
+        setMarkersLoaded(true);
+        // Keep default NYC location when no hotspots
+        // Geolocation will only be requested when user clicks "Get My Location" button
       }
 
       setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
+      setMarkersLoaded(true);
     }
   };
 
@@ -499,8 +498,8 @@ function MapPage() {
             e.stop();
           }}
         >
-          {/* Render custom markers for each hotspot */}
-          {hotspots.map((hotspot) => {
+          {/* Render custom markers for each hotspot with slide-up animation */}
+          {markersLoaded && hotspots.map((hotspot) => {
             // Check if hotspot is active/expired
             const now = new Date();
             const endDate = new Date(hotspot.endDate);
@@ -513,6 +512,7 @@ function MapPage() {
                 isActive={isActive}
                 onClick={() => setSelectedHotspot(hotspot)}
                 map={mapInstance || undefined}
+                animate={true}
               />
             );
           })}
@@ -543,7 +543,7 @@ function MapPage() {
       )}
 
       {/* Hotspot Modal Popup */}
-      {selectedHotspot && (
+      {selectedHotspot && !showHintModal && (
         <div className={`modal-overlay ${isModalClosing ? 'closing' : ''}`} onClick={() => setSelectedHotspot(null)}>
           <div className="modal-wrapper">
             <div className={`modal-content ${isModalClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
@@ -554,7 +554,7 @@ function MapPage() {
 
             <div className="modal-sections">
               {/* Check if hotspot is queued (not active yet) */}
-              {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 0 ? (
+              {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 1 ? (
                 <div className="modal-section modal-queued">
                   <h3>INACTIVE PING</h3>
                   <p>This PING is currently in queue. It will become active in the future.</p>
@@ -568,7 +568,7 @@ function MapPage() {
               ) : (
                 <>
                   {/* Show congratulations for claim flow (unique URLs), otherwise show all sections */}
-                  {claimStatus === 'unclaimed' && id && (!selectedHotspot.queuePosition || selectedHotspot.queuePosition === 0) ? (
+                  {claimStatus === 'unclaimed' && id && selectedHotspot.queuePosition === 1 ? (
                     <div className="modal-section modal-claim-intro">
                       <h3>GREAT JOB!</h3>
                       <p>You found the PING! That means you are almost <span className="prize-amount">{selectedHotspot.prize} SOL</span> richer!</p>
@@ -649,7 +649,7 @@ function MapPage() {
                                 <Gift className="prize-icon" />
                                 <span className="prize-text">{selectedHotspot.prize} SOL</span>
                               </div>
-                              <button className="hint-cta">
+                              <button className="hint-cta" onClick={() => setShowHintModal(true)}>
                                 GET A HINT!
                               </button>
                             </div>
@@ -663,7 +663,7 @@ function MapPage() {
 
               {/* Action section - Different states */}
               {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not queued */}
-              {claimStatus === 'unclaimed' && id && (!selectedHotspot.queuePosition || selectedHotspot.queuePosition === 0) && (
+              {claimStatus === 'unclaimed' && id && selectedHotspot.queuePosition === 1 && (
                 <div className="modal-section modal-actions">
                   {claimError && (
                     <p className="claim-error">{claimError}</p>
@@ -764,6 +764,18 @@ function MapPage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Hint Modal - Closes both modals on exit */}
+      {showHintModal && selectedHotspot && (
+        <HintModal
+          hotspotId={selectedHotspot.id}
+          onClose={() => {
+            setShowHintModal(false);
+            setSelectedHotspot(null); // Close main modal too - return to map
+          }}
+          onShowDetails={() => setShowHintModal(false)} // Just close hint modal, show main
+        />
       )}
     </div>
   );

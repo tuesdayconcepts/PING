@@ -6,6 +6,8 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
+import { getLocationName } from "./utils/geocoding.js";
+import { verifyHintPurchaseTransaction, getPingPriceFromJupiter } from "./utils/solanaVerify.js";
 
 // Extend Express Request type to include adminId
 declare global {
@@ -19,9 +21,22 @@ declare global {
 const app = express();
 const prisma = new PrismaClient();
 
+// Trust Railway proxy
+app.set('trust proxy', 1);
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images
+
+// Handle preflight requests explicitly
+app.options('*', cors());
 
 // JWT Secret from environment
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production";
@@ -77,6 +92,11 @@ const loginLimiter = rateLimit({
 
 // Authentication middleware for admin routes
 const authenticateAdmin = async (req: any, res: any, next: any) => {
+  // Skip authentication for OPTIONS preflight requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const authHeader = req.headers.authorization;
   const token = authHeader?.split(" ")[1]; // Bearer <token>
 
@@ -113,17 +133,19 @@ const sanitizeString = (input: string): string => {
   return input.trim();
 };
 
-// Promote next hotspot in queue
+// Reorder queue positions after a claim is approved
 const promoteNextHotspot = async () => {
-  const nextHotspot = await prisma.hotspot.findFirst({
-    where: { queuePosition: { gt: 0 }, claimStatus: 'unclaimed' },
+  // Get all unclaimed hotspots ordered by current queue position
+  const unclaimedHotspots = await prisma.hotspot.findMany({
+    where: { claimStatus: 'unclaimed' },
     orderBy: { queuePosition: 'asc' },
   });
 
-  if (nextHotspot) {
+  // Update queue positions to be sequential: 1, 2, 3...
+  for (let i = 0; i < unclaimedHotspots.length; i++) {
     await prisma.hotspot.update({
-      where: { id: nextHotspot.id },
-      data: { queuePosition: 0 },
+      where: { id: unclaimedHotspots[i].id },
+      data: { queuePosition: i + 1 },
     });
   }
 };
@@ -295,17 +317,17 @@ app.get("/api/hotspots", async (req, res) => {
       }
     }
 
-    // For public: only show queuePosition = 0 and claimStatus != "claimed"
-    // For admin: show all hotspots
+    // For public: only show queuePosition = 1 (active ping) and claimStatus != "claimed"
+    // For admin: show all hotspots ordered by queue position
     const hotspots = await prisma.hotspot.findMany({
       where: includeInactive 
         ? {} 
         : { 
             active: true, 
-            queuePosition: 0,
+            queuePosition: 1, // Active ping is position 1
             claimStatus: { not: "claimed" }
           },
-      orderBy: includeInactive ? { createdAt: "desc" } : { queuePosition: "asc" },
+      orderBy: { queuePosition: "asc" }, // Always order by queue position
     });
 
     res.json(hotspots);
@@ -355,6 +377,13 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
       active,
       imageUrl,
       privateKey,
+      hint1,
+      hint2,
+      hint3,
+      hint1PriceUsd,
+      hint2PriceUsd,
+      hint3PriceUsd,
+      firstHintFree,
     } = req.body;
 
     // Validation
@@ -391,14 +420,19 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
     // Encrypt private key if provided
     const encryptedPrivateKey = privateKey ? encrypt(sanitizeString(privateKey)) : null;
 
-    // Determine queue position: if there are active unclaimed hotspots, add to queue
-    const activeHotspots = await prisma.hotspot.findMany({
-      where: { queuePosition: 0, claimStatus: 'unclaimed' },
+    // Determine queue position: find the highest queue position and add 1
+    const unclaimedHotspots = await prisma.hotspot.findMany({
+      where: { claimStatus: 'unclaimed' },
+      orderBy: { queuePosition: 'desc' },
+      take: 1,
     });
 
-    const queuePosition = activeHotspots.length > 0 
-      ? (await prisma.hotspot.count()) + 1 
-      : 0;
+    const queuePosition = unclaimedHotspots.length > 0 
+      ? (unclaimedHotspots[0].queuePosition || 0) + 1 
+      : 1; // First hotspot gets position 1
+
+    // Fetch location name for the coordinates
+    const locationName = await getLocationName(roundedLat, roundedLng);
 
     // Create hotspot
     const hotspot = await prisma.hotspot.create({
@@ -415,6 +449,15 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
         privateKey: encryptedPrivateKey,
         queuePosition,
         claimStatus: 'unclaimed',
+        locationName,
+        // Hint system fields
+        hint1: hint1 ? sanitizeString(hint1) : null,
+        hint2: hint2 ? sanitizeString(hint2) : null,
+        hint3: hint3 ? sanitizeString(hint3) : null,
+        hint1PriceUsd: hint1PriceUsd ? parseFloat(hint1PriceUsd) : null,
+        hint2PriceUsd: hint2PriceUsd ? parseFloat(hint2PriceUsd) : null,
+        hint3PriceUsd: hint3PriceUsd ? parseFloat(hint3PriceUsd) : null,
+        firstHintFree: firstHintFree === true,
       },
     });
 
@@ -447,6 +490,13 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
       endDate,
       active,
       imageUrl,
+      hint1,
+      hint2,
+      hint3,
+      hint1PriceUsd,
+      hint2PriceUsd,
+      hint3PriceUsd,
+      firstHintFree,
     } = req.body;
 
     // Check if hotspot exists
@@ -476,6 +526,12 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
     const roundedLat = lat !== undefined ? roundCoordinate(parseFloat(lat)) : undefined;
     const roundedLng = lng !== undefined ? roundCoordinate(parseFloat(lng)) : undefined;
 
+    // Fetch location name if coordinates changed
+    let locationName = undefined;
+    if (roundedLat !== undefined && roundedLng !== undefined) {
+      locationName = await getLocationName(roundedLat, roundedLng);
+    }
+
     // Update hotspot
     const hotspot = await prisma.hotspot.update({
       where: { id },
@@ -488,6 +544,15 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
         ...(endDate && { endDate: new Date(endDate) }),
         ...(active !== undefined && { active }),
         ...(imageUrl !== undefined && { imageUrl: imageUrl ? sanitizeString(imageUrl) : null }),
+        ...(locationName !== undefined && { locationName }),
+        // Hint system fields
+        ...(hint1 !== undefined && { hint1: hint1 ? sanitizeString(hint1) : null }),
+        ...(hint2 !== undefined && { hint2: hint2 ? sanitizeString(hint2) : null }),
+        ...(hint3 !== undefined && { hint3: hint3 ? sanitizeString(hint3) : null }),
+        ...(hint1PriceUsd !== undefined && { hint1PriceUsd: hint1PriceUsd ? parseFloat(hint1PriceUsd) : null }),
+        ...(hint2PriceUsd !== undefined && { hint2PriceUsd: hint2PriceUsd ? parseFloat(hint2PriceUsd) : null }),
+        ...(hint3PriceUsd !== undefined && { hint3PriceUsd: hint3PriceUsd ? parseFloat(hint3PriceUsd) : null }),
+        ...(firstHintFree !== undefined && { firstHintFree }),
       },
     });
 
@@ -520,6 +585,20 @@ app.delete("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
 
     // Delete hotspot
     await prisma.hotspot.delete({ where: { id } });
+
+    // Reorder queue positions for remaining unclaimed hotspots
+    const unclaimedHotspots = await prisma.hotspot.findMany({
+      where: { claimStatus: 'unclaimed' },
+      orderBy: { queuePosition: 'asc' },
+    });
+
+    // Update queue positions to be sequential: 1, 2, 3...
+    for (let i = 0; i < unclaimedHotspots.length; i++) {
+      await prisma.hotspot.update({
+        where: { id: unclaimedHotspots[i].id },
+        data: { queuePosition: i + 1 },
+      });
+    }
 
     // Log action
     await logAdminAction(
@@ -875,6 +954,358 @@ app.delete("/api/admin/users/:id", authenticateAdmin, requireAdmin, async (req, 
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Delete user error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ===== HINT SYSTEM ROUTES =====
+
+// GET /api/hints/settings - Get hint settings and current $PING price (public)
+app.get("/api/hints/settings", async (req, res) => {
+  try {
+    // Get or create hint settings
+    let settings = await prisma.hintSettings.findUnique({
+      where: { id: "singleton" },
+    });
+
+    if (!settings) {
+      // Create default settings if not exists
+      settings = await prisma.hintSettings.create({
+        data: { id: "singleton" },
+      });
+    }
+
+    // Fetch current $PING price from Jupiter
+    const pingPrice = settings.pingTokenMint
+      ? await getPingPriceFromJupiter(settings.pingTokenMint)
+      : null;
+
+    res.json({
+      treasuryWallet: settings.treasuryWallet,
+      burnWallet: settings.burnWallet,
+      pingTokenMint: settings.pingTokenMint,
+      currentPingPrice: pingPrice, // USD per $PING
+    });
+  } catch (error) {
+    console.error("Get hint settings error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/debug/hotspot/:id - Debug endpoint to check hotspot data (public)
+app.get("/api/debug/hotspot/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const hotspot = await prisma.hotspot.findUnique({
+      where: { id },
+    });
+    
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+    
+    res.json({
+      id: hotspot.id,
+      firstHintFree: hotspot.firstHintFree,
+      firstHintFreeType: typeof hotspot.firstHintFree,
+      hint1: hotspot.hint1,
+      hint1PriceUsd: hotspot.hint1PriceUsd,
+    });
+  } catch (error) {
+    console.error("Debug hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/debug/cleanup-purchases - Clean up old free purchases (public)
+app.post("/api/debug/cleanup-purchases", async (req, res) => {
+  try {
+    const { hotspotId, walletAddress } = req.body;
+    
+    if (!hotspotId || !walletAddress) {
+      return res.status(400).json({ error: "hotspotId and walletAddress required" });
+    }
+    
+    // Delete all purchases for this wallet + hotspot
+    const deleted = await prisma.hintPurchase.deleteMany({
+      where: {
+        hotspotId,
+        walletAddress,
+      },
+    });
+    
+    res.json({
+      success: true,
+      deletedCount: deleted.count,
+      message: `Deleted ${deleted.count} purchase records for wallet ${walletAddress} and hotspot ${hotspotId}`
+    });
+  } catch (error) {
+    console.error("Cleanup purchases error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/hints/:hotspotId/purchased - Get purchased hints for a wallet (public)
+app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
+  try {
+    const { hotspotId } = req.params;
+    const { wallet } = req.query;
+
+    if (!wallet || typeof wallet !== 'string') {
+      return res.status(400).json({ error: "Wallet address required" });
+    }
+
+    // Get hotspot
+    const hotspot = await prisma.hotspot.findUnique({
+      where: { id: hotspotId },
+    });
+
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Get purchased hints for this wallet + hotspot
+    const purchases = await prisma.hintPurchase.findMany({
+      where: {
+        hotspotId,
+        walletAddress: wallet,
+      },
+      orderBy: { hintLevel: 'asc' },
+    });
+
+    // Build response - no special handling for firstHintFree
+    const response = {
+      hint1: {
+        purchased: purchases.some(p => p.hintLevel === 1),
+        text: purchases.some(p => p.hintLevel === 1) ? hotspot.hint1 : undefined,
+      },
+      hint2: {
+        purchased: purchases.some(p => p.hintLevel === 2),
+        text: purchases.some(p => p.hintLevel === 2) ? hotspot.hint2 : undefined,
+      },
+      hint3: {
+        purchased: purchases.some(p => p.hintLevel === 3),
+        text: purchases.some(p => p.hintLevel === 3) ? hotspot.hint3 : undefined,
+      },
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Get purchased hints error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/hints/purchase - Purchase a hint (public)
+app.post("/api/hints/purchase", async (req, res) => {
+  try {
+    const { hotspotId, walletAddress, hintLevel, txSignature, paidAmount } = req.body;
+
+    // Validation
+    if (!hotspotId || !walletAddress || !hintLevel) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    if (hintLevel < 1 || hintLevel > 3) {
+      return res.status(400).json({ error: "Invalid hint level" });
+    }
+
+    // Get hotspot
+    const hotspot = await prisma.hotspot.findUnique({
+      where: { id: hotspotId },
+    });
+
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Get hint settings
+    const settings = await prisma.hintSettings.findUnique({
+      where: { id: "singleton" },
+    });
+
+    if (!settings) {
+      return res.status(500).json({ error: "Hint system not configured" });
+    }
+
+    // Check if hint exists for this level
+    const hintText = hintLevel === 1 ? hotspot.hint1 : hintLevel === 2 ? hotspot.hint2 : hotspot.hint3;
+    if (!hintText) {
+      return res.status(404).json({ error: `Hint ${hintLevel} not available for this hotspot` });
+    }
+
+    // Check for existing purchase
+    const existingPurchase = await prisma.hintPurchase.findUnique({
+      where: {
+        walletAddress_hotspotId_hintLevel: {
+          walletAddress,
+          hotspotId,
+          hintLevel,
+        },
+      },
+    });
+
+    if (existingPurchase) {
+      // Already purchased, return the hint
+      return res.json({ success: true, hintText, alreadyPurchased: true });
+    }
+
+    // Validate progressive unlock (need hint 1 before 2, need hint 2 before 3)
+    if (hintLevel > 1) {
+      const previousHint = await prisma.hintPurchase.findUnique({
+        where: {
+          walletAddress_hotspotId_hintLevel: {
+            walletAddress,
+            hotspotId,
+            hintLevel: hintLevel - 1,
+          },
+        },
+      });
+
+      if (!previousHint) {
+        return res.status(400).json({ 
+          error: `Must purchase Hint ${hintLevel - 1} before Hint ${hintLevel}` 
+        });
+      }
+    }
+
+    // Get hint price for this level
+    const hintPriceUsd = hintLevel === 1
+      ? hotspot.hint1PriceUsd
+      : hintLevel === 2
+      ? hotspot.hint2PriceUsd
+      : hotspot.hint3PriceUsd;
+
+    const isFree = hintPriceUsd === null;
+
+    // Handle free hint
+    if (isFree) {
+      // Record free purchase
+      await prisma.hintPurchase.create({
+        data: {
+          hotspotId,
+          walletAddress,
+          hintLevel,
+          paidAmount: 0,
+          paidUsd: 0,
+          txSignature: null,
+        },
+      });
+
+      return res.json({ success: true, hintText, free: true });
+    }
+
+    // Handle paid hint
+    if (!txSignature) {
+      return res.status(400).json({ error: "Transaction signature required for paid hints" });
+    }
+
+    // Get current $PING price
+    const pingPrice = await getPingPriceFromJupiter(settings.pingTokenMint);
+    if (!pingPrice) {
+      return res.status(503).json({ error: "Unable to fetch $PING price. Try again later." });
+    }
+
+    // Calculate expected amount in $PING
+    const expectedPingAmount = hintPriceUsd / pingPrice;
+
+    // Verify transaction on-chain
+    const verification = await verifyHintPurchaseTransaction(
+      txSignature,
+      walletAddress,
+      settings.treasuryWallet,
+      settings.burnWallet,
+      expectedPingAmount,
+      settings.pingTokenMint
+    );
+
+    if (!verification.valid) {
+      return res.status(400).json({ error: `Transaction verification failed: ${verification.error}` });
+    }
+
+    // Record purchase
+    await prisma.hintPurchase.create({
+      data: {
+        hotspotId,
+        walletAddress,
+        hintLevel,
+        paidAmount: paidAmount || expectedPingAmount,
+        paidUsd: hintPriceUsd,
+        txSignature,
+      },
+    });
+
+    // Return hint text
+    res.json({ 
+      success: true, 
+      hintText,
+      treasuryAmount: verification.treasuryAmount,
+      burnAmount: verification.burnAmount,
+    });
+  } catch (error) {
+    console.error("Hint purchase error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/hints/settings - Get hint settings (admin only)
+app.get("/api/admin/hints/settings", authenticateAdmin, async (req, res) => {
+  try {
+    let settings = await prisma.hintSettings.findUnique({
+      where: { id: "singleton" },
+    });
+
+    if (!settings) {
+      settings = await prisma.hintSettings.create({
+        data: { id: "singleton" },
+      });
+    }
+
+    res.json(settings);
+  } catch (error) {
+    console.error("Get admin hint settings error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PUT /api/admin/hints/settings - Update hint settings (admin only)
+app.put("/api/admin/hints/settings", authenticateAdmin, async (req, res) => {
+  try {
+    const { 
+      treasuryWallet, 
+      burnWallet, 
+      pingTokenMint 
+    } = req.body;
+
+    const settings = await prisma.hintSettings.upsert({
+      where: { id: "singleton" },
+      update: {
+        treasuryWallet,
+        burnWallet,
+        pingTokenMint,
+      },
+      create: {
+        id: "singleton",
+        treasuryWallet,
+        burnWallet,
+        pingTokenMint,
+      },
+    });
+
+    // Log admin action
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.adminId!,
+        action: "UPDATE",
+        entity: "HintSettings",
+        entityId: "singleton",
+        details: "Updated hint system configuration",
+      },
+    });
+
+    res.json(settings);
+  } catch (error) {
+    console.error("Update hint settings error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
