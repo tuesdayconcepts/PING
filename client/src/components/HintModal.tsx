@@ -529,13 +529,6 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                   );
                 })}
               </div>
-              
-              {/* Navigation restriction indicator */}
-              {!canGoForward && currentHint?.status !== 'revealed' && (
-                <div className="navigation-restriction-indicator">
-                  <p>Unlock this hint to access the next one</p>
-                </div>
-              )}
             </div>
 
 
