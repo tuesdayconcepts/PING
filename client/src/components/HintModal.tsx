@@ -6,6 +6,24 @@ import { sendHintPayment } from '../utils/solana';
 import { InvisibleInkReveal } from './InvisibleInkReveal';
 import './HintModal.css';
 
+// Mobile detection hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
+  return isMobile;
+};
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 interface HintModalProps {
@@ -25,6 +43,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const wallet = useWallet();
   const { publicKey, connected } = wallet;
   const { settings, usdToPing, formatPingAmount } = usePingPrice();
+  const isMobile = useIsMobile();
 
   // New state machine
   const [hints, setHints] = useState<HintState[]>([]);
@@ -266,13 +285,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     if (canGoForward) setCurrentHintIndex(currentHintIndex + 1);
   };
 
-  // Prevent click events when touch was used
+  // Handle peek zone clicks (desktop only)
   const handlePeekClick = (direction: 'left' | 'right', e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Only handle click if touch wasn't used recently
-    if (touchUsed) return;
     
     if (direction === 'left') {
       handlePrevious();
@@ -459,38 +475,22 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
                 setTouchUsed(false);
               }}
             >
-              {/* Left peek zone - only show if there's a previous slide */}
-              {canGoBack && currentHintIndex > 0 && (
+              {/* Left peek zone - only show on desktop if there's a previous slide */}
+              {!isMobile && canGoBack && currentHintIndex > 0 && (
                 <div 
                   className="peek-zone left"
                   onMouseEnter={() => setPeekDirection('left')}
                   onMouseLeave={() => setPeekDirection(null)}
-                  onTouchStart={() => setPeekDirection('left')}
-                  onTouchEnd={() => {
-                    setPeekDirection(null);
-                    // Only navigate if it's a tap (not a swipe)
-                    if (Math.abs(touchStart - touchEnd) < 10) {
-                      handlePrevious();
-                    }
-                  }}
                   onClick={(e) => handlePeekClick('left', e)}
                 />
               )}
               
-              {/* Right peek zone - only show if there's a next slide */}
-              {canGoForward && currentHintIndex < hints.length - 1 && (
+              {/* Right peek zone - only show on desktop if there's a next slide */}
+              {!isMobile && canGoForward && currentHintIndex < hints.length - 1 && (
                 <div 
                   className="peek-zone right"
                   onMouseEnter={() => setPeekDirection('right')}
                   onMouseLeave={() => setPeekDirection(null)}
-                  onTouchStart={() => setPeekDirection('right')}
-                  onTouchEnd={() => {
-                    setPeekDirection(null);
-                    // Only navigate if it's a tap (not a swipe)
-                    if (Math.abs(touchStart - touchEnd) < 10) {
-                      handleNext();
-                    }
-                  }}
                   onClick={(e) => handlePeekClick('right', e)}
                 />
               )}

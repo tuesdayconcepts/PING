@@ -381,10 +381,8 @@
   }
   
   .peek-zone {
-    /* Larger touch targets on mobile */
-    width: 60px;
-    /* Prevent double-tap zoom */
-    touch-action: manipulation;
+    /* Hide peek zones on mobile - only use touch gestures and CTA */
+    display: none !important;
   }
   
   .hint-slide {
