@@ -55,7 +55,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       // Show peek to next hint if available
       if (currentHintIndex < hints.length - 1) {
         setPeekDirection('right');
-        setTimeout(() => setPeekDirection(null), 1500); // 1.5 second peek
+        setTimeout(() => setPeekDirection(null), 1000); // 1 second peek
       }
     }
   }, [hints, currentHintIndex, autoPeekTriggered]);
