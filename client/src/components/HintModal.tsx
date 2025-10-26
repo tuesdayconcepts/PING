@@ -592,7 +592,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
             {/* Action Buttons Section */}
             <div className="modal-section hint-actions">
               <button className="details-btn" onClick={onShowDetails}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="40px" height="40px" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ paddingRight: '5px' }}>
                   <path d="M15 18l-6-6 6-6"/>
                 </svg>
               </button>
