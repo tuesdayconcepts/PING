@@ -431,7 +431,12 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   let ctaAction: (() => void) | null;
   let ctaDisabled: boolean;
 
-  if (!walletConnected) {
+  // Check if there's an error - if so, show BUY $PING button
+  if (error) {
+    ctaText = 'BUY $PING';
+    ctaAction = () => window.open('https://www.ping.gg/buy', '_blank');
+    ctaDisabled = false;
+  } else if (!walletConnected) {
     ctaText = 'CONNECT WALLET';
     ctaAction = null; // WalletMultiButton handles this
     ctaDisabled = false;
@@ -484,24 +489,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     );
   }
 
-  if (error) {
-    return (
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-wrapper">
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={onClose}>
-              ✕
-            </button>
-            <div className="modal-sections">
-              <div className="modal-section">
-                <div className="hint-error-banner">{error}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Don't return early for errors - let them display with the rest of the UI
 
   if (!hotspot || hints.length === 0) {
     return (
