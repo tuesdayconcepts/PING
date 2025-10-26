@@ -57,6 +57,8 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [touchEnd, setTouchEnd] = useState(0);
   const [peekDirection, setPeekDirection] = useState<'left' | 'right' | null>(null);
   const [autoPeekTriggered, setAutoPeekTriggered] = useState<Set<number>>(new Set());
+  const [lastUserActivity, setLastUserActivity] = useState<number>(Date.now());
+  const [autoPeekTimer, setAutoPeekTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Track wallet connection state
   useEffect(() => {
@@ -64,22 +66,61 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     setWalletConnected(connected);
   }, [connected, publicKey]);
 
-  // Auto-peek effect when hint is unlocked
+  // Update last user activity timestamp
+  const updateUserActivity = () => {
+    setLastUserActivity(Date.now());
+  };
+
+  // Auto-peek effect when hint is unlocked with 5 second inactivity requirement
   useEffect(() => {
+    // Clear any existing timer
+    if (autoPeekTimer) {
+      clearTimeout(autoPeekTimer);
+    }
+
+    const currentHint = hints[currentHintIndex];
+    if (currentHint?.status === 'revealed' && !autoPeekTriggered.has(currentHintIndex)) {
+      // Check if 5 seconds have passed since last user activity
+      const timeSinceActivity = Date.now() - lastUserActivity;
+      
+      if (timeSinceActivity >= 5000) {
+        // User has been inactive for 5+ seconds, trigger peek
+        triggerAutoPeek();
+      } else {
+        // Set timer to trigger peek after remaining time
+        const remainingTime = 5000 - timeSinceActivity;
+        const timer = setTimeout(() => {
+          triggerAutoPeek();
+        }, remainingTime);
+        
+        setAutoPeekTimer(timer);
+      }
+    }
+  }, [hints, currentHintIndex, autoPeekTriggered, lastUserActivity]);
+
+  // Trigger auto-peek for current hint
+  const triggerAutoPeek = () => {
     const currentHint = hints[currentHintIndex];
     if (currentHint?.status === 'revealed' && !autoPeekTriggered.has(currentHintIndex)) {
       // Mark as triggered
       setAutoPeekTriggered(prev => new Set(prev).add(currentHintIndex));
       
-      // Show peek to next hint if available after 1 second delay
+      // Show peek to next hint if available
       if (currentHintIndex < hints.length - 1) {
-        setTimeout(() => {
-          setPeekDirection('right');
-          setTimeout(() => setPeekDirection(null), 1000); // 1 second peek
-        }, 1000); // 1 second delay before peek starts
+        setPeekDirection('right');
+        setTimeout(() => setPeekDirection(null), 1000); // 1 second peek
       }
     }
-  }, [hints, currentHintIndex, autoPeekTriggered]);
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoPeekTimer) {
+        clearTimeout(autoPeekTimer);
+      }
+    };
+  }, [autoPeekTimer]);
 
   // Reset auto-peek on modal close
   useEffect(() => {
@@ -291,6 +332,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     e.preventDefault();
     e.stopPropagation();
     
+    // Track user activity
+    updateUserActivity();
+    
     if (direction === 'left') {
       handlePrevious();
     } else {
@@ -474,7 +518,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               {!isMobile && canGoBack && currentHintIndex > 0 && (
                 <div 
                   className="peek-zone left"
-                  onMouseEnter={() => setPeekDirection('left')}
+                  onMouseEnter={() => {
+                    setPeekDirection('left');
+                    updateUserActivity();
+                  }}
                   onMouseLeave={() => setPeekDirection(null)}
                   onClick={(e) => handlePeekClick('left', e)}
                 />
@@ -484,7 +531,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               {!isMobile && canGoForward && currentHintIndex < hints.length - 1 && (
                 <div 
                   className="peek-zone right"
-                  onMouseEnter={() => setPeekDirection('right')}
+                  onMouseEnter={() => {
+                    setPeekDirection('right');
+                    updateUserActivity();
+                  }}
                   onMouseLeave={() => setPeekDirection(null)}
                   onClick={(e) => handlePeekClick('right', e)}
                 />
@@ -550,7 +600,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
               ) : (
                 <button
                   className={`hint-cta-btn ${currentHint?.priceUsd === null ? 'free' : 'paid'}`}
-                  onClick={ctaAction || undefined}
+                  onClick={() => {
+                    updateUserActivity();
+                    if (ctaAction) ctaAction();
+                  }}
                   disabled={ctaDisabled}
                 >
                   {showCheckmark ? '✓' : ctaText}
