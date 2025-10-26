@@ -45,7 +45,7 @@
    =================== */
 
 .hints-slider-wrapper {
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
   position: relative;
   /* Improve mobile touch handling */
