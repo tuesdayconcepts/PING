@@ -53,6 +53,11 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* Allow hint slides to peek outside their container */
+.hint-slide {
+  overflow: visible;
+}
+
 /* Peek zones - invisible hover/tap areas */
 .peek-zone {
   position: absolute;
