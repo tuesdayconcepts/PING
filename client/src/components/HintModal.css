@@ -139,9 +139,9 @@
   min-height: 200px;
   display: flex;
   flex-direction: column;
-  box-shadow: inset 0px 0px 40px 20px #ffffff40;
+  box-shadow: inset 0 0 40px 20px #002197c2;
   background: #0b29fe40 !important;
-  border: 2px solid rgb(255 255 255 / 27%) !important;
+  border: 4px solid rgb(255 255 255 / 24%) !important;
 }
 
 .hint-slide.unlocked {
