@@ -139,6 +139,15 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     }
   }, [open]);
 
+  // Clear peek direction if it becomes invalid (e.g., on last slide trying to peek right)
+  useEffect(() => {
+    if (peekDirection === 'left' && currentHintIndex === 0) {
+      setPeekDirection(null);
+    } else if (peekDirection === 'right' && currentHintIndex >= hints.length - 1) {
+      setPeekDirection(null);
+    }
+  }, [peekDirection, currentHintIndex, hints.length]);
+
   // Fetch hotspot data on modal open
   useEffect(() => {
     fetchHotspotData();
@@ -363,10 +372,11 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     const baseTransform = -currentHintIndex * 100;
     const gapOffset = currentHintIndex * 15; // 15px gap between slides
     
-    if (peekDirection === 'left') {
+    // Only apply peek if there's actually a slide to peek to
+    if (peekDirection === 'left' && currentHintIndex > 0) {
       // Peek left: move slider right to show more of previous slide
       return `translateX(calc(${baseTransform}% + 20% - ${gapOffset}px))`;
-    } else if (peekDirection === 'right') {
+    } else if (peekDirection === 'right' && currentHintIndex < hints.length - 1) {
       // Peek right: move slider left to show more of next slide
       return `translateX(calc(${baseTransform}% - 20% - ${gapOffset}px))`;
     }
