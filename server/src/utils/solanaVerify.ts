@@ -82,11 +82,14 @@ export async function verifyHintPurchaseTransaction(
       }
     }
 
+    // Debug: Log all transfers found
+    console.log(`Found ${transfers.length} transfers:`, JSON.stringify(transfers));
+    
     // Verify we have exactly 2 transfers
     if (transfers.length !== 2) {
       return { 
         valid: false, 
-        error: `Expected 2 transfers, found ${transfers.length}` 
+        error: `Expected 2 transfers, found ${transfers.length}. Debug: ${JSON.stringify(transfers)}` 
       };
     }
 
