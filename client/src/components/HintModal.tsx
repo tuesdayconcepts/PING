@@ -59,6 +59,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [autoPeekTriggered, setAutoPeekTriggered] = useState<Set<number>>(new Set());
   const [lastUserActivity, setLastUserActivity] = useState<number>(Date.now());
   const [autoPeekTimer, setAutoPeekTimer] = useState<NodeJS.Timeout | null>(null);
+  const [userHasNavigated, setUserHasNavigated] = useState(false); // Track if user has manually navigated
 
   // Track wallet connection state
   useEffect(() => {
@@ -73,6 +74,14 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
 
   // Auto-peek effect when hint is unlocked with 5 second inactivity requirement
   useEffect(() => {
+    // Disable autopeek if user has manually navigated
+    if (userHasNavigated) {
+      if (autoPeekTimer) {
+        clearTimeout(autoPeekTimer);
+      }
+      return;
+    }
+
     // Clear any existing timer
     if (autoPeekTimer) {
       clearTimeout(autoPeekTimer);
@@ -96,7 +105,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
         setAutoPeekTimer(timer);
       }
     }
-  }, [hints, currentHintIndex, autoPeekTriggered, lastUserActivity]);
+  }, [hints, currentHintIndex, autoPeekTriggered, lastUserActivity, userHasNavigated]);
 
   // Trigger auto-peek for current hint
   const triggerAutoPeek = () => {
@@ -320,11 +329,17 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     currentHint?.status === 'revealed';
 
   const handlePrevious = () => {
-    if (canGoBack) setCurrentHintIndex(currentHintIndex - 1);
+    if (canGoBack) {
+      setCurrentHintIndex(currentHintIndex - 1);
+      setUserHasNavigated(true); // User manually navigated
+    }
   };
 
   const handleNext = () => {
-    if (canGoForward) setCurrentHintIndex(currentHintIndex + 1);
+    if (canGoForward) {
+      setCurrentHintIndex(currentHintIndex + 1);
+      setUserHasNavigated(true); // User manually navigated
+    }
   };
 
   // Handle peek zone clicks (desktop only)
@@ -334,6 +349,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     
     // Track user activity
     updateUserActivity();
+    setUserHasNavigated(true); // User manually navigated
     
     if (direction === 'left') {
       handlePrevious();
@@ -379,11 +395,13 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     
     if (isLeftSwipe && canGoForward) {
       // Swiped left - go to next hint (only if current is revealed)
+      setUserHasNavigated(true); // User manually navigated
       handleNext();
     }
     
     if (isRightSwipe && canGoBack) {
       // Swiped right - go to previous hint (always allowed)
+      setUserHasNavigated(true); // User manually navigated
       handlePrevious();
     }
     
@@ -415,7 +433,10 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       const nextHint = hints[currentHintIndex + 1];
       const nextHintUnlocked = nextHint?.status === 'revealed';
       ctaText = nextHintUnlocked ? 'NEXT HINT' : 'GET MORE!';
-      ctaAction = () => setCurrentHintIndex(currentHintIndex + 1);
+      ctaAction = () => {
+        setCurrentHintIndex(currentHintIndex + 1);
+        setUserHasNavigated(true); // User manually navigated
+      };
       ctaDisabled = false;
     } else {
       ctaText = 'ALL HINTS UNLOCKED';
