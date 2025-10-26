@@ -139,14 +139,18 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     }
   }, [open]);
 
-  // Clear peek direction if it becomes invalid (e.g., on last slide trying to peek right)
+  // Clear peek direction if it becomes invalid (e.g., on last slide trying to peek right, or current hint not revealed)
   useEffect(() => {
+    const currentHint = hints[currentHintIndex];
+    const currentHintRevealed = currentHint?.status === 'revealed';
+    
     if (peekDirection === 'left' && currentHintIndex === 0) {
       setPeekDirection(null);
-    } else if (peekDirection === 'right' && currentHintIndex >= hints.length - 1) {
+    } else if (peekDirection === 'right' && (currentHintIndex >= hints.length - 1 || !currentHintRevealed)) {
+      // Clear right peek if: on last slide OR current hint is not revealed
       setPeekDirection(null);
     }
-  }, [peekDirection, currentHintIndex, hints.length]);
+  }, [peekDirection, currentHintIndex, hints.length, hints]);
 
   // Fetch hotspot data on modal open
   useEffect(() => {
@@ -372,12 +376,14 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     const baseTransform = -currentHintIndex * 100;
     const gapOffset = currentHintIndex * 15; // 15px gap between slides
     
-    // Only apply peek if there's actually a slide to peek to
+    // Only apply peek if there's actually a slide to peek to AND current hint is revealed
+    const currentHintRevealed = currentHint?.status === 'revealed';
+    
     if (peekDirection === 'left' && currentHintIndex > 0) {
       // Peek left: move slider right to show more of previous slide
       return `translateX(calc(${baseTransform}% + 20% - ${gapOffset}px))`;
-    } else if (peekDirection === 'right' && currentHintIndex < hints.length - 1) {
-      // Peek right: move slider left to show more of next slide
+    } else if (peekDirection === 'right' && currentHintIndex < hints.length - 1 && currentHintRevealed) {
+      // Peek right: only if current hint is revealed (don't peek to locked hints)
       return `translateX(calc(${baseTransform}% - 20% - ${gapOffset}px))`;
     }
     
