@@ -592,7 +592,9 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
             {/* Action Buttons Section */}
             <div className="modal-section hint-actions">
               <button className="details-btn" onClick={onShowDetails}>
-                PING DETAILS
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6"/>
+                </svg>
               </button>
               
               {ctaText === 'CONNECT WALLET' ? (
