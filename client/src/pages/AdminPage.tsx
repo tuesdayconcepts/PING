@@ -67,7 +67,6 @@ function AdminPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [formClosing, setFormClosing] = useState(false);
   const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
-  const [hintsExpanded, setHintsExpanded] = useState(false);
   
   // State for sliding tab indicator
   const [indicatorReady, setIndicatorReady] = useState(false);
@@ -485,7 +484,6 @@ function AdminPage() {
       hint3PriceUsd: '',
     });
     setImagePreview(null);
-    setHintsExpanded(false);
     
     // Scroll to create form after state updates - use requestAnimationFrame
     requestAnimationFrame(() => {
@@ -572,10 +570,6 @@ function AdminPage() {
     });
     setImagePreview(hotspot.imageUrl || null);
     
-    // Expand hints section if any hints exist
-    if (hotspot.hint1 || hotspot.hint2 || hotspot.hint3) {
-      setHintsExpanded(true);
-    }
     
     // Scroll to the hotspot item after state updates - use requestAnimationFrame
     requestAnimationFrame(() => {
@@ -727,7 +721,6 @@ function AdminPage() {
       });
       // Don't reset map center - let user keep their current view
       setFormClosing(false);
-      setHintsExpanded(false); // Collapse hints section
     }, 300); // Match animation duration
   };
 
@@ -1348,15 +1341,9 @@ function AdminPage() {
                               )}
                             </div>
 
-                            {/* Hints Section - Collapsible */}
+                            {/* Hints Section */}
                             <div className="hints-section">
-                              <div className="hints-header" onClick={() => setHintsExpanded(!hintsExpanded)}>
-                                <h4>Hints (Optional)</h4>
-                                <span className="expand-icon">{hintsExpanded ? '−' : '+'}</span>
-                              </div>
-                              
-                              {hintsExpanded && (
-                                <div className="hints-content">
+                              <div className="hints-content">
 
                                   {/* Hint 1 */}
                                   <div className="hint-group">
@@ -1436,7 +1423,6 @@ function AdminPage() {
                                     </div>
                                   </div>
                                 </div>
-                              )}
                             </div>
 
                             <div className="form-actions">
@@ -1612,15 +1598,9 @@ function AdminPage() {
                       )}
                     </div>
 
-                    {/* Hints Section - Collapsible */}
+                    {/* Hints Section */}
                     <div className="hints-section">
-                      <div className="hints-header" onClick={() => setHintsExpanded(!hintsExpanded)}>
-                        <h4>Hints (Optional)</h4>
-                        <span className="expand-icon">{hintsExpanded ? '−' : '+'}</span>
-                      </div>
-                      
-                      {hintsExpanded && (
-                        <div className="hints-content">
+                      <div className="hints-content">
 
                           {/* Hint 1 */}
                           <div className="hint-group">
@@ -1699,8 +1679,7 @@ function AdminPage() {
                               />
                             </div>
                           </div>
-                        </div>
-                      )}
+                      </div>
                     </div>
 
                     <div className="form-actions">

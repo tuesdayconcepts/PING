@@ -1318,34 +1318,12 @@
   transform: scale(1.1);
 }
 
-/* Hints Section - Collapsible */
+/* Hints Section */
 .hints-section {
   margin-top: 20px;
   border: 2px solid rgba(255, 215, 0, 0.2);
   border-radius: 15px;
-  overflow: hidden;
   background: rgba(255, 215, 0, 0.03);
-}
-
-.hints-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  cursor: pointer;
-  transition: background 0.3s;
-  user-select: none;
-}
-
-.hints-header:hover {
-  background: rgba(255, 215, 0, 0.08);
-}
-
-.hints-header h4 {
-  margin: 0;
-  color: #ffd700;
-  font-size: 1rem;
-  font-weight: 600;
 }
 
 .expand-icon {
