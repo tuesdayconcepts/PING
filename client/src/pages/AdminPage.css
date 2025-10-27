@@ -1334,9 +1334,10 @@
 }
 
 .hints-content {
-  padding: 20px;
-  border-top: 1px solid rgba(255, 215, 0, 0.2);
-  animation: expandDown 0.3s ease-out;
+  /* padding: 20px; */
+  /* border-top: 1px solid rgb(255 215 0 / 0%); */
+  /* animation: expandDown .3s ease-out; */
+  /* background: #0b28ff40; */
 }
 
 @keyframes expandDown {
@@ -1365,19 +1366,18 @@
 .hint-group textarea {
   width: 100%;
   padding: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.15);
+  border: none;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  background: #0000004d;
+  background: #ffffff26;
   color: #e0e0e0;
   font-size: 0.95rem;
   font-family: inherit;
   resize: vertical;
-  transition: border-color 0.3s;
 }
 
 .hint-group textarea:focus {
   outline: none;
-  border-color: #ffd700;
 }
 
 .hint-group textarea::placeholder {
@@ -1403,8 +1403,8 @@
   padding: 8px 12px;
   border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  color: #e0e0e0;
+  background: #ffffff26;
+  color: #ffffff;
   font-size: 0.9rem;
 }
 
