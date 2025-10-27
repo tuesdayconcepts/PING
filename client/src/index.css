@@ -84,3 +84,8 @@ body {
   fill: #ffffff;
 }
 
+/* Wallet adapter button hover styling */
+.wallet-adapter-button:not([disabled]):hover {
+  background-color: #ffffff40 !important;
+}
+
