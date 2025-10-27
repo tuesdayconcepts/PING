@@ -849,13 +849,7 @@
 
 /* Inline Form Container */
 .inline-form-container {
-  padding: 20px 0;
-  /* border: 2px solid #d3d3d31f; */
-  /* border-radius: 25px; */
-  /* background: #ffffff40; */
-  animation: expandIn .3s ease;
-  border-top: dashed 1.5px #ffffff21;
-  margin-top: 0;
+  border-top: dashed 2px #ffffff47;
 }
 
 .inline-form-container.closing {
@@ -1320,12 +1314,7 @@
 
 /* Hints Section */
 .hints-section {
-  margin-top: 40px;
-  /* border: 2px solid rgba(255, 215, 0, .2); */
-  /* border-radius: 15px; */
-  /* background: #ffd70008; */
-  padding-top: 30px;
-  border-top: dashed 1.5px #ffffff21;
+  border-top: dashed 2px #ffffff47;
 }
 
 .expand-icon {
@@ -1401,7 +1390,7 @@
 }
 
 .hint-price-input input {
-  width: 150px;
+  /* width: 150px; */
   padding: 8px 12px;
   border: none;
   border-radius: 8px;
@@ -1412,6 +1401,11 @@
 
 .hint-price-input input:focus {
   outline: none;
+}
+
+.hint-price-input input::placeholder {
+  color: #ffffff;
+  opacity: 0.7;
 }
 
 /* Pending Claims Section */
