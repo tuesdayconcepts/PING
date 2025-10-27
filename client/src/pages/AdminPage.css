@@ -850,6 +850,7 @@
 /* Inline Form Container */
 .inline-form-container {
   border-top: dashed 2px #ffffff47;
+  padding-top: 30px;
 }
 
 .inline-form-container.closing {
