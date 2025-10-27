@@ -504,16 +504,21 @@ input:checked + .toggle-slider:before {
 
 /* Settings Groups */
 .settings-group {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #ffffff24;
+  border-radius: 25px;
+  border: solid 2px #ffffff12;
 }
 
 .settings-group h4 {
-  color: #ffd700;
+  color: gold;
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 16px;
+  margin-top: 5px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
 }
 
 .settings-group .form-group {

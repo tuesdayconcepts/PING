@@ -1776,60 +1776,6 @@ function AdminPage() {
             <div className="hint-settings-content">
               <h3>General Settings</h3>
               <form onSubmit={handleSaveHintSettings}>
-                  
-                  {/* Wallet & Token Configuration */}
-                  <div className="settings-group">
-                    <h4>Wallet & Token Configuration</h4>
-                    <div className="form-group">
-                      <label htmlFor="treasury-wallet-hints">Treasury Wallet Address</label>
-                      <input
-                        type="text"
-                        id="treasury-wallet-hints"
-                        value={hintSettings.treasuryWallet}
-                        onChange={(e) => setHintSettings({ ...hintSettings, treasuryWallet: e.target.value })}
-                        placeholder="Solana wallet address (receives 50%)"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="burn-wallet-hints">Burn Wallet Address</label>
-                      <input
-                        type="text"
-                        id="burn-wallet-hints"
-                        value={hintSettings.burnWallet}
-                        onChange={(e) => setHintSettings({ ...hintSettings, burnWallet: e.target.value })}
-                        placeholder="Solana wallet address (receives 50% for manual burning)"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="ping-token-mint-hints">$PING Token Mint Address</label>
-                      <input
-                        type="text"
-                        id="ping-token-mint-hints"
-                        value={hintSettings.pingTokenMint}
-                        onChange={(e) => setHintSettings({ ...hintSettings, pingTokenMint: e.target.value })}
-                        placeholder="SPL Token mint address for $PING"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Buy Button Configuration */}
-                  <div className="settings-group">
-                    <h4>Buy Button Configuration</h4>
-                    <div className="form-group">
-                      <label htmlFor="buy-button-url">Buy Button URL</label>
-                      <input
-                        type="url"
-                        id="buy-button-url"
-                        value={hintSettings.buyButtonUrl}
-                        onChange={(e) => setHintSettings({ ...hintSettings, buyButtonUrl: e.target.value })}
-                        placeholder="https://pump.fun/..."
-                      />
-                      <small className="form-hint">Used for "BUY $PING" button in hint modal</small>
-                    </div>
-                  </div>
-
                   {/* Social Media Links */}
                   <div className="settings-group">
                     <h4>Social Media Links</h4>
@@ -1931,6 +1877,59 @@ function AdminPage() {
                         />
                         <span className="toggle-slider"></span>
                       </label>
+                    </div>
+                  </div>
+
+                  {/* Buy Button Configuration */}
+                  <div className="settings-group">
+                    <h4>Buy Button Configuration</h4>
+                    <div className="form-group">
+                      <label htmlFor="buy-button-url">Buy Button URL</label>
+                      <input
+                        type="url"
+                        id="buy-button-url"
+                        value={hintSettings.buyButtonUrl}
+                        onChange={(e) => setHintSettings({ ...hintSettings, buyButtonUrl: e.target.value })}
+                        placeholder="https://pump.fun/..."
+                      />
+                      <small className="form-hint">Used for "BUY $PING" button in hint modal</small>
+                    </div>
+                  </div>
+
+                  {/* Wallet & Token Configuration */}
+                  <div className="settings-group">
+                    <h4>Wallet & Token Configuration</h4>
+                    <div className="form-group">
+                      <label htmlFor="treasury-wallet-hints">Treasury Wallet Address</label>
+                      <input
+                        type="text"
+                        id="treasury-wallet-hints"
+                        value={hintSettings.treasuryWallet}
+                        onChange={(e) => setHintSettings({ ...hintSettings, treasuryWallet: e.target.value })}
+                        placeholder="Solana wallet address (receives 50%)"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="burn-wallet-hints">Burn Wallet Address</label>
+                      <input
+                        type="text"
+                        id="burn-wallet-hints"
+                        value={hintSettings.burnWallet}
+                        onChange={(e) => setHintSettings({ ...hintSettings, burnWallet: e.target.value })}
+                        placeholder="Solana wallet address (receives 50% for manual burning)"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="ping-token-mint-hints">$PING Token Mint Address</label>
+                      <input
+                        type="text"
+                        id="ping-token-mint-hints"
+                        value={hintSettings.pingTokenMint}
+                        onChange={(e) => setHintSettings({ ...hintSettings, pingTokenMint: e.target.value })}
+                        placeholder="SPL Token mint address for $PING"
+                      />
                     </div>
                   </div>
 
