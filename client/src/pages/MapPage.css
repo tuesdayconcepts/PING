@@ -512,6 +512,13 @@
   animation: slideUp 0.3s ease;
 }
 
+/* Hide hint modal content when wallet adapter modal is open */
+.wallet-adapter-modal-container:not([style*="display: none"]) ~ .modal-overlay .modal-content,
+.wallet-adapter-modal-container:not([style*="display: none"]) ~ .hint-modal-overlay .modal-content {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Modal Sections Wrapper */
 .modal-sections {
   display: flex;
