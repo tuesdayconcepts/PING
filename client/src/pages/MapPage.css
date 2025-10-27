@@ -513,9 +513,9 @@
 }
 
 /* Hide hint modal content when wallet adapter modal is open */
-.wallet-adapter-modal-container:not([style*="display: none"]) ~ .modal-overlay .modal-content,
-.wallet-adapter-modal-container:not([style*="display: none"]) ~ .hint-modal-overlay .modal-content {
-  opacity: 0;
+.wallet-adapter-modal-overlay:not([style*="display: none"]) ~ .hint-modal-overlay .modal-content,
+body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-modal-overlay .modal-content {
+  opacity: 0 !important;
   pointer-events: none;
 }
 
