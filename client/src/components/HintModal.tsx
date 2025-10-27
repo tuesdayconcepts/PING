@@ -54,6 +54,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   const [error, setError] = useState<string | null>(null);
   const [showCheckmark, setShowCheckmark] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
+  const [buyButtonUrl, setBuyButtonUrl] = useState<string>('');
   const [touchEnd, setTouchEnd] = useState(0);
   const [peekDirection, setPeekDirection] = useState<'left' | 'right' | null>(null);
   const [autoPeekTriggered, setAutoPeekTriggered] = useState<Set<number>>(new Set());
@@ -168,6 +169,22 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
       return () => clearTimeout(timer);
     }
   }, [hotspot, walletConnected, publicKey]);
+
+  // Fetch buy button URL from settings
+  useEffect(() => {
+    const fetchBuyButtonUrl = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/hints/settings`);
+        if (response.ok) {
+          const data = await response.json();
+          setBuyButtonUrl(data.buyButtonUrl || '');
+        }
+      } catch (err) {
+        console.error('Failed to fetch buy button URL:', err);
+      }
+    };
+    fetchBuyButtonUrl();
+  }, []);
 
   const fetchHotspotData = async () => {
     try {
@@ -434,7 +451,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   // Check if there's an error - if so, show BUY $PING button
   if (error) {
     ctaText = 'BUY $PING';
-    ctaAction = () => window.open('https://www.ping.gg/buy', '_blank');
+    ctaAction = () => window.open(buyButtonUrl || 'https://www.ping.gg/buy', '_blank');
     ctaDisabled = false;
   } else if (!walletConnected) {
     ctaText = 'CONNECT WALLET';

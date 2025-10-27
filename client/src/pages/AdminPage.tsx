@@ -81,6 +81,15 @@ function AdminPage() {
     treasuryWallet: '',
     burnWallet: '',
     pingTokenMint: '',
+    buyButtonUrl: '',
+    pumpFunUrl: '',
+    pumpFunEnabled: false,
+    xUsername: '',
+    xEnabled: false,
+    instagramUsername: '',
+    instagramEnabled: false,
+    tiktokUsername: '',
+    tiktokEnabled: false,
   });
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
@@ -760,6 +769,15 @@ function AdminPage() {
           treasuryWallet: data.treasuryWallet || '',
           burnWallet: data.burnWallet || '',
           pingTokenMint: data.pingTokenMint || '',
+          buyButtonUrl: data.buyButtonUrl || '',
+          pumpFunUrl: data.pumpFunUrl || '',
+          pumpFunEnabled: data.pumpFunEnabled || false,
+          xUsername: data.xUsername || '',
+          xEnabled: data.xEnabled || false,
+          instagramUsername: data.instagramUsername || '',
+          instagramEnabled: data.instagramEnabled || false,
+          tiktokUsername: data.tiktokUsername || '',
+          tiktokEnabled: data.tiktokEnabled || false,
         });
       }
     } catch (err) {
@@ -1066,7 +1084,7 @@ function AdminPage() {
                 onClick={(e) => handleTabClick('hints', e)}
                 onTouchStart={(e) => handleTabClick('hints', e)}
               >
-                Hint Settings
+                General Settings
               </button>
             </>
           )}
@@ -1753,54 +1771,174 @@ function AdminPage() {
           )}
 
 
-          {/* Hint Settings Tab */}
+          {/* General Settings Tab */}
           {activeTab === 'hints' && currentUserRole === 'admin' && (
             <div className="hint-settings-content">
               <div className="hint-settings-section">
-                <h3>Hint System Configuration</h3>
+                <h3>General Settings</h3>
                 <form onSubmit={handleSaveHintSettings}>
-                  <div className="form-group">
-                    <label htmlFor="treasury-wallet-hints">Treasury Wallet Address</label>
-                    <input
-                      type="text"
-                      id="treasury-wallet-hints"
-                      value={hintSettings.treasuryWallet}
-                      onChange={(e) => setHintSettings({ ...hintSettings, treasuryWallet: e.target.value })}
-                      placeholder="Solana wallet address (receives 50%)"
-                    />
+                  
+                  {/* Wallet & Token Configuration */}
+                  <div className="settings-group">
+                    <h4>Wallet & Token Configuration</h4>
+                    <div className="form-group">
+                      <label htmlFor="treasury-wallet-hints">Treasury Wallet Address</label>
+                      <input
+                        type="text"
+                        id="treasury-wallet-hints"
+                        value={hintSettings.treasuryWallet}
+                        onChange={(e) => setHintSettings({ ...hintSettings, treasuryWallet: e.target.value })}
+                        placeholder="Solana wallet address (receives 50%)"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="burn-wallet-hints">Burn Wallet Address</label>
+                      <input
+                        type="text"
+                        id="burn-wallet-hints"
+                        value={hintSettings.burnWallet}
+                        onChange={(e) => setHintSettings({ ...hintSettings, burnWallet: e.target.value })}
+                        placeholder="Solana wallet address (receives 50% for manual burning)"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="ping-token-mint-hints">$PING Token Mint Address</label>
+                      <input
+                        type="text"
+                        id="ping-token-mint-hints"
+                        value={hintSettings.pingTokenMint}
+                        onChange={(e) => setHintSettings({ ...hintSettings, pingTokenMint: e.target.value })}
+                        placeholder="SPL Token mint address for $PING"
+                      />
+                    </div>
                   </div>
 
-                  <div className="form-group">
-                    <label htmlFor="burn-wallet-hints">Burn Wallet Address</label>
-                    <input
-                      type="text"
-                      id="burn-wallet-hints"
-                      value={hintSettings.burnWallet}
-                      onChange={(e) => setHintSettings({ ...hintSettings, burnWallet: e.target.value })}
-                      placeholder="Solana wallet address (receives 50% for manual burning)"
-                    />
+                  {/* Buy Button Configuration */}
+                  <div className="settings-group">
+                    <h4>Buy Button Configuration</h4>
+                    <div className="form-group">
+                      <label htmlFor="buy-button-url">Buy Button URL</label>
+                      <input
+                        type="url"
+                        id="buy-button-url"
+                        value={hintSettings.buyButtonUrl}
+                        onChange={(e) => setHintSettings({ ...hintSettings, buyButtonUrl: e.target.value })}
+                        placeholder="https://pump.fun/..."
+                      />
+                      <small className="form-hint">Used for "BUY $PING" button in hint modal</small>
+                    </div>
                   </div>
 
-                  <div className="form-group">
-                    <label htmlFor="ping-token-mint-hints">$PING Token Mint Address</label>
-                    <input
-                      type="text"
-                      id="ping-token-mint-hints"
-                      value={hintSettings.pingTokenMint}
-                      onChange={(e) => setHintSettings({ ...hintSettings, pingTokenMint: e.target.value })}
-                      placeholder="SPL Token mint address for $PING"
-                    />
+                  {/* Social Media Links */}
+                  <div className="settings-group">
+                    <h4>Social Media Links</h4>
+                    
+                    {/* Pump.fun */}
+                    <div className="toggle-field">
+                      <div className="toggle-label">
+                        <div className="form-group">
+                          <label htmlFor="pump-fun-url">Pump.fun URL</label>
+                          <input
+                            type="url"
+                            id="pump-fun-url"
+                            value={hintSettings.pumpFunUrl}
+                            onChange={(e) => setHintSettings({ ...hintSettings, pumpFunUrl: e.target.value })}
+                            placeholder="https://pump.fun/..."
+                          />
+                        </div>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={hintSettings.pumpFunEnabled}
+                          onChange={(e) => setHintSettings({ ...hintSettings, pumpFunEnabled: e.target.checked })}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    {/* X (Twitter) */}
+                    <div className="toggle-field">
+                      <div className="toggle-label">
+                        <div className="form-group">
+                          <label htmlFor="x-username">X (Twitter) Username</label>
+                          <input
+                            type="text"
+                            id="x-username"
+                            value={hintSettings.xUsername}
+                            onChange={(e) => setHintSettings({ ...hintSettings, xUsername: e.target.value })}
+                            placeholder="username (without @)"
+                          />
+                          <small className="form-hint">Will link to: https://x.com/{hintSettings.xUsername || 'username'}</small>
+                        </div>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={hintSettings.xEnabled}
+                          onChange={(e) => setHintSettings({ ...hintSettings, xEnabled: e.target.checked })}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    {/* Instagram */}
+                    <div className="toggle-field">
+                      <div className="toggle-label">
+                        <div className="form-group">
+                          <label htmlFor="instagram-username">Instagram Username</label>
+                          <input
+                            type="text"
+                            id="instagram-username"
+                            value={hintSettings.instagramUsername}
+                            onChange={(e) => setHintSettings({ ...hintSettings, instagramUsername: e.target.value })}
+                            placeholder="username (without @)"
+                          />
+                          <small className="form-hint">Will link to: https://instagram.com/{hintSettings.instagramUsername || 'username'}</small>
+                        </div>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={hintSettings.instagramEnabled}
+                          onChange={(e) => setHintSettings({ ...hintSettings, instagramEnabled: e.target.checked })}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    {/* TikTok */}
+                    <div className="toggle-field">
+                      <div className="toggle-label">
+                        <div className="form-group">
+                          <label htmlFor="tiktok-username">TikTok Username</label>
+                          <input
+                            type="text"
+                            id="tiktok-username"
+                            value={hintSettings.tiktokUsername}
+                            onChange={(e) => setHintSettings({ ...hintSettings, tiktokUsername: e.target.value })}
+                            placeholder="username (without @)"
+                          />
+                          <small className="form-hint">Will link to: https://tiktok.com/@{hintSettings.tiktokUsername || 'username'}</small>
+                        </div>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={hintSettings.tiktokEnabled}
+                          onChange={(e) => setHintSettings({ ...hintSettings, tiktokEnabled: e.target.checked })}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
                   </div>
 
                   <button type="submit" className="save-btn">
-                    Save Hint Settings
+                    Save General Settings
                   </button>
                 </form>
-                
-                <div className="hint-instructions">
-                  <h4>How Hint Pricing Works</h4>
-                  <p>Hint prices are configured individually per hotspot when creating or editing PINGs. Set the USD price for each hint level (1, 2, 3) in the PING creation form, and the app will automatically calculate the $PING token amount based on the current market price.</p>
-                </div>
               </div>
             </div>
           )}
@@ -1952,7 +2090,7 @@ function AdminPage() {
                 onClick={(e) => handleTabClick('hints', e)}
                 onTouchStart={(e) => handleTabClick('hints', e)}
               >
-                Hint Settings
+                General Settings
               </button>
             </>
           )}

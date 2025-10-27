@@ -91,5 +91,19 @@ model HintSettings {
   treasuryWallet    String   @default("") // Receives 50% of payments
   burnWallet        String   @default("") // Receives 50% of payments (admin burns manually)
   pingTokenMint     String   @default("") // $PING SPL token mint address for Jupiter price lookup
+  
+  // Buy Button Configuration
+  buyButtonUrl      String   @default("")
+  
+  // Social Media Links with visibility toggles
+  pumpFunUrl        String   @default("")
+  pumpFunEnabled    Boolean  @default(false)
+  xUsername         String   @default("")
+  xEnabled          Boolean  @default(false)
+  instagramUsername String   @default("")
+  instagramEnabled  Boolean  @default(false)
+  tiktokUsername    String   @default("")
+  tiktokEnabled     Boolean  @default(false)
+  
   updatedAt         DateTime @updatedAt
 }

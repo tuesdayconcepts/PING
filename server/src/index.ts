@@ -1274,7 +1274,16 @@ app.put("/api/admin/hints/settings", authenticateAdmin, async (req, res) => {
     const { 
       treasuryWallet, 
       burnWallet, 
-      pingTokenMint 
+      pingTokenMint,
+      buyButtonUrl,
+      pumpFunUrl,
+      pumpFunEnabled,
+      xUsername,
+      xEnabled,
+      instagramUsername,
+      instagramEnabled,
+      tiktokUsername,
+      tiktokEnabled
     } = req.body;
 
     const settings = await prisma.hintSettings.upsert({
@@ -1283,12 +1292,30 @@ app.put("/api/admin/hints/settings", authenticateAdmin, async (req, res) => {
         treasuryWallet,
         burnWallet,
         pingTokenMint,
+        buyButtonUrl,
+        pumpFunUrl,
+        pumpFunEnabled,
+        xUsername,
+        xEnabled,
+        instagramUsername,
+        instagramEnabled,
+        tiktokUsername,
+        tiktokEnabled,
       },
       create: {
         id: "singleton",
         treasuryWallet,
         burnWallet,
         pingTokenMint,
+        buyButtonUrl,
+        pumpFunUrl,
+        pumpFunEnabled,
+        xUsername,
+        xEnabled,
+        instagramUsername,
+        instagramEnabled,
+        tiktokUsername,
+        tiktokEnabled,
       },
     });
 

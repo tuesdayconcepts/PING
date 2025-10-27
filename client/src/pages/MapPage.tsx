@@ -73,6 +73,16 @@ function MapPage() {
   const [claimError, setClaimError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [socialSettings, setSocialSettings] = useState({
+    pumpFunUrl: '',
+    pumpFunEnabled: false,
+    xUsername: '',
+    xEnabled: false,
+    instagramUsername: '',
+    instagramEnabled: false,
+    tiktokUsername: '',
+    tiktokEnabled: false,
+  });
   const [showCertificate, setShowCertificate] = useState(false);
   const [certificateExpanded, setCertificateExpanded] = useState(false);
   const [shareTextReady, setShareTextReady] = useState(false);
@@ -175,6 +185,31 @@ function MapPage() {
     // Poll for hotspot updates every 30 seconds
     const interval = setInterval(fetchHotspots, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Fetch social settings
+  useEffect(() => {
+    const fetchSocialSettings = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/hints/settings`);
+        if (response.ok) {
+          const data = await response.json();
+          setSocialSettings({
+            pumpFunUrl: data.pumpFunUrl || '',
+            pumpFunEnabled: data.pumpFunEnabled || false,
+            xUsername: data.xUsername || '',
+            xEnabled: data.xEnabled || false,
+            instagramUsername: data.instagramUsername || '',
+            instagramEnabled: data.instagramEnabled || false,
+            tiktokUsername: data.tiktokUsername || '',
+            tiktokEnabled: data.tiktokEnabled || false,
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch social settings:', err);
+      }
+    };
+    fetchSocialSettings();
   }, []);
 
   // Expand certificate after 2 seconds
@@ -444,9 +479,50 @@ function MapPage() {
         </div>
         <div className={`nav-center ${mobileMenuOpen ? 'mobile-menu-open' : ''}`}>
           <a href="#about" className="nav-link">About Us</a>
-          <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="nav-link">
-            <span>𝕏</span>
-          </a>
+          
+          {socialSettings.pumpFunEnabled && socialSettings.pumpFunUrl && (
+            <a 
+              href={socialSettings.pumpFunUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="nav-link"
+            >
+              Pump.fun
+            </a>
+          )}
+          
+          {socialSettings.xEnabled && socialSettings.xUsername && (
+            <a 
+              href={`https://x.com/${socialSettings.xUsername}`} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="nav-link"
+            >
+              <span>𝕏</span>
+            </a>
+          )}
+          
+          {socialSettings.instagramEnabled && socialSettings.instagramUsername && (
+            <a 
+              href={`https://instagram.com/${socialSettings.instagramUsername}`} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="nav-link"
+            >
+              Instagram
+            </a>
+          )}
+          
+          {socialSettings.tiktokEnabled && socialSettings.tiktokUsername && (
+            <a 
+              href={`https://tiktok.com/@${socialSettings.tiktokUsername}`} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="nav-link"
+            >
+              TikTok
+            </a>
+          )}
         </div>
         <button 
           className={`hamburger-menu ${mobileMenuOpen ? 'open' : ''}`}
