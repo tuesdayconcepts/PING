@@ -58,6 +58,7 @@ body {
   max-width: 450px;
   border-radius: 30px;
   background: #0044ff7d;
+  box-shadow: 0 8px 20px #00000000;
   font-family: DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;
   flex: 1;
   backdrop-filter: blur(10px);
