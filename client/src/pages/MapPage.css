@@ -638,6 +638,11 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
   font-weight: 600;
   color: #fff;
   text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-wrap: break-word;
+  max-width: 100%;
 }
 
 .location-info {

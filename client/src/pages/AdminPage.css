@@ -674,6 +674,14 @@
 .header-title-section {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0; /* Allow flex item to shrink below content size */
+}
+
+.header-title-section strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hotspot-location {
