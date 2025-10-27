@@ -451,8 +451,13 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
   // Check if there's an error - if so, show BUY $PING button
   if (error) {
     ctaText = 'BUY $PING';
-    ctaAction = () => window.open(buyButtonUrl || 'https://www.ping.gg/buy', '_blank');
-    ctaDisabled = false;
+    if (buyButtonUrl) {
+      ctaAction = () => window.open(buyButtonUrl, '_blank');
+      ctaDisabled = false;
+    } else {
+      ctaAction = null;
+      ctaDisabled = true;
+    }
   } else if (!walletConnected) {
     ctaText = 'CONNECT WALLET';
     ctaAction = null; // WalletMultiButton handles this
