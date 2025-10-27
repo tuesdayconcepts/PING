@@ -664,7 +664,7 @@
 
 .hotspot-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
   border-bottom: solid 1.5px #ffffff12;
