@@ -45,6 +45,7 @@ body {
   left: 0;
   bottom: 0;
   right: 0;
+  background: #00000080;
 }
 
 .wallet-adapter-modal-wrapper {
