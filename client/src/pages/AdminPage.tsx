@@ -1364,7 +1364,7 @@ function AdminPage() {
                                         name="hint1PriceUsd"
                                         value={formData.hint1PriceUsd}
                                         onChange={handleInputChange}
-                                        placeholder="Leave empty for free"
+                                        placeholder="Leave empty to make Hint free"
                                         step="0.01"
                                         min="0"
                                       />
@@ -1390,7 +1390,7 @@ function AdminPage() {
                                         name="hint2PriceUsd"
                                         value={formData.hint2PriceUsd}
                                         onChange={handleInputChange}
-                                        placeholder="Leave empty for free"
+                                        placeholder="Leave empty to make Hint free"
                                         step="0.01"
                                         min="0"
                                       />
@@ -1416,7 +1416,7 @@ function AdminPage() {
                                         name="hint3PriceUsd"
                                         value={formData.hint3PriceUsd}
                                         onChange={handleInputChange}
-                                        placeholder="Leave empty for free"
+                                        placeholder="Leave empty to make Hint free"
                                         step="0.01"
                                         min="0"
                                       />
@@ -1621,7 +1621,7 @@ function AdminPage() {
                                 name="hint1PriceUsd"
                                 value={formData.hint1PriceUsd}
                                 onChange={handleInputChange}
-                                placeholder="Leave empty for free"
+                                placeholder="Leave empty to make Hint free"
                                 step="0.01"
                                 min="0"
                               />
@@ -1647,7 +1647,7 @@ function AdminPage() {
                                 name="hint2PriceUsd"
                                 value={formData.hint2PriceUsd}
                                 onChange={handleInputChange}
-                                placeholder="Leave empty for default"
+                                placeholder="Leave empty to make Hint free"
                                 step="0.01"
                                 min="0"
                               />
@@ -1673,7 +1673,7 @@ function AdminPage() {
                                 name="hint3PriceUsd"
                                 value={formData.hint3PriceUsd}
                                 onChange={handleInputChange}
-                                placeholder="Leave empty for default"
+                                placeholder="Leave empty to make Hint free"
                                 step="0.01"
                                 min="0"
                               />
