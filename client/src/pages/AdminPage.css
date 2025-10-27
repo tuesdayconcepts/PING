@@ -1320,10 +1320,12 @@
 
 /* Hints Section */
 .hints-section {
-  margin-top: 20px;
-  border: 2px solid rgba(255, 215, 0, 0.2);
-  border-radius: 15px;
-  background: rgba(255, 215, 0, 0.03);
+  margin-top: 40px;
+  /* border: 2px solid rgba(255, 215, 0, .2); */
+  /* border-radius: 15px; */
+  /* background: #ffd70008; */
+  padding-top: 30px;
+  border-top: dashed 1.5px #ffffff21;
 }
 
 .expand-icon {
@@ -1401,16 +1403,15 @@
 .hint-price-input input {
   width: 150px;
   padding: 8px 12px;
-  border: 2px solid rgba(255, 255, 255, 0.15);
+  border: none;
   border-radius: 8px;
   background: #ffffff26;
-  color: #ffffff;
+  color: #fff;
   font-size: 0.9rem;
 }
 
 .hint-price-input input:focus {
   outline: none;
-  border-color: #ffd700;
 }
 
 /* Pending Claims Section */
