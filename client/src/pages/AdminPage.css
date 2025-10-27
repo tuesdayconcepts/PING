@@ -1315,6 +1315,8 @@
 /* Hints Section */
 .hints-section {
   border-top: dashed 2px #ffffff47;
+  padding-top: 30px;
+  margin-top: 40px;
 }
 
 .expand-icon {
