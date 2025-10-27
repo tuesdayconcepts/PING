@@ -1774,9 +1774,8 @@ function AdminPage() {
           {/* General Settings Tab */}
           {activeTab === 'hints' && currentUserRole === 'admin' && (
             <div className="hint-settings-content">
-              <div className="hint-settings-section">
-                <h3>General Settings</h3>
-                <form onSubmit={handleSaveHintSettings}>
+              <h3>General Settings</h3>
+              <form onSubmit={handleSaveHintSettings}>
                   
                   {/* Wallet & Token Configuration */}
                   <div className="settings-group">
@@ -1938,8 +1937,7 @@ function AdminPage() {
                   <button type="submit" className="save-btn">
                     Save General Settings
                   </button>
-                </form>
-              </div>
+              </form>
             </div>
           )}
 
