@@ -25,3 +25,60 @@ body {
   width: 100%;
 }
 
+/* Wallet Adapter Modal Styling - make it match hint modal */
+.wallet-adapter-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity linear .15s;
+  background: #00000000;
+  z-index: 1040;
+  overflow-y: auto;
+}
+
+.wallet-adapter-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+.wallet-adapter-modal-wrapper {
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  z-index: 1050;
+  max-width: 450px;
+  border-radius: 30px;
+  background: #0044ff7d;
+  font-family: DM Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;
+  flex: 1;
+  backdrop-filter: blur(10px);
+  border: solid 2px #ffffff1c;
+}
+
+.wallet-adapter-modal-button-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  padding: 12px;
+  cursor: pointer;
+  background: #adc1ff2b;
+  border: none;
+  border-radius: 50%;
+  border: solid 1px #ffffff30;
+}
+
+.wallet-adapter-modal-button-close svg {
+  fill: #ffffff;
+}
+
