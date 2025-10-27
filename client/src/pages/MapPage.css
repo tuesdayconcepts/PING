@@ -589,7 +589,7 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
   position: absolute;
   top: 15px;
   right: 15px;
-  background: #00000078;
+  background: #ffffff40;
   transform: translateZ(0); /* GPU acceleration */
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
