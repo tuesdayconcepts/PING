@@ -63,9 +63,9 @@
   right: 0;
   height: 100vh;
   width: 100%;
-  transform: translateZ(0); /* GPU acceleration */
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  transform: translateZ(0);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -75,6 +75,7 @@
   pointer-events: none;
   transition: opacity .3s ease;
   z-index: 165;
+  background: linear-gradient(180deg, rgba(11, 40, 255, 0) 0%, rgba(11, 40, 255, 1) 100%);
 }
 
 .menu-overlay.menu-open {
