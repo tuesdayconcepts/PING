@@ -72,29 +72,44 @@ export function MenuContent({ socialSettings }: MenuContentProps) {
               )}
             </div>
 
-            <div className={`menu-accordion-item ${expanded['terms'] ? 'open' : ''}`}>
-              <button className="menu-item" onClick={() => toggle('terms')}>Terms of Use</button>
-              {expanded['terms'] && (
+            {/* Terms and Privacy - hidden from accordion, opened via footer */}
+            {expanded['terms'] && (
+              <div className="menu-accordion-item open">
+                <button className="menu-item" onClick={() => toggle('terms')}>Terms of Use</button>
                 <div className="menu-accordion-content">
                   <TermsSection />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className={`menu-accordion-item ${expanded['privacy'] ? 'open' : ''}`}>
-              <button className="menu-item" onClick={() => toggle('privacy')}>Privacy Policy</button>
-              {expanded['privacy'] && (
+            {expanded['privacy'] && (
+              <div className="menu-accordion-item open">
+                <button className="menu-item" onClick={() => toggle('privacy')}>Privacy Policy</button>
                 <div className="menu-accordion-content">
                   <PrivacySection />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </nav>
 
-        {/* Socials footer - always visible at the bottom */}
+        {/* Footer with socials, terms, and privacy - always visible at the bottom */}
         <div className="menu-social-footer">
           <SocialSection socialSettings={socialSettings} />
+          <div className="menu-footer-links">
+            <button 
+              className="menu-footer-link"
+              onClick={() => toggle('terms')}
+            >
+              Terms of Use
+            </button>
+            <button 
+              className="menu-footer-link"
+              onClick={() => toggle('privacy')}
+            >
+              Privacy Policy
+            </button>
+          </div>
         </div>
       </div>
     </div>
