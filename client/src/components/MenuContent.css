@@ -19,30 +19,6 @@
   gap: 30px;
 }
 
-.menu-close-btn {
-  position: absolute;
-  top: 30px;
-  right: 30px;
-  background: #ffffff40;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-  transition: all 0.3s;
-  z-index: 10;
-}
-
-.menu-close-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: rotate(90deg);
-}
-
 .menu-title {
   font-size: 2.5rem;
   font-weight: 700;
@@ -153,13 +129,6 @@
   .menu-main-menu {
     padding: 30px 20px;
     max-width: 100%;
-  }
-
-  .menu-close-btn {
-    top: 20px;
-    right: 20px;
-    width: 35px;
-    height: 35px;
   }
 
   .menu-title {

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
 import { AboutSection } from './menu/AboutSection';
 import { HowItWorksSection } from './menu/HowItWorksSection';
 import { SocialSection } from './menu/SocialSection';
@@ -39,10 +38,6 @@ export function MenuContent({ socialSettings, onClose }: MenuContentProps) {
     return (
       <div className="menu-overlay-content">
         <div className="menu-main-menu">
-          <button className="menu-close-btn" onClick={onClose} aria-label="Close menu">
-            <X size={24} />
-          </button>
-          
           <h2 className="menu-title">PING</h2>
           
           <nav className="menu-nav">
