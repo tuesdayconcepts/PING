@@ -985,6 +985,15 @@ app.get("/api/hints/settings", async (req, res) => {
       burnWallet: settings.burnWallet,
       pingTokenMint: settings.pingTokenMint,
       currentPingPrice: pingPrice, // USD per $PING
+      buyButtonUrl: settings.buyButtonUrl || '',
+      pumpFunUrl: settings.pumpFunUrl || '',
+      pumpFunEnabled: settings.pumpFunEnabled || false,
+      xUsername: settings.xUsername || '',
+      xEnabled: settings.xEnabled || false,
+      instagramUsername: settings.instagramUsername || '',
+      instagramEnabled: settings.instagramEnabled || false,
+      tiktokUsername: settings.tiktokUsername || '',
+      tiktokEnabled: settings.tiktokEnabled || false,
     });
   } catch (error) {
     console.error("Get hint settings error:", error);
