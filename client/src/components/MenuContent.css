@@ -79,13 +79,14 @@
 }
 
 .menu-accordion-item.open .menu-item {
+  padding: 30px 30px 15px;
   border-bottom: none;
   border-radius: 14px 14px 0 0;
 }
 
 .menu-accordion-item .menu-accordion-content {
   margin-top: 0;
-  padding: 14px;
+  padding: 0 15px;
   background: #ffffff26;
   border: 2px solid rgba(255, 255, 255, .1);
   border-top: none;
