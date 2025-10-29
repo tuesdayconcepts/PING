@@ -19,10 +19,9 @@ interface MenuContentProps {
     tiktokUsername: string;
     tiktokEnabled: boolean;
   };
-  onClose: () => void;
 }
 
-export function MenuContent({ socialSettings, onClose }: MenuContentProps) {
+export function MenuContent({ socialSettings }: MenuContentProps) {
   const [activeSection, setActiveSection] = useState<MenuSection>(null);
 
   const handleSectionClick = (section: MenuSection) => {

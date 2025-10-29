@@ -489,7 +489,6 @@ function MapPage() {
           <div className="menu-overlay menu-open">
             <MenuContent 
               socialSettings={socialSettings}
-              onClose={() => setMobileMenuOpen(false)}
             />
           </div>
         )}
