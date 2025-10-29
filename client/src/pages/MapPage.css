@@ -47,7 +47,7 @@
   z-index: 160; /* Above vignette (150) */
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 30px 40px;
   background: transparent;
 }
