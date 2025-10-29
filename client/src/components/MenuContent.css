@@ -4,8 +4,8 @@
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  padding-top: 4rem;
+  align-items: center;
+  padding-top: 3rem;
   overflow: hidden;
 }
 
