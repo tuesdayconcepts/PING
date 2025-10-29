@@ -59,30 +59,6 @@ export function AboutSection() {
         </p>
       </div>
 
-      {/* Stats Section */}
-      <div className="menu-stats-grid">
-        {(walletStats.treasuryBalance !== null || walletStats.burnBalance !== null) && (
-          <>
-            {walletStats.treasuryBalance !== null && (
-              <div className="menu-stat-card">
-                <div className="menu-stat-label">Treasury Wallet</div>
-                <div className="menu-stat-value">
-                  {walletStats.treasuryBalance.toFixed(2)} SOL
-                </div>
-              </div>
-            )}
-            {walletStats.burnBalance !== null && (
-              <div className="menu-stat-card">
-                <div className="menu-stat-label">Burn Wallet</div>
-                <div className="menu-stat-value">
-                  {walletStats.burnBalance.toFixed(2)} SOL
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
       {/* Feature Cards */}
       <div className="menu-features-grid">
         <div className="menu-feature-card">
@@ -124,6 +100,30 @@ export function AboutSection() {
           <h3>Certificate of Victory</h3>
           <p>Earn your golden certificate. Share your win and prove you found it first.</p>
         </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="menu-stats-grid">
+        {(walletStats.treasuryBalance !== null || walletStats.burnBalance !== null) && (
+          <>
+            {walletStats.treasuryBalance !== null && (
+              <div className="menu-stat-card">
+                <div className="menu-stat-label">Treasury Wallet</div>
+                <div className="menu-stat-value">
+                  {walletStats.treasuryBalance.toFixed(2)} SOL
+                </div>
+              </div>
+            )}
+            {walletStats.burnBalance !== null && (
+              <div className="menu-stat-card">
+                <div className="menu-stat-label">Burn Wallet</div>
+                <div className="menu-stat-value">
+                  {walletStats.burnBalance.toFixed(2)} SOL
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
