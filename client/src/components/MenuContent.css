@@ -92,7 +92,7 @@
   border-radius: 0 0 14px 14px;
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  max-height: 50dvh;
+  max-height: 60dvh;
   overflow-y: auto;
 }
 
@@ -120,9 +120,7 @@
   position: sticky;
   bottom: 0;
   flex-shrink: 0;
-  background: rgba(11, 40, 255, 0.8);
   padding-top: 15px;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
 }
 
 .menu-social-links {
