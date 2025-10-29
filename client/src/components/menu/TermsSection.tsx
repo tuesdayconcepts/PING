@@ -3,13 +3,6 @@ import './MenuSections.css';
 export function TermsSection() {
   return (
     <div className="menu-section">
-      <div className="menu-section-header">
-        <h2>Terms of Use</h2>
-        <p className="menu-section-subtitle">
-          Please read these terms carefully before participating.
-        </p>
-      </div>
-
       <div className="menu-legal-content">
         <section>
           <h3>No Guarantee of Reward</h3>

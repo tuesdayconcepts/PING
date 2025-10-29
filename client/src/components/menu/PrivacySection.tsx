@@ -3,13 +3,6 @@ import './MenuSections.css';
 export function PrivacySection() {
   return (
     <div className="menu-section">
-      <div className="menu-section-header">
-        <h2>Privacy Policy</h2>
-        <p className="menu-section-subtitle">
-          Your privacy matters. Here's how we handle your data.
-        </p>
-      </div>
-
       <div className="menu-legal-content">
         <section>
           <h3>Location Data</h3>
