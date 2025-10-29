@@ -7,8 +7,6 @@ import { TermsSection } from './menu/TermsSection';
 import { PrivacySection } from './menu/PrivacySection';
 import './MenuContent.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-
 export type MenuSection = 'about' | 'how-it-works' | 'social' | 'terms' | 'privacy' | null;
 
 interface MenuContentProps {

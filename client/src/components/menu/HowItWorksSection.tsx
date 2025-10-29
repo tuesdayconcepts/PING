@@ -1,4 +1,4 @@
-import { MapPin, Navigation, HelpCircle, CreditCard, Share2, Award } from 'lucide-react';
+import { MapPin, Navigation, CreditCard, Award } from 'lucide-react';
 import './MenuSections.css';
 
 export function HowItWorksSection() {
