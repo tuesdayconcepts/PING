@@ -78,11 +78,12 @@
   margin-top: 0;
   padding: 14px;
   background: #ffffff26;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, .1);
   border-top: none;
   border-radius: 0 0 14px 14px;
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  max-height: 60dvh;
+  max-height: 50dvh;
   overflow-y: auto;
 }
 
