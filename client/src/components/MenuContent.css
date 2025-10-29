@@ -56,6 +56,10 @@
   text-transform: uppercase;
 }
 
+.menu-item:hover {
+  padding: 16px 30px;
+}
+
 /* Accordion */
 .menu-accordion {
   display: flex;
