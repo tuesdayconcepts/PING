@@ -31,7 +31,22 @@ export function MenuContent({ socialSettings }: MenuContentProps) {
   });
 
   const toggle = (key: MenuSection) => {
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+    setExpanded((prev) => {
+      // If clicking the same item, toggle it; otherwise close all and open the clicked one
+      if (prev[key]) {
+        // Close if already open
+        return { ...prev, [key]: false };
+      } else {
+        // Close all others and open the clicked one
+        return {
+          about: false,
+          'how-it-works': false,
+          terms: false,
+          privacy: false,
+          [key]: true,
+        };
+      }
+    });
   };
 
   return (
