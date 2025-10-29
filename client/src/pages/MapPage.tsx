@@ -474,10 +474,17 @@ function MapPage() {
       
       {/* Navigation Bar */}
       <nav className="map-nav">
-        <div className="nav-left">
-          <img src="/logo/ping-logo.svg" alt="PING Logo" className="nav-logo" />
-        </div>
-        <div className={`nav-center ${mobileMenuOpen ? 'mobile-menu-open' : ''}`}>
+        <img src="/logo/ping-logo.svg" alt="PING Logo" className="nav-logo" />
+        <button 
+          className={`hamburger-menu ${mobileMenuOpen ? 'open' : ''}`}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          <span className="line-menu half start"></span>
+          <span className="line-menu"></span>
+          <span className="line-menu half end"></span>
+        </button>
+        <div className={`menu-overlay ${mobileMenuOpen ? 'menu-open' : ''}`}>
           <a href="#about" className="nav-link">About Us</a>
           
           {socialSettings.pumpFunEnabled && socialSettings.pumpFunUrl && (
@@ -524,15 +531,6 @@ function MapPage() {
             </a>
           )}
         </div>
-        <button 
-          className={`hamburger-menu ${mobileMenuOpen ? 'open' : ''}`}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          <span className="line-menu half start"></span>
-          <span className="line-menu"></span>
-          <span className="line-menu half end"></span>
-        </button>
       </nav>
 
       {/* Loading/Error States */}

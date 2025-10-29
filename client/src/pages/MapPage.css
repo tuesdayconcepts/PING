@@ -47,15 +47,9 @@
   z-index: 160; /* Above vignette (150) */
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   padding: 30px 40px;
   background: transparent;
-}
-
-.nav-left {
-  flex: 1;
-  display: flex;
-  align-items: center;
 }
 
 .nav-logo {
@@ -63,7 +57,7 @@
   width: auto;
 }
 
-.nav-center {
+.menu-overlay {
   position: fixed;
   top: 0;
   right: 0;
@@ -83,7 +77,7 @@
   z-index: 165;
 }
 
-.nav-center.mobile-menu-open {
+.menu-overlay.menu-open {
   opacity: 1;
   pointer-events: auto;
   display: flex;
