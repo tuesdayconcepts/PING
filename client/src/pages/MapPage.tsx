@@ -9,6 +9,7 @@ import { getHotspotStatus, getTimeUntilExpiration, calculateETA } from '../utils
 import { getLocationName } from '../utils/geocoding';
 import { GoldenTicket } from '../components/GoldenTicket';
 import { HintModal } from '../components/HintModal';
+import { MenuContent } from '../components/MenuContent';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import './MapPage.css';
@@ -484,53 +485,14 @@ function MapPage() {
           <span className="line-menu"></span>
           <span className="line-menu half end"></span>
         </button>
-        <div className={`menu-overlay ${mobileMenuOpen ? 'menu-open' : ''}`}>
-          <a href="#about" className="nav-link">About Us</a>
-          
-          {socialSettings.pumpFunEnabled && socialSettings.pumpFunUrl && (
-            <a 
-              href={socialSettings.pumpFunUrl} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="nav-link"
-            >
-              Pump.fun
-            </a>
-          )}
-          
-          {socialSettings.xEnabled && socialSettings.xUsername && (
-            <a 
-              href={`https://x.com/${socialSettings.xUsername}`} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="nav-link"
-            >
-              <span>𝕏</span>
-            </a>
-          )}
-          
-          {socialSettings.instagramEnabled && socialSettings.instagramUsername && (
-            <a 
-              href={`https://instagram.com/${socialSettings.instagramUsername}`} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="nav-link"
-            >
-              Instagram
-            </a>
-          )}
-          
-          {socialSettings.tiktokEnabled && socialSettings.tiktokUsername && (
-            <a 
-              href={`https://tiktok.com/@${socialSettings.tiktokUsername}`} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="nav-link"
-            >
-              TikTok
-            </a>
-          )}
-        </div>
+        {mobileMenuOpen && (
+          <div className="menu-overlay menu-open">
+            <MenuContent 
+              socialSettings={socialSettings}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+          </div>
+        )}
       </nav>
 
       {/* Loading/Error States */}
