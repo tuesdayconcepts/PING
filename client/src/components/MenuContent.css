@@ -43,14 +43,15 @@
   width: 100%;
   padding: 16px 18px;
   background: #ffffff26;
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, .1);
   border-radius: 14px 14px 0 0;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1.05rem;
+  color: #ffffffe6;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all .3s ease;
   text-align: left;
   text-transform: uppercase;
 }

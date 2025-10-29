@@ -244,12 +244,12 @@
 }
 
 .menu-legal-content h3 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #FFD700;
-  margin: 0 0 15px 0;
+  color: #ffffff;
+  margin: 0 0 15px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: .5px;
 }
 
 .menu-legal-content p {
