@@ -111,6 +111,34 @@
   position: sticky;
   bottom: 0;
   flex-shrink: 0;
+  background: rgba(11, 40, 255, 0.8);
+  padding-top: 20px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+
+.menu-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.menu-footer-link {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(255, 255, 255, 0.3);
+}
+
+.menu-footer-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration-color: rgba(255, 255, 255, 0.6);
 }
 
 /* Responsive */
