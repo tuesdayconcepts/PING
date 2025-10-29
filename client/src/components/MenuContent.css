@@ -56,12 +56,6 @@
   text-transform: uppercase;
 }
 
-.menu-item:hover {
-  background: #ffffff40;
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #fff;
-}
-
 /* Accordion */
 .menu-accordion {
   display: flex;
