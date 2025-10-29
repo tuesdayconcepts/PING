@@ -1230,7 +1230,7 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
 /* Responsive */
 @media (max-width: 768px) {
   .map-nav {
-    padding: 25px;
+    padding: 25px 15px 0 25px;
   }
   
 
