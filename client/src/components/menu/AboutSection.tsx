@@ -54,9 +54,8 @@ export function AboutSection() {
   return (
     <div className="menu-section">
       <div className="menu-section-header">
-        <h2>Hunt Real PINGs. Win Real SOL.</h2>
         <p className="menu-section-subtitle">
-          The world's first NFC-powered cryptocurrency scavenger hunt. Find hidden locations, claim prizes, and join the treasure hunt revolution.
+          Ping is the world's first real world, NFC-powered crypto scavenger hunt. Find hidden locations, claim SOL, and join the digital treasure hunt revolution!
         </p>
       </div>
 

@@ -28,7 +28,6 @@ export function HowItWorksSection() {
   return (
     <div className="menu-section">
       <div className="menu-section-header">
-        <h2>How It Works</h2>
         <p className="menu-section-subtitle">
           From map to prize in simple steps. Ready to hunt?
         </p>
