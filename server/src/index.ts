@@ -499,7 +499,7 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
       `Created hotspot: ${hotspot.title} (queue position: ${queuePosition})`
     );
 
-    res.status(201).json(hotspot);
+    res.status(201).json(serializeBigInts(hotspot));
   } catch (error) {
     console.error("Create hotspot error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -594,7 +594,7 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
       `Updated hotspot: ${hotspot.title}`
     );
 
-    res.json(hotspot);
+    res.json(serializeBigInts(hotspot));
   } catch (error) {
     console.error("Update hotspot error:", error);
     res.status(500).json({ error: "Internal server error" });
