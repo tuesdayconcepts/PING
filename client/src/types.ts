@@ -28,6 +28,10 @@ export interface Hotspot {
   firstHintFree?: boolean;
   createdAt: string;
   updatedAt?: string;
+  // Automated prize wallet + funding (backend fields)
+  prizePublicKey?: string | null;
+  fundStatus?: 'pending' | 'success' | 'failed' | 'skipped';
+  fundTxSig?: string | null;
 }
 
 export interface LoginResponse {
