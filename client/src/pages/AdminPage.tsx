@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -67,6 +67,7 @@ function AdminPage() {
   const [drawerExpanded, setDrawerExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedWalletId, setCopiedWalletId] = useState<string | null>(null);
+  const [copiedPrivateId, setCopiedPrivateId] = useState<string | null>(null);
   const [formClosing, setFormClosing] = useState(false);
   const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
   
@@ -1796,31 +1797,7 @@ function AdminPage() {
                             <> · <a href={`https://solscan.io/tx/${hotspot.fundTxSig}`} target="_blank" rel="noopener noreferrer">tx</a></>
                           )}
                         </p>
-                        {currentUserRole === 'admin' && (
-                          <p>
-                            <button
-                              className="action-icon-btn"
-                              onClick={async () => {
-                                try {
-                                  const r = await fetch(`${API_URL}/api/admin/hotspots/${hotspot.id}/key`, { headers: getAuthHeaders() });
-                                  if (!r.ok) throw new Error('Failed to fetch key');
-                                  const j = await r.json();
-                                  if (j.privateKey) {
-                                    await navigator.clipboard.writeText(j.privateKey);
-                                    showToast('Private key (base58) copied', 'success');
-                                  } else {
-                                    showToast('Private key not available', 'error');
-                                  }
-                                } catch (e) {
-                                  showToast('Failed to copy private key', 'error');
-                                }
-                              }}
-                              aria-label="Copy private key"
-                            >
-                              Copy Private Key
-                            </button>
-                          </p>
-                        )}
+                        {/* admin-only actions moved to footer as icon */}
                       </div>
 
                       {/* Bottom footer-like section */}
@@ -1839,7 +1816,21 @@ function AdminPage() {
                             {copiedId === hotspot.id ? <Check size={18} /> : <LinkIcon size={18} />}
                           </button>
 
-                          {/* Copy prize wallet */}
+                          {/* Tweet link */}
+                          {hotspot.tweetUrl && (
+                            <button
+                              onClick={() => window.open(hotspot.tweetUrl!, '_blank')}
+                              className="action-icon-btn"
+                              aria-label="Open tweet"
+                              title="Open tweet"
+                            >
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                              </svg>
+                            </button>
+                          )}
+
+                          {/* Copy prize wallet (to the right of X) */}
                           {hotspot.prizePublicKey && (
                             <button
                               onClick={() => {
@@ -1855,17 +1846,30 @@ function AdminPage() {
                             </button>
                           )}
 
-                          {/* Tweet link */}
-                          {hotspot.tweetUrl && (
+                          {/* Copy private key (admin only) */}
+                          {currentUserRole === 'admin' && (
                             <button
-                              onClick={() => window.open(hotspot.tweetUrl!, '_blank')}
+                              onClick={async () => {
+                                try {
+                                  const r = await fetch(`${API_URL}/api/admin/hotspots/${hotspot.id}/key`, { headers: getAuthHeaders() });
+                                  if (!r.ok) throw new Error('Failed to fetch key');
+                                  const j = await r.json();
+                                  if (j.privateKey) {
+                                    await navigator.clipboard.writeText(j.privateKey);
+                                    setCopiedPrivateId(hotspot.id);
+                                    setTimeout(() => setCopiedPrivateId(null), 1500);
+                                    showToast('Private key (base58) copied', 'success');
+                                  } else {
+                                    showToast('Private key not available', 'error');
+                                  }
+                                } catch (e) {
+                                  showToast('Failed to copy private key', 'error');
+                                }
+                              }}
                               className="action-icon-btn"
-                              aria-label="Open tweet"
-                              title="Open tweet"
+                              aria-label={copiedPrivateId === hotspot.id ? 'Copied!' : 'Copy Private Key'}
                             >
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
-                              </svg>
+                              {copiedPrivateId === hotspot.id ? <Check size={18} /> : <KeyRound size={18} />}
                             </button>
                           )}
                         </div>
