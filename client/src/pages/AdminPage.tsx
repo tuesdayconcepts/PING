@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
