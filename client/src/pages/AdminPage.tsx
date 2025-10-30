@@ -1195,6 +1195,7 @@ function AdminPage() {
                                 navigator.clipboard.writeText(hotspot.prizePublicKey!);
                                 setCopiedWalletId(hotspot.id);
                                 setTimeout(() => setCopiedWalletId(null), 1500);
+                                showToast('Wallet address copied', 'success');
                               }}
                               className="action-icon-btn"
                               aria-label={copiedWalletId === hotspot.id ? 'Copied!' : 'Copy Wallet Address'}
