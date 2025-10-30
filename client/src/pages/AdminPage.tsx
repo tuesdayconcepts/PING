@@ -1777,10 +1777,10 @@ function AdminPage() {
                         <p><strong>Claimed at:</strong> {hotspot.claimedAt ? formatDate(hotspot.claimedAt) : 'N/A'}</p>
                         {hotspot.prizePublicKey && (
                           <p>
-                            <strong>Balance:</strong> {walletBalances[hotspot.prizePublicKey] !== undefined ? `${walletBalances[hotspot.prizePublicKey].toFixed(6)} SOL` : '—'}
+                            <strong>Balance:</strong> {walletBalances[hotspot.prizePublicKey] !== undefined ? `${walletBalances[hotspot.prizePublicKey].toFixed(1)} SOL` : '—'}
                             <button 
                               className="action-icon-btn" 
-                              style={{ marginLeft: 8 }} 
+                              style={{ marginLeft: 8, verticalAlign: 'baseline' }} 
                               onClick={() => hotspot.prizePublicKey && fetchWalletBalance(hotspot.prizePublicKey)}
                               aria-label="Refresh balance"
                             >
