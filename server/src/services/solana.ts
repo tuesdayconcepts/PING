@@ -55,6 +55,7 @@ export async function transferFromTreasury(params: {
 
   const ix = SystemProgram.transfer({ fromPubkey: treasury.publicKey, toPubkey: to, lamports: Number(lamports) });
   const tx = new Transaction().add(ix);
+  // TODO: To include a real on-chain memo, add Memo program instruction here.
 
   // Helper for timeout
   const withTimeout = async <T>(p: Promise<T>, ms: number): Promise<T> => {

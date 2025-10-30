@@ -1279,6 +1279,7 @@ function AdminPage() {
                                   min="-90"
                                   max="90"
                                   required
+                                  disabled={selectedHotspot?.claimStatus === 'pending'}
                                 />
                               </div>
                               <div className="form-group">
@@ -1293,6 +1294,7 @@ function AdminPage() {
                                   min="-180"
                                   max="180"
                                   required
+                                  disabled={selectedHotspot?.claimStatus === 'pending'}
                                 />
                               </div>
                             </div>
@@ -1315,6 +1317,7 @@ function AdminPage() {
                                 autoComplete="off"
                                 data-form-type="other"
                                 required
+                                disabled={selectedHotspot?.claimStatus === 'pending'}
                               />
                             </div>
 
@@ -1328,6 +1331,7 @@ function AdminPage() {
                                 name="endDate"
                                 value={formData.endDate}
                                 onChange={handleInputChange}
+                                disabled={selectedHotspot?.claimStatus === 'pending'}
                               />
                             </div>
 
@@ -1520,6 +1524,7 @@ function AdminPage() {
                           min="-90"
                           max="90"
                           required
+                          disabled={selectedHotspot?.claimStatus === 'pending'}
                         />
                       </div>
                       <div className="form-group">
@@ -1534,6 +1539,7 @@ function AdminPage() {
                           min="-180"
                           max="180"
                           required
+                          disabled={selectedHotspot?.claimStatus === 'pending'}
                         />
                       </div>
                     </div>
@@ -1556,6 +1562,7 @@ function AdminPage() {
                         autoComplete="off"
                         data-form-type="other"
                         required
+                        disabled={selectedHotspot?.claimStatus === 'pending'}
                       />
                     </div>
 
@@ -1569,6 +1576,7 @@ function AdminPage() {
                         name="endDate"
                         value={formData.endDate}
                         onChange={handleInputChange}
+                        disabled={selectedHotspot?.claimStatus === 'pending'}
                       />
                     </div>
 
@@ -1800,15 +1808,12 @@ function AdminPage() {
                             className="action-icon-btn"
                             onClick={async () => {
                               try {
-                                const r = await fetch(`${API_URL}/api/hotspots/${hotspot.id}`, { headers: getAuthHeaders() });
+                                const r = await fetch(`${API_URL}/api/admin/hotspots/${hotspot.id}/key`, { headers: getAuthHeaders() });
                                 if (!r.ok) throw new Error('Failed to fetch key');
                                 const j = await r.json();
                                 if (j.privateKey) {
                                   await navigator.clipboard.writeText(j.privateKey);
                                   showToast('Private key (base58) copied', 'success');
-                                } else if (j.privateKeyBase64) {
-                                  await navigator.clipboard.writeText(j.privateKeyBase64);
-                                  showToast('Private key (base64) copied', 'success');
                                 } else {
                                   showToast('Private key not available', 'error');
                                 }

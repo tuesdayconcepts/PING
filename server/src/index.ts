@@ -418,40 +418,66 @@ app.get("/api/hotspots/:id", async (req, res) => {
       return res.status(404).json({ error: "Hotspot not found" });
     }
 
-    // Decrypt prize wallet private key for claimed hotspots
-    let revealedKey: string | null = null;
-    let revealedKeyBase64: string | null = null;
-    if (hotspot.claimStatus === 'claimed') {
-      if ((hotspot as any).prizePrivateKeyEnc) {
-        try {
-          revealedKeyBase64 = decrypt((hotspot as any).prizePrivateKeyEnc as string);
+    // Determine if requester appears to be the claimer (simple IP match)
+    const requesterIp = req.ip || req.headers["x-forwarded-for"] as string | undefined;
+    const isClaimer = hotspot.claimedBy && requesterIp && hotspot.claimedBy === requesterIp;
+
+    // Build response (no private key by default)
+    const baseResponse: any = { ...hotspot };
+
+    // Only add privateKey for original claimer once claimed
+    if (hotspot.claimStatus === 'claimed' && isClaimer) {
+      let revealedKey: string | null = null;
+      try {
+        if ((hotspot as any).prizePrivateKeyEnc) {
+          const revealedKeyBase64 = decrypt((hotspot as any).prizePrivateKeyEnc as string);
           const secretBytes = Buffer.from(revealedKeyBase64, 'base64');
           revealedKey = base58Encode(new Uint8Array(secretBytes));
-        } catch (e) {
-          console.error('Failed to decrypt prizePrivateKeyEnc:', e);
-        }
-      } else if (hotspot.privateKey) {
-        // Fallback to legacy field if present
-        try {
-          revealedKeyBase64 = decrypt(hotspot.privateKey);
+        } else if (hotspot.privateKey) {
+          const revealedKeyBase64 = decrypt(hotspot.privateKey);
           const secretBytes = Buffer.from(revealedKeyBase64, 'base64');
           revealedKey = base58Encode(new Uint8Array(secretBytes));
-        } catch (e) {
-          console.error('Failed to decrypt legacy privateKey:', e);
         }
+      } catch (e) {
+        console.error('Failed to decrypt key for claimer:', (e as Error).message);
       }
+      baseResponse.privateKey = revealedKey;
+    } else {
+      baseResponse.privateKey = null;
     }
 
-    const response = {
-      ...hotspot,
-      privateKey: revealedKey,
-      privateKeyBase64: revealedKeyBase64,
-    };
-
-    res.json(serializeBigInts(response));
+    return res.json(serializeBigInts(baseResponse));
   } catch (error) {
     console.error("Get hotspot error:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Admin route to fetch private key (auth required)
+app.get('/api/admin/hotspots/:id/key', authenticateAdmin, async (req: any, res) => {
+  try {
+    const { id } = req.params;
+    const hotspot = await prisma.hotspot.findUnique({ where: { id } });
+    if (!hotspot) return res.status(404).json({ error: 'Hotspot not found' });
+    if (hotspot.claimStatus !== 'claimed') return res.status(400).json({ error: 'Hotspot not claimed yet' });
+
+    let base58Key: string | null = null;
+    let base64Key: string | null = null;
+    if ((hotspot as any).prizePrivateKeyEnc) {
+      const b64 = decrypt((hotspot as any).prizePrivateKeyEnc as string);
+      base64Key = b64;
+      base58Key = base58Encode(new Uint8Array(Buffer.from(b64, 'base64')));
+    } else if (hotspot.privateKey) {
+      const b64 = decrypt(hotspot.privateKey);
+      base64Key = b64;
+      base58Key = base58Encode(new Uint8Array(Buffer.from(b64, 'base64')));
+    }
+
+    if (!base58Key) return res.status(500).json({ error: 'Key unavailable' });
+    return res.json({ privateKey: base58Key, privateKeyBase64: base64Key });
+  } catch (e) {
+    console.error('Admin get key error:', (e as Error).message);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -605,6 +631,9 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
       return res.status(404).json({ error: "Hotspot not found" });
     }
 
+    // Lock edits after pending/claimed for critical fields
+    const isLocked = existing.claimStatus === 'pending' || existing.claimStatus === 'claimed';
+
     // Validation
     if (lat !== undefined && lng !== undefined) {
       if (!validateCoordinates(lat, lng)) {
@@ -632,29 +661,29 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
       locationName = await getLocationName(roundedLat, roundedLng);
     }
 
-    // Update hotspot
-    const hotspot = await prisma.hotspot.update({
-      where: { id },
-      data: {
-        ...(title && { title: sanitizeString(title) }),
-        ...(roundedLat !== undefined && { lat: roundedLat }),
-        ...(roundedLng !== undefined && { lng: roundedLng }),
-        ...(prize !== undefined && { prize: prize ? parseFloat(prize) : null }), // Parse as numeric value
-        ...(startDate && { startDate: new Date(startDate) }),
-        ...(endDate && { endDate: new Date(endDate) }),
-        ...(active !== undefined && { active }),
-        ...(imageUrl !== undefined && { imageUrl: imageUrl ? sanitizeString(imageUrl) : null }),
-        ...(locationName !== undefined && { locationName }),
-        // Hint system fields
-        ...(hint1 !== undefined && { hint1: hint1 ? sanitizeString(hint1) : null }),
-        ...(hint2 !== undefined && { hint2: hint2 ? sanitizeString(hint2) : null }),
-        ...(hint3 !== undefined && { hint3: hint3 ? sanitizeString(hint3) : null }),
-        ...(hint1PriceUsd !== undefined && { hint1PriceUsd: hint1PriceUsd ? parseFloat(hint1PriceUsd) : null }),
-        ...(hint2PriceUsd !== undefined && { hint2PriceUsd: hint2PriceUsd ? parseFloat(hint2PriceUsd) : null }),
-        ...(hint3PriceUsd !== undefined && { hint3PriceUsd: hint3PriceUsd ? parseFloat(hint3PriceUsd) : null }),
-        ...(firstHintFree !== undefined && { firstHintFree }),
-      },
-    });
+    // Build update data honoring locks
+    const updateData: any = {};
+    if (title) updateData.title = sanitizeString(title);
+    if (!isLocked) {
+      if (roundedLat !== undefined) updateData.lat = roundedLat;
+      if (roundedLng !== undefined) updateData.lng = roundedLng;
+      if (prize !== undefined) updateData.prize = prize ? parseFloat(prize) : null;
+      if (startDate) updateData.startDate = new Date(startDate);
+      if (endDate) updateData.endDate = new Date(endDate);
+      if (locationName !== undefined) updateData.locationName = locationName;
+    }
+    if (active !== undefined) updateData.active = active;
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl ? sanitizeString(imageUrl) : null;
+    // Hint system fields
+    if (hint1 !== undefined) updateData.hint1 = hint1 ? sanitizeString(hint1) : null;
+    if (hint2 !== undefined) updateData.hint2 = hint2 ? sanitizeString(hint2) : null;
+    if (hint3 !== undefined) updateData.hint3 = hint3 ? sanitizeString(hint3) : null;
+    if (hint1PriceUsd !== undefined) updateData.hint1PriceUsd = hint1PriceUsd ? parseFloat(hint1PriceUsd) : null;
+    if (hint2PriceUsd !== undefined) updateData.hint2PriceUsd = hint2PriceUsd ? parseFloat(hint2PriceUsd) : null;
+    if (hint3PriceUsd !== undefined) updateData.hint3PriceUsd = hint3PriceUsd ? parseFloat(hint3PriceUsd) : null;
+    if (firstHintFree !== undefined) updateData.firstHintFree = firstHintFree;
+
+    const hotspot = await prisma.hotspot.update({ where: { id }, data: updateData });
 
     // Log action
     await logAdminAction(
@@ -681,6 +710,11 @@ app.delete("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
     const existing = await prisma.hotspot.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Prevent delete if pending or claimed
+    if (existing.claimStatus !== 'unclaimed') {
+      return res.status(400).json({ error: 'Cannot delete a pending or claimed hotspot' });
     }
 
     // Delete hotspot
@@ -778,6 +812,14 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
       });
     }
 
+    // Idempotency: if already funded successfully, short-circuit
+    if (hotspot.fundStatus === 'success' && hotspot.fundTxSig) {
+      const decryptedKeyBase64 = decrypt(hotspot.prizePrivateKeyEnc!);
+      const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
+      const decryptedKey = base58Encode(new Uint8Array(secretBytes));
+      return res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus: 'success', fundingSignature: hotspot.fundTxSig });
+    }
+
     // Funding on approval (if configured > 0)
     let fundingSignature: string | null = null;
     let fundStatus: "success" | "skipped" | "failed" = "skipped";
@@ -785,6 +827,7 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
     const lamports = hotspot.prizeAmountLamports ?? BigInt(0);
     if (lamports > BigInt(0)) {
       console.log(`[APPROVE] Funding start hotspot=${id} to=${hotspot.prizePublicKey} lamports=${lamports.toString()}`);
+
       // Caps and buffer checks (optional via env)
       const maxPerHotspotSol = parseFloat(process.env.MAX_PRIZE_PER_HOTSPOT_SOL || "1000");
       const maxDailyOutSol = parseFloat(process.env.MAX_DAILY_TREASURY_OUT_SOL || "10000");
@@ -829,7 +872,7 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
 
       try {
         const toPk = hotspot.prizePublicKey!;
-        const { signature } = await transferFromTreasury({ toPublicKey: toPk, lamports, timeoutMs: 20000 });
+        const { signature } = await transferFromTreasury({ toPublicKey: toPk, lamports, timeoutMs: 20000, memo: `PING:hotspot:${id}` as any });
         fundingSignature = signature;
         fundStatus = "success";
 
@@ -863,29 +906,23 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
     // Promote next hotspot in queue
     await promoteNextHotspot();
 
-    // Decrypt prize wallet key to return to user (base58, include base64 for debug)
-    let decryptedKeyBase64: string | null = null;
-    let decryptedKey: string | null = null;
-    if (hotspot.prizePrivateKeyEnc) {
-      try {
-        decryptedKeyBase64 = decrypt(hotspot.prizePrivateKeyEnc);
-        const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
-        decryptedKey = base58Encode(new Uint8Array(secretBytes));
-      } catch (e) {
-        console.error('Failed to decrypt prize key after approval:', e);
-      }
+    // Approval duration log
+    if (hotspot.claimedAt) {
+      const ms = Date.now() - new Date(hotspot.claimedAt).getTime();
+      console.log(`[APPROVE] hotspot=${id} approvalDurationMs=${ms}`);
     }
 
-    // Log action
-    await logAdminAction(
-      req.adminId,
-      "APPROVE_CLAIM",
-      "Hotspot",
-      id,
-      `Approved claim for hotspot: ${hotspot.title}`
-    );
+    // Decrypt prize wallet key to return to user (base58)
+    let decryptedKey: string | null = null;
+    try {
+      const decryptedKeyBase64 = decrypt(hotspot.prizePrivateKeyEnc!);
+      const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
+      decryptedKey = base58Encode(new Uint8Array(secretBytes));
+    } catch (e) {
+      console.error('Failed to decrypt prize key after approval:', e);
+    }
 
-    res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, privateKeyBase64: decryptedKeyBase64, fundStatus, fundingSignature });
+    res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus, fundingSignature });
   } catch (error) {
     console.error("Approve claim error:", error);
     res.status(500).json({ error: "Internal server error" });

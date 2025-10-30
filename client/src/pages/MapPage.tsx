@@ -738,7 +738,7 @@ function MapPage() {
                 <div className="modal-section modal-reveal">
                   <h3 className="congrats-title">Congratulations!</h3>
                   <p className="congrats-text">
-                    You've successfully claimed this PING! Add this privat key to your Solana wallet to access your prize.
+                    You've successfully claimed this PING! Add this private key to your Solana wallet to access your prize.
                   </p>
                   
                   <div className="private-key-box">
