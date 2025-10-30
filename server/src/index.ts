@@ -3,6 +3,7 @@ import express, { Request } from "express";
 import cors from "cors";
 import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
+import { generatePrizeWallet, solToLamports } from "./services/solana.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
@@ -417,8 +418,12 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
     const roundedLat = roundCoordinate(parseFloat(lat));
     const roundedLng = roundCoordinate(parseFloat(lng));
 
-    // Encrypt private key if provided
-    const encryptedPrivateKey = privateKey ? encrypt(sanitizeString(privateKey)) : null;
+    // New flow: auto-generate prize wallet always; ignore manual privateKey
+    const { publicKeyBase58, secretKeyBase64 } = generatePrizeWallet();
+    const now = new Date();
+    const prizeSol = prize ? parseFloat(prize) : 0;
+    const prizeAmountLamports = solToLamports(Number.isFinite(prizeSol) ? prizeSol : 0);
+    const encryptedPrizeSecret = encrypt(secretKeyBase64);
 
     // Determine queue position: find the highest queue position and add 1
     const unclaimedHotspots = await prisma.hotspot.findMany({
@@ -441,15 +446,21 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
         description: '', // Empty string as default
         lat: roundedLat,
         lng: roundedLng,
-        prize: prize ? parseFloat(prize) : null, // Parse as numeric value
+        prize: prize ? parseFloat(prize) : null, // legacy field (display only)
         startDate,
         endDate: finalEndDate,
         active: active !== undefined ? active : true,
         imageUrl: imageUrl ? sanitizeString(imageUrl) : null,
-        privateKey: encryptedPrivateKey,
+        privateKey: null, // legacy manual key removed in new flow
         queuePosition,
         claimStatus: 'unclaimed',
         locationName,
+        // Prize wallet lifecycle (no funding yet)
+        prizePrivateKeyEnc: encryptedPrizeSecret,
+        prizePublicKey: publicKeyBase58,
+        prizeAmountLamports: prizeAmountLamports,
+        fundStatus: 'pending',
+        walletCreatedAt: now,
         // Hint system fields
         hint1: hint1 ? sanitizeString(hint1) : null,
         hint2: hint2 ? sanitizeString(hint2) : null,
