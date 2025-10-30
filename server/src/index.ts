@@ -784,6 +784,7 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
 
     const lamports = hotspot.prizeAmountLamports ?? BigInt(0);
     if (lamports > BigInt(0)) {
+      console.log(`[APPROVE] Funding start hotspot=${id} to=${hotspot.prizePublicKey} lamports=${lamports.toString()}`);
       // Caps and buffer checks (optional via env)
       const maxPerHotspotSol = parseFloat(process.env.MAX_PRIZE_PER_HOTSPOT_SOL || "1000");
       const maxDailyOutSol = parseFloat(process.env.MAX_DAILY_TREASURY_OUT_SOL || "10000");
@@ -828,7 +829,7 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
 
       try {
         const toPk = hotspot.prizePublicKey!;
-        const { signature } = await transferFromTreasury({ toPublicKey: toPk, lamports });
+        const { signature } = await transferFromTreasury({ toPublicKey: toPk, lamports, timeoutMs: 20000 });
         fundingSignature = signature;
         fundStatus = "success";
 
@@ -842,6 +843,7 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
           data: { fundStatus: "success", fundTxSig: signature, fundedAt: new Date() },
         });
       } catch (e) {
+        console.error(`[APPROVE] Funding failed hotspot=${id}:`, (e as Error).message);
         fundStatus = "failed";
         await prisma.treasuryTransferLog.updateMany({
           where: { hotspotId: id, type: "funding" },

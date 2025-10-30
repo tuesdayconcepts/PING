@@ -25,6 +25,7 @@ export async function transferFromTreasury(params: {
   toPublicKey: string;
   lamports: bigint;
   memo?: string;
+  timeoutMs?: number;
 }): Promise<TransferResult> {
   const { toPublicKey, lamports } = params;
 
@@ -55,11 +56,23 @@ export async function transferFromTreasury(params: {
   const ix = SystemProgram.transfer({ fromPubkey: treasury.publicKey, toPubkey: to, lamports: Number(lamports) });
   const tx = new Transaction().add(ix);
 
-  // Simple retry with backoff
+  // Helper for timeout
+  const withTimeout = async <T>(p: Promise<T>, ms: number): Promise<T> => {
+    return await Promise.race([
+      p,
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Transfer timeout after ${ms}ms`)), ms))
+    ]);
+  };
+
+  // Simple retry with backoff and optional timeout
+  const timeoutMs = params.timeoutMs ?? 20000;
   let lastErr: any;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const sig = await sendAndConfirmTransaction(connection, tx, [treasury], { commitment: "confirmed" });
+      const sig = await withTimeout(
+        sendAndConfirmTransaction(connection, tx, [treasury], { commitment: "confirmed" }),
+        timeoutMs
+      );
       return { signature: sig };
     } catch (e) {
       lastErr = e;
