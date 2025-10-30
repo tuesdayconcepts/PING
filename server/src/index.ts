@@ -667,7 +667,19 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
     if (!isLocked) {
       if (roundedLat !== undefined) updateData.lat = roundedLat;
       if (roundedLng !== undefined) updateData.lng = roundedLng;
-      if (prize !== undefined) updateData.prize = prize ? parseFloat(prize) : null;
+      if (prize !== undefined) {
+        // Keep legacy display field updated
+        updateData.prize = prize ? parseFloat(prize) : null;
+        // CRITICAL: keep lamports used by approval funding in sync with edited prize
+        const prizeNum = prize ? parseFloat(prize) : 0;
+        updateData.prizeAmountLamports = solToLamports(Number.isFinite(prizeNum) ? prizeNum : 0);
+        // If still unclaimed, ensure funding state is pending (clean any previous flags)
+        if (existing.claimStatus === 'unclaimed') {
+          updateData.fundStatus = 'pending';
+          updateData.fundTxSig = null;
+          updateData.fundedAt = null;
+        }
+      }
       if (startDate) updateData.startDate = new Date(startDate);
       if (endDate) updateData.endDate = new Date(endDate);
       if (locationName !== undefined) updateData.locationName = locationName;
