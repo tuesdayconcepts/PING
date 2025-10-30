@@ -1759,8 +1759,16 @@ function AdminPage() {
                   .map((hotspot, index) => (
                   <div key={hotspot.id} data-hotspot-id={hotspot.id} className="hotspot-item claimed-hotspot" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="hotspot-header">
+                      <div className="header-title-section">
+                        <strong>{hotspot.title}</strong>
+                        {hotspot.locationName && (
+                          <div className="hotspot-location">
+                            <MapPin size={12} />
+                            <span>{hotspot.locationName}</span>
+                          </div>
+                        )}
+                      </div>
                       <span className="status-badge badge-claimed">CLAIMED</span>
-                      <strong>{hotspot.title}</strong>
                     </div>
                     <div className="claim-details">
                       <p><strong>Prize:</strong> {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}</p>
