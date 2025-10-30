@@ -134,6 +134,22 @@ const sanitizeString = (input: string): string => {
   return input.trim();
 };
 
+// Serialize Prisma results by converting BigInt fields to strings to avoid JSON errors
+const serializeBigInts = <T extends Record<string, any>>(row: T): any => {
+  const out: any = Array.isArray(row) ? [] : {};
+  const entries = Array.isArray(row) ? row.entries() : Object.entries(row);
+  for (const [key, value] of entries as any) {
+    if (typeof value === 'bigint') {
+      out[key] = value.toString();
+    } else if (value && typeof value === 'object') {
+      out[key] = serializeBigInts(value);
+    } else {
+      out[key] = value;
+    }
+  }
+  return out;
+};
+
 // Reorder queue positions after a claim is approved
 const promoteNextHotspot = async () => {
   // Get all unclaimed hotspots ordered by current queue position
@@ -331,7 +347,9 @@ app.get("/api/hotspots", async (req, res) => {
       orderBy: { queuePosition: "asc" }, // Always order by queue position
     });
 
-    res.json(hotspots);
+    // Convert BigInt fields (e.g., prizeAmountLamports) to strings
+    const safe = hotspots.map(h => serializeBigInts(h));
+    res.json(safe);
   } catch (error) {
     console.error("Get hotspots error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -359,7 +377,7 @@ app.get("/api/hotspots/:id", async (req, res) => {
         : null
     };
 
-    res.json(response);
+    res.json(serializeBigInts(response));
   } catch (error) {
     console.error("Get hotspot error:", error);
     res.status(500).json({ error: "Internal server error" });
