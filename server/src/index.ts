@@ -3,7 +3,7 @@ import express, { Request } from "express";
 import cors from "cors";
 import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
-import { generatePrizeWallet, solToLamports, transferFromTreasury } from "./services/solana.js";
+import { generatePrizeWallet, solToLamports, transferFromTreasury, getSolBalance } from "./services/solana.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
@@ -921,6 +921,23 @@ app.get("/api/admin/logs", authenticateAdmin, async (req, res) => {
   } catch (error) {
     console.error("Get logs error:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ===== WALLET UTILS (ADMIN ONLY) =====
+
+// GET /api/admin/wallet/balance?pubkey=...
+app.get('/api/admin/wallet/balance', authenticateAdmin, async (req, res) => {
+  try {
+    const pubkey = req.query.pubkey as string | undefined;
+    if (!pubkey) {
+      return res.status(400).json({ error: 'pubkey is required' });
+    }
+    const balance = await getSolBalance(pubkey);
+    res.json({ pubkey, balance });
+  } catch (e) {
+    console.error('Get balance error:', (e as Error).message);
+    res.status(502).json({ error: 'Failed to fetch balance', details: (e as Error).message });
   }
 });
 

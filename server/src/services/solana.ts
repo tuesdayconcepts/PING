@@ -83,4 +83,13 @@ export async function transferFromTreasury(params: {
   throw lastErr || new Error("Transfer failed");
 }
 
+export async function getSolBalance(pubkeyBase58: string): Promise<number> {
+  const rpcUrl = process.env.SOLANA_RPC_URL;
+  if (!rpcUrl) throw new Error("SOLANA_RPC_URL not configured");
+  const connection = new Connection(rpcUrl, { commitment: "confirmed" });
+  const pubkey = new PublicKey(pubkeyBase58);
+  const lamports = await connection.getBalance(pubkey, { commitment: "confirmed" });
+  return lamports / LAMPORTS_PER_SOL;
+}
+
 
