@@ -39,6 +39,25 @@ app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images
 // Handle preflight requests explicitly
 app.options('*', cors());
 
+// Global JSON serializer to safely handle BigInt/Date across all responses
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (data: any) => {
+    try {
+      const safe = serializeBigInts(data);
+      return originalJson(safe);
+    } catch (_e) {
+      // Fallback: use JSON.stringify replacer
+      const replacer = (_k: string, v: any) => (typeof v === 'bigint' ? v.toString() : v instanceof Date ? v.toISOString() : v);
+      const text = JSON.stringify(data, replacer);
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      // @ts-ignore send accepts string
+      return res.send(text);
+    }
+  };
+  next();
+});
+
 // JWT Secret from environment
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production";
 
@@ -820,7 +839,7 @@ app.get("/api/admin/claims", authenticateAdmin, async (req, res) => {
       orderBy: { claimedAt: "asc" },
     });
 
-    res.json(pendingClaims);
+    res.json(serializeBigInts(pendingClaims));
   } catch (error) {
     console.error("Get pending claims error:", error);
     res.status(500).json({ error: "Internal server error" });
