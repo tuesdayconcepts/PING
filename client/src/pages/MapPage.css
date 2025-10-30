@@ -55,6 +55,8 @@
 .nav-logo {
   height: 50px;
   width: auto;
+  position: relative;
+  z-index: 171; /* Keep above menu overlay (165) */
 }
 
 .menu-overlay {
