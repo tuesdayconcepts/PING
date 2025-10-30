@@ -67,7 +67,6 @@ function AdminPage() {
   const [drawerExpanded, setDrawerExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedWalletId, setCopiedWalletId] = useState<string | null>(null);
-  const [copiedWallet, setCopiedWallet] = useState<string | null>(null);
   const [formClosing, setFormClosing] = useState(false);
   const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
   
