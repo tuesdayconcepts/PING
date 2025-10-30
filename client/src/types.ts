@@ -32,6 +32,7 @@ export interface Hotspot {
   prizePublicKey?: string | null;
   fundStatus?: 'pending' | 'success' | 'failed' | 'skipped';
   fundTxSig?: string | null;
+  fundedAt?: string | null;
 }
 
 export interface LoginResponse {

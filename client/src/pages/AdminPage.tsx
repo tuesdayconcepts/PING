@@ -66,6 +66,7 @@ function AdminPage() {
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [drawerExpanded, setDrawerExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedWallet, setCopiedWallet] = useState<string | null>(null);
   const [formClosing, setFormClosing] = useState(false);
   const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
   
@@ -1755,7 +1756,23 @@ function AdminPage() {
                       <p><strong>PING URL:</strong> <a href={`${window.location.origin}/ping/${hotspot.id}`} target="_blank" rel="noopener noreferrer">{`${window.location.origin}/ping/${hotspot.id}`}</a></p>
                       {hotspot.prizePublicKey && (
                         <>
-                          <p><strong>Prize Wallet:</strong> <span title={hotspot.prizePublicKey}>{hotspot.prizePublicKey.slice(0,4)}…{hotspot.prizePublicKey.slice(-4)}</span></p>
+                          <p>
+                            <strong>Prize Wallet:</strong>{' '}
+                            <span 
+                              title={hotspot.prizePublicKey}
+                              style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                              onClick={() => {
+                                navigator.clipboard.writeText(hotspot.prizePublicKey!);
+                                setCopiedWallet(hotspot.id);
+                                setTimeout(() => setCopiedWallet(null), 1500);
+                                showToast('Wallet address copied', 'success');
+                              }}
+                            >
+                              {hotspot.prizePublicKey.slice(0,4)}…{hotspot.prizePublicKey.slice(-4)}
+                            </span>
+                            {' '}<a href={`https://solscan.io/account/${hotspot.prizePublicKey}`} target="_blank" rel="noopener noreferrer">(Solscan)</a>
+                            {copiedWallet === hotspot.id && <span style={{ marginLeft: 8, opacity: .8 }}>Copied</span>}
+                          </p>
                           <p>
                             <strong>Balance:</strong> {walletBalances[hotspot.prizePublicKey] !== undefined ? `${walletBalances[hotspot.prizePublicKey].toFixed(6)} SOL` : '—'}
                             <button 
@@ -1768,6 +1785,44 @@ function AdminPage() {
                             </button>
                           </p>
                         </>
+                      )}
+                      {/* Funding details */}
+                      <p>
+                        <strong>Funding:</strong> {(hotspot.fundStatus || 'pending').toUpperCase()}
+                        {hotspot.fundedAt && (
+                          <> · {formatDate(hotspot.fundedAt)}</>
+                        )}
+                        {hotspot.fundTxSig && (
+                          <> · <a href={`https://solscan.io/tx/${hotspot.fundTxSig}`} target="_blank" rel="noopener noreferrer">tx</a></>
+                        )}
+                      </p>
+                      {currentUserRole === 'admin' && (
+                        <p>
+                          <button
+                            className="action-icon-btn"
+                            onClick={async () => {
+                              try {
+                                const r = await fetch(`${API_URL}/api/hotspots/${hotspot.id}`, { headers: getAuthHeaders() });
+                                if (!r.ok) throw new Error('Failed to fetch key');
+                                const j = await r.json();
+                                if (j.privateKey) {
+                                  await navigator.clipboard.writeText(j.privateKey);
+                                  showToast('Private key (base58) copied', 'success');
+                                } else if (j.privateKeyBase64) {
+                                  await navigator.clipboard.writeText(j.privateKeyBase64);
+                                  showToast('Private key (base64) copied', 'success');
+                                } else {
+                                  showToast('Private key not available', 'error');
+                                }
+                              } catch (e) {
+                                showToast('Failed to copy private key', 'error');
+                              }
+                            }}
+                            aria-label="Copy private key"
+                          >
+                            Copy Private Key
+                          </button>
+                        </p>
                       )}
                       {hotspot.tweetUrl && (
                         <p><strong>Tweet:</strong> <a href={hotspot.tweetUrl} target="_blank" rel="noopener noreferrer">View</a></p>
