@@ -569,7 +569,7 @@ function AdminPage() {
       prize: hotspot.prize || '',
       endDate: hasExpiry ? hotspot.endDate.slice(0, 16) : '',
       imageUrl: hotspot.imageUrl || '',
-      privateKey: hotspot.privateKey || '', // Show existing key (encrypted display from backend)
+      privateKey: '',
       hint1: hotspot.hint1 || '',
       hint2: hotspot.hint2 || '',
       hint3: hotspot.hint3 || '',
@@ -608,7 +608,6 @@ function AdminPage() {
         lng: parseFloat(formData.lng.toString()),
         prize: formData.prize,
         imageUrl: formData.imageUrl,
-        privateKey: formData.privateKey,
         // Hint system fields
         hint1: formData.hint1 || null,
         hint2: formData.hint2 || null,
@@ -1138,6 +1137,25 @@ function AdminPage() {
                           <Gift size={20} />
                           {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}
                         </p>
+                        {/* Funding status and wallet info */}
+                        <div className="hotspot-funding">
+                          <small>
+                            Wallet: {hotspot.prizePublicKey ? 'CREATED' : '—'}
+                            {hotspot.prizePublicKey && (
+                              <>
+                                {' '}• <span title={hotspot.prizePublicKey}>{hotspot.prizePublicKey.slice(0,4)}…{hotspot.prizePublicKey.slice(-4)}</span>
+                              </>
+                            )}
+                          </small>
+                          <small>
+                            Funding: {hotspot.fundStatus ? hotspot.fundStatus.toUpperCase() : 'PENDING'}
+                            {hotspot.fundTxSig && (
+                              <>
+                                {' '}• <a href={`https://solscan.io/tx/${hotspot.fundTxSig}`} target="_blank" rel="noreferrer">tx</a>
+                              </>
+                            )}
+                          </small>
+                        </div>
                         <div className="hotspot-actions">
                           <button 
                             onClick={() => {
@@ -1275,23 +1293,7 @@ function AdminPage() {
                               />
                             </div>
 
-                            <div className="form-group">
-                              <label htmlFor="edit-privateKey">Solana Private Key *</label>
-                              <input
-                                type="text"
-                                id="edit-privateKey"
-                                name="privateKey"
-                                value={formData.privateKey}
-                                onChange={handleInputChange}
-                                placeholder="Current key will remain if not changed"
-                                autoComplete="off"
-                                data-form-type="other"
-                                required
-                              />
-                              <small className="form-hint">
-                                Only enter a new key if you want to replace the existing one
-                              </small>
-                            </div>
+                            {/* Private key is auto-generated on creation and revealed on approval */}
 
                             <div className="form-group">
                               <label htmlFor="edit-endDate">Expiration Date & Time (Optional)</label>
@@ -1532,23 +1534,7 @@ function AdminPage() {
                       />
                     </div>
 
-                    <div className="form-group">
-                      <label htmlFor="privateKey">Solana Private Key *</label>
-                      <input
-                        type="text"
-                        id="privateKey"
-                        name="privateKey"
-                        value={formData.privateKey}
-                        onChange={handleInputChange}
-                        placeholder="Enter private key (encrypted in database)"
-                        autoComplete="off"
-                        data-form-type="other"
-                        required
-                      />
-                      <small className="form-hint">
-                        This will be encrypted and revealed only when claim is approved
-                      </small>
-                    </div>
+                    {/* Private key is auto-generated on creation and revealed on approval */}
 
                     <div className="form-group">
                       <label htmlFor="endDate">Expiration Date & Time (Optional)</label>
