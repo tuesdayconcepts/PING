@@ -153,6 +153,36 @@ const sanitizeString = (input: string): string => {
   return input.trim();
 };
 
+// Minimal base58 encoder (Bitcoin alphabet) for returning keys in Phantom-friendly format
+const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+function base58Encode(bytes: Uint8Array): string {
+  if (bytes.length === 0) return "";
+  // Count leading zeros
+  let zeros = 0;
+  while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
+
+  // Convert base-256 to base-58
+  const encoded: number[] = [];
+  const input = bytes.slice();
+  let startAt = zeros;
+  while (startAt < input.length) {
+    let carry = 0;
+    for (let i = startAt; i < input.length; i++) {
+      const val = (input[i] & 0xff) + carry * 256;
+      input[i] = val / 58 | 0;
+      carry = val % 58;
+    }
+    encoded.push(carry);
+    while (startAt < input.length && input[startAt] === 0) startAt++;
+  }
+
+  // Add leading zeros
+  let result = "";
+  for (let i = 0; i < zeros; i++) result += "1";
+  for (let i = encoded.length - 1; i >= 0; i--) result += BASE58_ALPHABET[encoded[i]];
+  return result;
+}
+
 // Serialize Prisma results by converting BigInt fields to strings to avoid JSON errors
 const serializeBigInts = (input: any): any => {
   if (input === null || input === undefined) return input;
@@ -390,17 +420,22 @@ app.get("/api/hotspots/:id", async (req, res) => {
 
     // Decrypt prize wallet private key for claimed hotspots
     let revealedKey: string | null = null;
+    let revealedKeyBase64: string | null = null;
     if (hotspot.claimStatus === 'claimed') {
       if ((hotspot as any).prizePrivateKeyEnc) {
         try {
-          revealedKey = decrypt((hotspot as any).prizePrivateKeyEnc as string);
+          revealedKeyBase64 = decrypt((hotspot as any).prizePrivateKeyEnc as string);
+          const secretBytes = Buffer.from(revealedKeyBase64, 'base64');
+          revealedKey = base58Encode(new Uint8Array(secretBytes));
         } catch (e) {
           console.error('Failed to decrypt prizePrivateKeyEnc:', e);
         }
       } else if (hotspot.privateKey) {
         // Fallback to legacy field if present
         try {
-          revealedKey = decrypt(hotspot.privateKey);
+          revealedKeyBase64 = decrypt(hotspot.privateKey);
+          const secretBytes = Buffer.from(revealedKeyBase64, 'base64');
+          revealedKey = base58Encode(new Uint8Array(secretBytes));
         } catch (e) {
           console.error('Failed to decrypt legacy privateKey:', e);
         }
@@ -410,6 +445,7 @@ app.get("/api/hotspots/:id", async (req, res) => {
     const response = {
       ...hotspot,
       privateKey: revealedKey,
+      privateKeyBase64: revealedKeyBase64,
     };
 
     res.json(serializeBigInts(response));
@@ -825,10 +861,17 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
     // Promote next hotspot in queue
     await promoteNextHotspot();
 
-    // Decrypt prize wallet key to return to user
+    // Decrypt prize wallet key to return to user (base58, include base64 for debug)
+    let decryptedKeyBase64: string | null = null;
     let decryptedKey: string | null = null;
     if (hotspot.prizePrivateKeyEnc) {
-      decryptedKey = decrypt(hotspot.prizePrivateKeyEnc);
+      try {
+        decryptedKeyBase64 = decrypt(hotspot.prizePrivateKeyEnc);
+        const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
+        decryptedKey = base58Encode(new Uint8Array(secretBytes));
+      } catch (e) {
+        console.error('Failed to decrypt prize key after approval:', e);
+      }
     }
 
     // Log action
@@ -840,7 +883,7 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
       `Approved claim for hotspot: ${hotspot.title}`
     );
 
-    res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus, fundingSignature });
+    res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, privateKeyBase64: decryptedKeyBase64, fundStatus, fundingSignature });
   } catch (error) {
     console.error("Approve claim error:", error);
     res.status(500).json({ error: "Internal server error" });
