@@ -1528,7 +1528,7 @@ input:checked + .toggle-slider:before {
 }
 
 .claim-details {
-  margin-bottom: 15px;
+  margin: 0;
 }
 
 .claim-details p {
