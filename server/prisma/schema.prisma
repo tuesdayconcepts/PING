@@ -37,6 +37,15 @@ model Hotspot {
   queuePosition Int       @default(0) // 0 = active, 1+ = queued
   locationName  String?   // Cached geocoded location name
   
+  // Automated prize wallet + funding lifecycle
+  prizePrivateKeyEnc String?   // Encrypted prize wallet private key (AES-GCM)
+  prizePublicKey     String?   // Prize wallet public key (base58)
+  prizeAmountLamports BigInt   @default(0) @db.BigInt // Amount to fund on approval (in lamports)
+  fundStatus          FundStatus @default(pending)    // pending | success | failed | skipped(=0 prize)
+  fundTxSig           String?   // Funding transfer signature
+  fundedAt            DateTime? // When funding confirmed
+  walletCreatedAt     DateTime? // When prize wallet was generated
+  
   // Hint system fields
   hint1         String?   // General area hint (optional)
   hint2         String?   // Specific location hint (optional)
@@ -51,6 +60,33 @@ model Hotspot {
   
   // Relations
   hintPurchases HintPurchase[]
+  transfers     TreasuryTransferLog[]
+}
+
+// Funding status enum for prize wallet lifecycle
+enum FundStatus {
+  pending
+  success
+  failed
+  skipped
+}
+
+// Audit and idempotency log for treasury transfers
+model TreasuryTransferLog {
+  id         String   @id @default(uuid())
+  hotspotId  String
+  lamports   BigInt   @db.BigInt
+  type       String   // 'funding' (initial funding); future types reserved
+  txSig      String?
+  status     String   // 'success' | 'failed' | 'pending'
+  createdAt  DateTime @default(now())
+
+  // Relations
+  hotspot    Hotspot  @relation(fields: [hotspotId], references: [id], onDelete: Cascade)
+
+  // Indexes and idempotency
+  @@index([hotspotId])
+  @@unique([hotspotId, type]) // Ensure at most one 'funding' per hotspot
 }
 
 // Admin action log for audit trail
