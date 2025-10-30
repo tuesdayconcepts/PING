@@ -208,7 +208,7 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
           text: currentHotspot.hint1, 
           priceUsd: currentHotspot.hint1PriceUsd, 
           // Lock first hint if it has a price; unlock only when free
-          status: (currentHotspot.hint1PriceUsd === null ? 'unlocked' : 'locked') as const
+          status: (currentHotspot.hint1PriceUsd === null ? 'unlocked' : 'locked') as HintState['status']
         },
         { 
           level: 2, 
