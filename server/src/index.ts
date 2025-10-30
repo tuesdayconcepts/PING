@@ -388,12 +388,28 @@ app.get("/api/hotspots/:id", async (req, res) => {
       return res.status(404).json({ error: "Hotspot not found" });
     }
 
-    // Decrypt private key if hotspot is claimed
+    // Decrypt prize wallet private key for claimed hotspots
+    let revealedKey: string | null = null;
+    if (hotspot.claimStatus === 'claimed') {
+      if ((hotspot as any).prizePrivateKeyEnc) {
+        try {
+          revealedKey = decrypt((hotspot as any).prizePrivateKeyEnc as string);
+        } catch (e) {
+          console.error('Failed to decrypt prizePrivateKeyEnc:', e);
+        }
+      } else if (hotspot.privateKey) {
+        // Fallback to legacy field if present
+        try {
+          revealedKey = decrypt(hotspot.privateKey);
+        } catch (e) {
+          console.error('Failed to decrypt legacy privateKey:', e);
+        }
+      }
+    }
+
     const response = {
       ...hotspot,
-      privateKey: hotspot.claimStatus === 'claimed' && hotspot.privateKey
-        ? decrypt(hotspot.privateKey)
-        : null
+      privateKey: revealedKey,
     };
 
     res.json(serializeBigInts(response));
