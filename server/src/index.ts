@@ -3,7 +3,7 @@ import express, { Request } from "express";
 import cors from "cors";
 import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
-import { generatePrizeWallet, solToLamports } from "./services/solana.js";
+import { generatePrizeWallet, solToLamports, transferFromTreasury } from "./services/solana.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
@@ -689,19 +689,94 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
       });
     }
 
+    // Funding on approval (if configured > 0)
+    let fundingSignature: string | null = null;
+    let fundStatus: "success" | "skipped" | "failed" = "skipped";
+
+    const lamports = hotspot.prizeAmountLamports ?? BigInt(0);
+    if (lamports > BigInt(0)) {
+      // Caps and buffer checks (optional via env)
+      const maxPerHotspotSol = parseFloat(process.env.MAX_PRIZE_PER_HOTSPOT_SOL || "1000");
+      const maxDailyOutSol = parseFloat(process.env.MAX_DAILY_TREASURY_OUT_SOL || "10000");
+
+      if (hotspot.prize && hotspot.prize > maxPerHotspotSol) {
+        return res.status(400).json({ error: `Prize exceeds MAX_PRIZE_PER_HOTSPOT_SOL (${maxPerHotspotSol})` });
+      }
+
+      // Sum today's successful outflows
+      const startOfDay = new Date();
+      startOfDay.setHours(0,0,0,0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23,59,59,999);
+
+      const logs = await prisma.treasuryTransferLog.findMany({
+        where: {
+          createdAt: { gte: startOfDay, lte: endOfDay },
+          status: "success",
+        },
+        select: { lamports: true },
+      });
+      const dailyOutLamports = logs.reduce((acc, l) => acc + BigInt(l.lamports.toString()), BigInt(0));
+      const outAfter = dailyOutLamports + lamports;
+      const maxDailyLamports = BigInt(Math.round(maxDailyOutSol * 1_000_000_000));
+      if (outAfter > maxDailyLamports) {
+        return res.status(429).json({ error: "Daily treasury cap reached. Try again later." });
+      }
+
+      // Idempotency: create log with unique (hotspotId,type)
+      try {
+        await prisma.treasuryTransferLog.create({
+          data: {
+            hotspotId: id,
+            lamports: lamports as unknown as bigint,
+            type: "funding",
+            status: "pending",
+          },
+        });
+      } catch {
+        // Existing funding record: do not double fund
+      }
+
+      try {
+        const toPk = hotspot.prizePublicKey!;
+        const { signature } = await transferFromTreasury({ toPublicKey: toPk, lamports });
+        fundingSignature = signature;
+        fundStatus = "success";
+
+        await prisma.treasuryTransferLog.update({
+          where: { hotspotId_type: { hotspotId: id, type: "funding" } as any },
+          data: { status: "success", txSig: signature },
+        });
+
+        await prisma.hotspot.update({
+          where: { id },
+          data: { fundStatus: "success", fundTxSig: signature, fundedAt: new Date() },
+        });
+      } catch (e) {
+        fundStatus = "failed";
+        await prisma.treasuryTransferLog.updateMany({
+          where: { hotspotId: id, type: "funding" },
+          data: { status: "failed" },
+        });
+        await prisma.hotspot.update({ where: { id }, data: { fundStatus: "failed" } });
+        return res.status(502).json({ error: "Funding failed", details: (e as Error).message });
+      }
+    } else {
+      // zero-prize path
+      await prisma.hotspot.update({ where: { id }, data: { fundStatus: "skipped" } });
+    }
+
     // Update hotspot to claimed status
-    await prisma.hotspot.update({
-      where: { id },
-      data: {
-        claimStatus: "claimed",
-      },
-    });
+    await prisma.hotspot.update({ where: { id }, data: { claimStatus: "claimed" } });
 
     // Promote next hotspot in queue
     await promoteNextHotspot();
 
-    // Decrypt private key to return to user
-    const decryptedKey = hotspot.privateKey ? decrypt(hotspot.privateKey) : null;
+    // Decrypt prize wallet key to return to user
+    let decryptedKey: string | null = null;
+    if (hotspot.prizePrivateKeyEnc) {
+      decryptedKey = decrypt(hotspot.prizePrivateKeyEnc);
+    }
 
     // Log action
     await logAdminAction(
@@ -712,11 +787,7 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
       `Approved claim for hotspot: ${hotspot.title}`
     );
 
-    res.json({
-      success: true,
-      message: "Claim approved!",
-      privateKey: decryptedKey,
-    });
+    res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus, fundingSignature });
   } catch (error) {
     console.error("Approve claim error:", error);
     res.status(500).json({ error: "Internal server error" });
