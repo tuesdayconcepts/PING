@@ -132,13 +132,13 @@ export function HintModal({ hotspotId, onClose, onShowDetails }: HintModalProps)
     };
   }, [autoPeekTimer]);
 
-  // Reset auto-peek on modal close
+  // Reset auto-peek on unmount (modal close is expected to unmount this component)
   useEffect(() => {
-    if (!open) {
+    return () => {
       setAutoPeekTriggered(new Set());
       setPeekDirection(null);
-    }
-  }, [open]);
+    };
+  }, []);
 
   // Clear peek direction if it becomes invalid (e.g., on last slide trying to peek right, or current hint not revealed)
   useEffect(() => {
