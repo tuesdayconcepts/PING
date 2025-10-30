@@ -1173,20 +1173,22 @@ function AdminPage() {
                         </p>
                         {/* Funding summary removed from footer per request */}
                         <div className="hotspot-actions">
-                          <button 
-                            onClick={() => {
-                              // If this hotspot's form is open, close it; otherwise open it
-                              if (formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id) {
-                                handleCancel();
-                              } else {
-                                handleEdit(hotspot);
-                              }
-                            }} 
-                            className="action-icon-btn" 
-                            aria-label={formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id ? 'Close Edit Form' : 'Edit PING'}
-                          >
-                            {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id ? <X size={18} /> : <SquarePen size={18} />}
-                          </button>
+                          {hotspot.claimStatus !== 'pending' && !hasPendingClaim && (
+                            <button 
+                              onClick={() => {
+                                // If this hotspot's form is open, close it; otherwise open it
+                                if (formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id) {
+                                  handleCancel();
+                                } else {
+                                  handleEdit(hotspot);
+                                }
+                              }} 
+                              className="action-icon-btn" 
+                              aria-label={formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id ? 'Close Edit Form' : 'Edit PING'}
+                            >
+                              {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id ? <X size={18} /> : <SquarePen size={18} />}
+                            </button>
+                          )}
                           <button 
                             onClick={() => handleCopyUrl(hotspot.id, nfcUrl)} 
                             className="action-icon-btn"
