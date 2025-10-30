@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed } from 'lucide-react';
+import { LogOut, SquarePen, Copy, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -66,6 +66,7 @@ function AdminPage() {
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [drawerExpanded, setDrawerExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedWalletId, setCopiedWalletId] = useState<string | null>(null);
   const [copiedWallet, setCopiedWallet] = useState<string | null>(null);
   const [formClosing, setFormClosing] = useState(false);
   const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
@@ -1164,25 +1165,7 @@ function AdminPage() {
                           <Gift size={20} />
                           {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}
                         </p>
-                        {/* Funding status and wallet info */}
-                        <div className="hotspot-funding">
-                          <small>
-                            Wallet: {hotspot.prizePublicKey ? 'CREATED' : '—'}
-                            {hotspot.prizePublicKey && (
-                              <>
-                                {' '}• <span title={hotspot.prizePublicKey}>{hotspot.prizePublicKey.slice(0,4)}…{hotspot.prizePublicKey.slice(-4)}</span>
-                              </>
-                            )}
-                          </small>
-                          <small>
-                            Funding: {hotspot.fundStatus ? hotspot.fundStatus.toUpperCase() : 'PENDING'}
-                            {hotspot.fundTxSig && (
-                              <>
-                                {' '}• <a href={`https://solscan.io/tx/${hotspot.fundTxSig}`} target="_blank" rel="noreferrer">tx</a>
-                              </>
-                            )}
-                          </small>
-                        </div>
+                        {/* Funding summary removed from footer per request */}
                         <div className="hotspot-actions">
                           <button 
                             onClick={() => {
@@ -1203,8 +1186,21 @@ function AdminPage() {
                             className="action-icon-btn"
                             aria-label={copiedId === hotspot.id ? 'Copied!' : 'Copy PING URL'}
                           >
-                            {copiedId === hotspot.id ? <Check size={18} /> : <Copy size={18} />}
+                            {copiedId === hotspot.id ? <Check size={18} /> : <LinkIcon size={18} />}
                           </button>
+                          {hotspot.prizePublicKey && (
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(hotspot.prizePublicKey!);
+                                setCopiedWalletId(hotspot.id);
+                                setTimeout(() => setCopiedWalletId(null), 1500);
+                              }}
+                              className="action-icon-btn"
+                              aria-label={copiedWalletId === hotspot.id ? 'Copied!' : 'Copy Wallet Address'}
+                            >
+                              {copiedWalletId === hotspot.id ? <Check size={18} /> : <WalletIcon size={18} />}
+                            </button>
+                          )}
                           <button 
                             onClick={() => handleDeleteClick(hotspot.id)}
                             className="action-icon-btn"
