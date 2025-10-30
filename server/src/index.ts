@@ -813,6 +813,7 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
 
     // Serialize concurrent approvals for this hotspot using a short DB lock
     let alreadyFunded = false;
+    let alreadyProcessing = false;
     let lockedHotspot: any = null;
     await prisma.$transaction(async (tx) => {
       // Lock this hotspot row for the duration of the check-and-mark phase
@@ -850,6 +851,15 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
       // If a previous success exists, we’re done
       if (log.status === 'success' && log.txSig) {
         alreadyFunded = true;
+      } else if (log.status === 'processing') {
+        // Someone else is actively funding
+        alreadyProcessing = true;
+      } else {
+        // Claim ownership: switch to 'processing' so others see it's in-flight
+        await tx.treasuryTransferLog.update({
+          where: { hotspotId_type: { hotspotId: id, type: 'funding' } as any },
+          data: { status: 'processing' },
+        });
       }
 
       lockedHotspot = hs;
@@ -866,6 +876,9 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
       const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
       const decryptedKey = base58Encode(new Uint8Array(secretBytes));
       return res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus: 'success', fundingSignature: lockedHotspot.fundTxSig });
+    }
+    if (alreadyProcessing) {
+      return res.status(409).json({ error: 'Funding already in progress for this hotspot. Please wait.' });
     }
 
     // Funding on approval (if configured > 0)
