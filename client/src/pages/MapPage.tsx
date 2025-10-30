@@ -678,11 +678,11 @@ function MapPage() {
                           </div>
 
                           {/* Prize - Shimmer Sweep with custom gradient - Third */}
-                          {selectedHotspot.prize && (
+                          {(selectedHotspot.prize != null) && (
                             <div className="modal-section modal-prize">
                               <div className="prize-badge">
                                 <Gift className="prize-icon" />
-                                <span className="prize-text">{selectedHotspot.prize} SOL</span>
+                                <span className="prize-text">{selectedHotspot.prize ?? 0} SOL</span>
                               </div>
                               <button className="hint-cta" onClick={() => setShowHintModal(true)}>
                                 GET A HINT!
