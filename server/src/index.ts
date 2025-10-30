@@ -135,19 +135,19 @@ const sanitizeString = (input: string): string => {
 };
 
 // Serialize Prisma results by converting BigInt fields to strings to avoid JSON errors
-const serializeBigInts = <T extends Record<string, any>>(row: T): any => {
-  const out: any = Array.isArray(row) ? [] : {};
-  const entries = Array.isArray(row) ? row.entries() : Object.entries(row);
-  for (const [key, value] of entries as any) {
-    if (typeof value === 'bigint') {
-      out[key] = value.toString();
-    } else if (value && typeof value === 'object') {
-      out[key] = serializeBigInts(value);
-    } else {
-      out[key] = value;
+const serializeBigInts = (input: any): any => {
+  if (input === null || input === undefined) return input;
+  if (typeof input === 'bigint') return input.toString();
+  if (input instanceof Date) return input.toISOString();
+  if (Array.isArray(input)) return input.map((v) => serializeBigInts(v));
+  if (typeof input === 'object') {
+    const out: any = {};
+    for (const [k, v] of Object.entries(input)) {
+      out[k] = serializeBigInts(v as any);
     }
+    return out;
   }
-  return out;
+  return input;
 };
 
 // Reorder queue positions after a claim is approved
