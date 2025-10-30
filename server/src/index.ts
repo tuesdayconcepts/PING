@@ -813,6 +813,7 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
 
     // Serialize concurrent approvals for this hotspot using a short DB lock
     let alreadyFunded = false;
+    let alreadySkipped = false;
     let alreadyProcessing = false;
     let lockedHotspot: any = null;
     await prisma.$transaction(async (tx) => {
@@ -828,6 +829,12 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
       // If already funded (even if claim already marked as claimed), short-circuit to success
       if (hs.fundStatus === 'success' && hs.fundTxSig) {
         alreadyFunded = true;
+        lockedHotspot = hs;
+        return;
+      }
+      // If zero-prize path already completed, short-circuit to success as well
+      if (hs.fundStatus === 'skipped' && hs.claimStatus === 'claimed') {
+        alreadySkipped = true;
         lockedHotspot = hs;
         return;
       }
@@ -878,6 +885,12 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
       const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
       const decryptedKey = base58Encode(new Uint8Array(secretBytes));
       return res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus: 'success', fundingSignature: lockedHotspot.fundTxSig });
+    }
+    if (alreadySkipped) {
+      const decryptedKeyBase64 = decrypt(lockedHotspot.prizePrivateKeyEnc!);
+      const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
+      const decryptedKey = base58Encode(new Uint8Array(secretBytes));
+      return res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus: 'skipped', fundingSignature: null });
     }
     if (alreadyProcessing) {
       return res.status(409).json({ error: 'Funding already in progress for this hotspot. Please wait.' });
