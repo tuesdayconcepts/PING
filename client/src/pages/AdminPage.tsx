@@ -95,6 +95,11 @@ function AdminPage() {
     tiktokEnabled: false,
   });
 
+  // Disable edits if the selected hotspot is pending, even if local state hasn't refreshed yet
+  const isSelectedPending = !!selectedHotspot && (
+    selectedHotspot.claimStatus === 'pending' || pendingClaims.some(p => p.id === selectedHotspot.id)
+  );
+
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
   const [adminMapInstance, setAdminMapInstance] = useState<google.maps.Map | null>(null);
 
@@ -1279,7 +1284,7 @@ function AdminPage() {
                                   min="-90"
                                   max="90"
                                   required
-                                  disabled={selectedHotspot?.claimStatus === 'pending'}
+                                  disabled={isSelectedPending}
                                 />
                               </div>
                               <div className="form-group">
@@ -1294,7 +1299,7 @@ function AdminPage() {
                                   min="-180"
                                   max="180"
                                   required
-                                  disabled={selectedHotspot?.claimStatus === 'pending'}
+                                  disabled={isSelectedPending}
                                 />
                               </div>
                             </div>
@@ -1317,7 +1322,7 @@ function AdminPage() {
                                 autoComplete="off"
                                 data-form-type="other"
                                 required
-                                disabled={selectedHotspot?.claimStatus === 'pending'}
+                                disabled={isSelectedPending}
                               />
                             </div>
 
@@ -1331,7 +1336,7 @@ function AdminPage() {
                                 name="endDate"
                                 value={formData.endDate}
                                 onChange={handleInputChange}
-                                disabled={selectedHotspot?.claimStatus === 'pending'}
+                                disabled={isSelectedPending}
                               />
                             </div>
 
@@ -1475,7 +1480,7 @@ function AdminPage() {
                             </div>
 
                             <div className="form-actions">
-                              <button type="submit" className="save-btn">
+                              <button type="submit" className="save-btn" disabled={isSelectedPending}>
                                 Save Changes
                               </button>
                               <button type="button" className="cancel-btn" onClick={handleCancel}>
