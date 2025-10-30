@@ -39,6 +39,7 @@ function AdminPage() {
   const [logs, setLogs] = useState<AdminLog[]>([]);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [hotspotsLoading, setHotspotsLoading] = useState(true);
+  const [walletBalances, setWalletBalances] = useState<Record<string, number>>({});
   
   // Form state
   const [formData, setFormData] = useState({
@@ -263,6 +264,13 @@ function AdminPage() {
       if (response.ok) {
         const data = await response.json();
         setHotspots(data);
+        // preload balances for claimed hotspots with prizePublicKey
+        const claimedWithWallet = data.filter((h: Hotspot) => h.claimStatus === 'claimed' && h.prizePublicKey);
+        for (const h of claimedWithWallet) {
+          if (h.prizePublicKey && walletBalances[h.prizePublicKey] === undefined) {
+            fetchWalletBalance(h.prizePublicKey);
+          }
+        }
         
         // Auto-center map on active ping only on initial load
         if (!hasInitiallyLoaded) {
@@ -285,6 +293,24 @@ function AdminPage() {
       }
     } finally {
       setHotspotsLoading(false);
+    }
+  };
+
+  const fetchWalletBalance = async (pubkey: string) => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const resp = await fetch(`${API_URL}/api/admin/wallet/balance?pubkey=${encodeURIComponent(pubkey)}`, {
+        headers: getAuthHeaders(),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (resp.ok) {
+        const json = await resp.json();
+        setWalletBalances(prev => ({ ...prev, [pubkey]: json.balance }));
+      }
+    } catch (e) {
+      console.error('Failed to fetch wallet balance:', e);
     }
   };
 
@@ -1727,6 +1753,22 @@ function AdminPage() {
                       <p><strong>Claimed by:</strong> {hotspot.claimedBy || 'Unknown'}</p>
                       <p><strong>Claimed at:</strong> {hotspot.claimedAt ? formatDate(hotspot.claimedAt) : 'N/A'}</p>
                       <p><strong>PING URL:</strong> <a href={`${window.location.origin}/ping/${hotspot.id}`} target="_blank" rel="noopener noreferrer">{`${window.location.origin}/ping/${hotspot.id}`}</a></p>
+                      {hotspot.prizePublicKey && (
+                        <>
+                          <p><strong>Prize Wallet:</strong> <span title={hotspot.prizePublicKey}>{hotspot.prizePublicKey.slice(0,4)}…{hotspot.prizePublicKey.slice(-4)}</span></p>
+                          <p>
+                            <strong>Balance:</strong> {walletBalances[hotspot.prizePublicKey] !== undefined ? `${walletBalances[hotspot.prizePublicKey].toFixed(6)} SOL` : '—'}
+                            <button 
+                              className="action-icon-btn" 
+                              style={{ marginLeft: 8 }} 
+                              onClick={() => hotspot.prizePublicKey && fetchWalletBalance(hotspot.prizePublicKey)}
+                              aria-label="Refresh balance"
+                            >
+                              ↻
+                            </button>
+                          </p>
+                        </>
+                      )}
                       {hotspot.tweetUrl && (
                         <p><strong>Tweet:</strong> <a href={hotspot.tweetUrl} target="_blank" rel="noopener noreferrer">View</a></p>
                       )}
