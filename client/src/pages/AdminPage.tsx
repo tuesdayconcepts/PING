@@ -1771,29 +1771,11 @@ function AdminPage() {
                       <span className="status-badge badge-claimed">CLAIMED</span>
                     </div>
                     <div className="claim-details">
-                      <p><strong>Prize:</strong> {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}</p>
-                      <p><strong>Claimed by:</strong> {hotspot.claimedBy || 'Unknown'}</p>
-                      <p><strong>Claimed at:</strong> {hotspot.claimedAt ? formatDate(hotspot.claimedAt) : 'N/A'}</p>
-                      <p><strong>PING URL:</strong> <a href={`${window.location.origin}/ping/${hotspot.id}`} target="_blank" rel="noopener noreferrer">{`${window.location.origin}/ping/${hotspot.id}`}</a></p>
-                      {hotspot.prizePublicKey && (
-                        <>
-                          <p>
-                            <strong>Prize Wallet:</strong>{' '}
-                            <span 
-                              title={hotspot.prizePublicKey}
-                              style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                              onClick={() => {
-                                navigator.clipboard.writeText(hotspot.prizePublicKey!);
-                                setCopiedWallet(hotspot.id);
-                                setTimeout(() => setCopiedWallet(null), 1500);
-                                showToast('Wallet address copied', 'success');
-                              }}
-                            >
-                              {hotspot.prizePublicKey.slice(0,4)}…{hotspot.prizePublicKey.slice(-4)}
-                            </span>
-                            {' '}<a href={`https://solscan.io/account/${hotspot.prizePublicKey}`} target="_blank" rel="noopener noreferrer">(Solscan)</a>
-                            {copiedWallet === hotspot.id && <span style={{ marginLeft: 8, opacity: .8 }}>Copied</span>}
-                          </p>
+                      {/* Middle info group */}
+                      <div className="claim-info-grid">
+                        <p><strong>Claimed by:</strong> {hotspot.claimedBy || 'Unknown'}</p>
+                        <p><strong>Claimed at:</strong> {hotspot.claimedAt ? formatDate(hotspot.claimedAt) : 'N/A'}</p>
+                        {hotspot.prizePublicKey && (
                           <p>
                             <strong>Balance:</strong> {walletBalances[hotspot.prizePublicKey] !== undefined ? `${walletBalances[hotspot.prizePublicKey].toFixed(6)} SOL` : '—'}
                             <button 
@@ -1805,46 +1787,87 @@ function AdminPage() {
                               ↻
                             </button>
                           </p>
-                        </>
-                      )}
-                      {/* Funding details */}
-                      <p>
-                        <strong>Funding:</strong> {(hotspot.fundStatus || 'pending').toUpperCase()}
-                        {hotspot.fundedAt && (
-                          <> · {formatDate(hotspot.fundedAt)}</>
                         )}
-                        {hotspot.fundTxSig && (
-                          <> · <a href={`https://solscan.io/tx/${hotspot.fundTxSig}`} target="_blank" rel="noopener noreferrer">tx</a></>
-                        )}
-                      </p>
-                      {currentUserRole === 'admin' && (
                         <p>
-                          <button
-                            className="action-icon-btn"
-                            onClick={async () => {
-                              try {
-                                const r = await fetch(`${API_URL}/api/admin/hotspots/${hotspot.id}/key`, { headers: getAuthHeaders() });
-                                if (!r.ok) throw new Error('Failed to fetch key');
-                                const j = await r.json();
-                                if (j.privateKey) {
-                                  await navigator.clipboard.writeText(j.privateKey);
-                                  showToast('Private key (base58) copied', 'success');
-                                } else {
-                                  showToast('Private key not available', 'error');
-                                }
-                              } catch (e) {
-                                showToast('Failed to copy private key', 'error');
-                              }
-                            }}
-                            aria-label="Copy private key"
-                          >
-                            Copy Private Key
-                          </button>
+                          <strong>Funding:</strong> {(hotspot.fundStatus || 'pending').toUpperCase()}
+                          {hotspot.fundedAt && (
+                            <> · {formatDate(hotspot.fundedAt)}</>
+                          )}
+                          {hotspot.fundTxSig && (
+                            <> · <a href={`https://solscan.io/tx/${hotspot.fundTxSig}`} target="_blank" rel="noopener noreferrer">tx</a></>
+                          )}
                         </p>
-                      )}
-                      {hotspot.tweetUrl && (
-                        <p><strong>Tweet:</strong> <a href={hotspot.tweetUrl} target="_blank" rel="noopener noreferrer">View</a></p>
-                      )}
+                        {currentUserRole === 'admin' && (
+                          <p>
+                            <button
+                              className="action-icon-btn"
+                              onClick={async () => {
+                                try {
+                                  const r = await fetch(`${API_URL}/api/admin/hotspots/${hotspot.id}/key`, { headers: getAuthHeaders() });
+                                  if (!r.ok) throw new Error('Failed to fetch key');
+                                  const j = await r.json();
+                                  if (j.privateKey) {
+                                    await navigator.clipboard.writeText(j.privateKey);
+                                    showToast('Private key (base58) copied', 'success');
+                                  } else {
+                                    showToast('Private key not available', 'error');
+                                  }
+                                } catch (e) {
+                                  showToast('Failed to copy private key', 'error');
+                                }
+                              }}
+                              aria-label="Copy private key"
+                            >
+                              Copy Private Key
+                            </button>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Bottom footer-like section */}
+                      <div className="hotspot-footer">
+                        <p className="hotspot-prize">
+                          <Gift size={20} />
+                          {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}
+                        </p>
+                        <div className="hotspot-actions">
+                          {/* Copy PING URL */}
+                          <button 
+                            onClick={() => handleCopyUrl(hotspot.id, `${window.location.origin}/ping/${hotspot.id}`)} 
+                            className="action-icon-btn"
+                            aria-label={copiedId === hotspot.id ? 'Copied!' : 'Copy PING URL'}
+                          >
+                            {copiedId === hotspot.id ? <Check size={18} /> : <LinkIcon size={18} />}
+                          </button>
+
+                          {/* Copy prize wallet */}
+                          {hotspot.prizePublicKey && (
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(hotspot.prizePublicKey!);
+                                setCopiedWalletId(hotspot.id);
+                                setTimeout(() => setCopiedWalletId(null), 1500);
+                                showToast('Wallet address copied', 'success');
+                              }}
+                              className="action-icon-btn"
+                              aria-label={copiedWalletId === hotspot.id ? 'Copied!' : 'Copy Wallet Address'}
+                            >
+                              {copiedWalletId === hotspot.id ? <Check size={18} /> : <WalletIcon size={18} />}
+                            </button>
+                          )}
+
+                          {/* Tweet link */}
+                          {hotspot.tweetUrl && (
+                            <button
+                              onClick={() => window.open(hotspot.tweetUrl!, '_blank')}
+                              className="action-icon-btn"
+                              aria-label="Open tweet"
+                            >
+                              <X size={18} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))
