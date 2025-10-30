@@ -811,40 +811,76 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
   try {
     const { id } = req.params;
 
-    // Get hotspot
-    const hotspot = await prisma.hotspot.findUnique({ where: { id } });
-    if (!hotspot) {
+    // Serialize concurrent approvals for this hotspot using a short DB lock
+    let alreadyFunded = false;
+    let lockedHotspot: any = null;
+    await prisma.$transaction(async (tx) => {
+      // Lock this hotspot row for the duration of the check-and-mark phase
+      await tx.$queryRaw`SELECT id FROM "Hotspot" WHERE id = ${id} FOR UPDATE`;
+
+      // Re-read under lock
+      const hs = await tx.hotspot.findUnique({ where: { id } });
+      if (!hs) {
+        throw new Error("NOT_FOUND");
+      }
+      if (hs.claimStatus !== 'pending') {
+        throw new Error("NOT_PENDING");
+      }
+
+      // If already funded, mark and short-circuit
+      if (hs.fundStatus === 'success' && hs.fundTxSig) {
+        alreadyFunded = true;
+        lockedHotspot = hs;
+        return;
+      }
+
+      // Ensure a single transfer log row exists as the idempotency anchor
+      const log = await tx.treasuryTransferLog.upsert({
+        where: { hotspotId_type: { hotspotId: id, type: 'funding' } as any },
+        update: {},
+        create: {
+          hotspotId: id,
+          lamports: (hs.prizeAmountLamports ?? BigInt(0)) as any,
+          type: 'funding',
+          status: 'pending',
+        },
+        select: { status: true, txSig: true },
+      });
+
+      // If a previous success exists, we’re done
+      if (log.status === 'success' && log.txSig) {
+        alreadyFunded = true;
+      }
+
+      lockedHotspot = hs;
+    }, { timeout: 10000 });
+
+    if (!lockedHotspot) {
       return res.status(404).json({ error: "Hotspot not found" });
     }
-
-    // Check if pending
-    if (hotspot.claimStatus !== "pending") {
-      return res.status(400).json({
-        error: "Hotspot is not pending approval",
-      });
+    if (lockedHotspot.claimStatus !== 'pending') {
+      return res.status(400).json({ error: "Hotspot is not pending approval" });
     }
-
-    // Idempotency: if already funded successfully, short-circuit
-    if (hotspot.fundStatus === 'success' && hotspot.fundTxSig) {
-      const decryptedKeyBase64 = decrypt(hotspot.prizePrivateKeyEnc!);
+    if (alreadyFunded) {
+      const decryptedKeyBase64 = decrypt(lockedHotspot.prizePrivateKeyEnc!);
       const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
       const decryptedKey = base58Encode(new Uint8Array(secretBytes));
-      return res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus: 'success', fundingSignature: hotspot.fundTxSig });
+      return res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus: 'success', fundingSignature: lockedHotspot.fundTxSig });
     }
 
     // Funding on approval (if configured > 0)
     let fundingSignature: string | null = null;
     let fundStatus: "success" | "skipped" | "failed" = "skipped";
 
-    const lamports = hotspot.prizeAmountLamports ?? BigInt(0);
+    const lamports = lockedHotspot.prizeAmountLamports ?? BigInt(0);
     if (lamports > BigInt(0)) {
-      console.log(`[APPROVE] Funding start hotspot=${id} to=${hotspot.prizePublicKey} lamports=${lamports.toString()}`);
+      console.log(`[APPROVE] Funding start hotspot=${id} to=${lockedHotspot.prizePublicKey} lamports=${lamports.toString()}`);
 
       // Caps and buffer checks (optional via env)
       const maxPerHotspotSol = parseFloat(process.env.MAX_PRIZE_PER_HOTSPOT_SOL || "1000");
       const maxDailyOutSol = parseFloat(process.env.MAX_DAILY_TREASURY_OUT_SOL || "10000");
 
-      if (hotspot.prize && hotspot.prize > maxPerHotspotSol) {
+      if (lockedHotspot.prize && lockedHotspot.prize > maxPerHotspotSol) {
         return res.status(400).json({ error: `Prize exceeds MAX_PRIZE_PER_HOTSPOT_SOL (${maxPerHotspotSol})` });
       }
 
@@ -868,22 +904,8 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
         return res.status(429).json({ error: "Daily treasury cap reached. Try again later." });
       }
 
-      // Idempotency: create log with unique (hotspotId,type)
       try {
-        await prisma.treasuryTransferLog.create({
-          data: {
-            hotspotId: id,
-            lamports: lamports as unknown as bigint,
-            type: "funding",
-            status: "pending",
-          },
-        });
-      } catch {
-        // Existing funding record: do not double fund
-      }
-
-      try {
-        const toPk = hotspot.prizePublicKey!;
+        const toPk = lockedHotspot.prizePublicKey!;
         const { signature } = await transferFromTreasury({ toPublicKey: toPk, lamports, timeoutMs: 20000, memo: `PING:hotspot:${id}` as any });
         fundingSignature = signature;
         fundStatus = "success";
@@ -919,15 +941,15 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
     await promoteNextHotspot();
 
     // Approval duration log
-    if (hotspot.claimedAt) {
-      const ms = Date.now() - new Date(hotspot.claimedAt).getTime();
+    if (lockedHotspot.claimedAt) {
+      const ms = Date.now() - new Date(lockedHotspot.claimedAt).getTime();
       console.log(`[APPROVE] hotspot=${id} approvalDurationMs=${ms}`);
     }
 
     // Decrypt prize wallet key to return to user (base58)
     let decryptedKey: string | null = null;
     try {
-      const decryptedKeyBase64 = decrypt(hotspot.prizePrivateKeyEnc!);
+      const decryptedKeyBase64 = decrypt(lockedHotspot.prizePrivateKeyEnc!);
       const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
       decryptedKey = base58Encode(new Uint8Array(secretBytes));
     } catch (e) {
@@ -936,6 +958,12 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
 
     res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus, fundingSignature });
   } catch (error) {
+    if ((error as Error).message === 'NOT_FOUND') {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+    if ((error as Error).message === 'NOT_PENDING') {
+      return res.status(400).json({ error: "Hotspot is not pending approval" });
+    }
     console.error("Approve claim error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
