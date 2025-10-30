@@ -765,6 +765,7 @@ function AdminPage() {
     navigator.clipboard.writeText(url);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+    showToast('PING URL copied', 'success');
   };
 
   // Center map on active ping
