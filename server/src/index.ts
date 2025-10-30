@@ -824,15 +824,17 @@ app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) =
       if (!hs) {
         throw new Error("NOT_FOUND");
       }
-      if (hs.claimStatus !== 'pending') {
-        throw new Error("NOT_PENDING");
-      }
 
-      // If already funded, mark and short-circuit
+      // If already funded (even if claim already marked as claimed), short-circuit to success
       if (hs.fundStatus === 'success' && hs.fundTxSig) {
         alreadyFunded = true;
         lockedHotspot = hs;
         return;
+      }
+
+      // From here on we expect a pending approval to proceed
+      if (hs.claimStatus !== 'pending') {
+        throw new Error("NOT_PENDING");
       }
 
       // Ensure a single transfer log row exists as the idempotency anchor
