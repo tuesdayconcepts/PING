@@ -70,6 +70,8 @@ function AdminPage() {
   const [copiedPrivateId, setCopiedPrivateId] = useState<string | null>(null);
   const [formClosing, setFormClosing] = useState(false);
   const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
+  const [privateKeyModal, setPrivateKeyModal] = useState<{ show: boolean; key: string; hotspotId: string } | null>(null);
+  const privateKeyTextareaRef = useRef<HTMLTextAreaElement>(null);
   
   // State for sliding tab indicator
   const [indicatorReady, setIndicatorReady] = useState(false);
@@ -124,6 +126,16 @@ function AdminPage() {
   // Delete confirmation state
   const [deletingHotspotId, setDeletingHotspotId] = useState<string | null>(null);
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
+
+  // Auto-select private key textarea when modal opens
+  useEffect(() => {
+    if (privateKeyModal?.show && privateKeyTextareaRef.current) {
+      setTimeout(() => {
+        privateKeyTextareaRef.current?.focus();
+        privateKeyTextareaRef.current?.select();
+      }, 100);
+    }
+  }, [privateKeyModal?.show]);
 
   useEffect(() => {
     if (getToken()) {
@@ -1855,56 +1867,13 @@ function AdminPage() {
                                   if (!r.ok) throw new Error('Failed to fetch key');
                                   const j = await r.json();
                                   if (j.privateKey) {
-                                    // Use textarea method for mobile Safari compatibility (synchronous after fetch)
-                                    // Mobile Safari loses gesture context with navigator.clipboard after async operations
-                                    const textarea = document.createElement('textarea');
-                                    textarea.value = j.privateKey;
-                                    textarea.style.position = 'fixed';
-                                    textarea.style.left = '0';
-                                    textarea.style.top = '0';
-                                    textarea.style.width = '2em';
-                                    textarea.style.height = '2em';
-                                    textarea.style.padding = '0';
-                                    textarea.style.border = 'none';
-                                    textarea.style.outline = 'none';
-                                    textarea.style.boxShadow = 'none';
-                                    textarea.style.background = 'transparent';
-                                    textarea.style.opacity = '0';
-                                    textarea.style.zIndex = '-1';
-                                    textarea.setAttribute('readonly', '');
-                                    document.body.appendChild(textarea);
-                                    
-                                    // For iOS Safari
-                                    if (navigator.userAgent.match(/ipad|iphone/i)) {
-                                      textarea.contentEditable = 'true';
-                                      textarea.readOnly = false;
-                                      const range = document.createRange();
-                                      range.selectNodeContents(textarea);
-                                      const selection = window.getSelection();
-                                      selection?.removeAllRanges();
-                                      selection?.addRange(range);
-                                      textarea.setSelectionRange(0, 999999);
-                                    } else {
-                                      textarea.select();
-                                      textarea.setSelectionRange(0, j.privateKey.length);
-                                    }
-                                    
-                                    textarea.focus();
-                                    const successful = document.execCommand('copy');
-                                    document.body.removeChild(textarea);
-                                    
-                                    if (successful) {
-                                      setCopiedPrivateId(hotspot.id);
-                                      setTimeout(() => setCopiedPrivateId(null), 1500);
-                                      showToast('Private key (base58) copied', 'success');
-                                    } else {
-                                      showToast('Failed to copy. Please try again.', 'error');
-                                    }
+                                    // Mobile Safari blocks clipboard after async - show modal for manual copy
+                                    setPrivateKeyModal({ show: true, key: j.privateKey, hotspotId: hotspot.id });
                                   } else {
                                     showToast('Private key not available', 'error');
                                   }
                                 } catch (e) {
-                                  showToast('Failed to copy private key', 'error');
+                                  showToast('Failed to fetch private key', 'error');
                                 }
                               }}
                               className="action-icon-btn"
@@ -2264,6 +2233,68 @@ function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* Private Key Modal - Mobile Safari compatible */}
+      {privateKeyModal?.show && (
+        <div 
+          className="private-key-modal-overlay" 
+          onClick={() => setPrivateKeyModal(null)}
+        >
+          <div 
+            className="private-key-modal" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="private-key-modal-header">
+              <h3>Private Key (base58)</h3>
+              <button 
+                className="private-key-modal-close"
+                onClick={() => setPrivateKeyModal(null)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="private-key-modal-body">
+              <p style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#ccc', textAlign: 'center' }}>
+                Tap and hold to select, then copy
+              </p>
+              <textarea
+                ref={privateKeyTextareaRef}
+                value={privateKeyModal.key}
+                readOnly
+                className="private-key-textarea"
+                onClick={(e) => {
+                  (e.target as HTMLTextAreaElement).select();
+                }}
+                onFocus={(e) => {
+                  e.target.select();
+                }}
+              />
+              <button
+                className="private-key-copy-btn"
+                onClick={async () => {
+                  if (privateKeyTextareaRef.current) {
+                    privateKeyTextareaRef.current.select();
+                    // Try to copy - might work on some devices
+                    try {
+                      await navigator.clipboard.writeText(privateKeyModal.key);
+                      setCopiedPrivateId(privateKeyModal.hotspotId);
+                      setTimeout(() => setCopiedPrivateId(null), 1500);
+                      showToast('Private key copied', 'success');
+                      setPrivateKeyModal(null);
+                    } catch (e) {
+                      // If clipboard API fails, user can manually copy (text is already selected)
+                      showToast('Text selected - tap to copy manually', 'info');
+                    }
+                  }
+                }}
+              >
+                Try Copy Button
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
