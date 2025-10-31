@@ -602,13 +602,12 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
     );
 
     // Send push notification to all users about new ping
-    if (hotspot.active && hotspot.claimStatus === 'unclaimed') {
+    if (hotspot.active && hotspot.claimStatus === 'unclaimed' && hotspot.shareToken) {
       sendPushToUserType('user', {
         title: 'New PING Available!',
         body: `${hotspot.title} - ${hotspot.prize || 0} SOL`,
         data: {
-          shareToken: hotspot.shareToken,
-          hotspotId: hotspot.id,
+          shareToken: hotspot.shareToken, // User notifications link to share URL
         },
         tag: 'new-ping',
       }).catch((err) => console.error('[Push] Error sending new ping notification:', err));
@@ -818,8 +817,7 @@ app.post("/api/hotspots/:id/claim", async (req, res) => {
       title: 'New Claim Request',
       body: `${hotspot.title} - Waiting for approval`,
       data: {
-        hotspotId: hotspot.id,
-        url: `/admin`,
+        url: `/admin#hotspot-${hotspot.id}`, // Admin claim notifications link to specific claim card
       },
       tag: 'claim-request',
       requireInteraction: true,

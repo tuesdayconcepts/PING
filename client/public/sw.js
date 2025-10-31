@@ -77,13 +77,15 @@ self.addEventListener('notificationclick', (event) => {
   let urlToOpen = '/';
 
   // Determine URL based on notification data
-  if (notificationData.shareToken) {
-    urlToOpen = `/share/${notificationData.shareToken}`;
-  } else if (notificationData.hotspotId) {
-    urlToOpen = `/share/${notificationData.shareToken || notificationData.hotspotId}`;
-  } else if (notificationData.url) {
+  // Priority: explicit URL (admin) > shareToken (user) > default root
+  if (notificationData.url) {
+    // Admin notifications (claim requests, etc.) - always use explicit URL
     urlToOpen = notificationData.url;
+  } else if (notificationData.shareToken) {
+    // User notifications (new ping available) - link to share URL
+    urlToOpen = `/share/${notificationData.shareToken}`;
   }
+  // No fallback for hotspotId - if neither url nor shareToken, default to '/'
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
