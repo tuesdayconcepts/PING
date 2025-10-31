@@ -1859,28 +1859,16 @@ input:checked + .toggle-slider:before {
   padding-left: 4px;
 }
 
-.private-key-textarea-expanded {
+.private-key-display {
   width: 100%;
   min-height: 50px;
-  /* padding: 12px; */
-  background: transparent;
-  border: none;
-  /* border-radius: 15px; */
   color: #fff;
   font-family: Courier New, monospace;
   font-size: .85rem;
-  resize: vertical;
   word-break: break-all;
-  -webkit-user-select: text;
-  user-select: text;
-  cursor: text;
-  /* margin-bottom: 12px; */
-}
-
-.private-key-textarea-expanded:focus {
-  outline: none;
-  border-color: #d2b35f;
-  box-shadow: 0 0 8px rgba(210, 179, 95, 0.3);
+  cursor: pointer;
+  line-height: 1.5;
+  padding: 8px 0;
 }
 
 .private-key-expansion-buttons {
