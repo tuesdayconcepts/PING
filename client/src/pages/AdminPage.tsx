@@ -67,7 +67,6 @@ function AdminPage() {
   const [drawerExpanded, setDrawerExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedWalletId, setCopiedWalletId] = useState<string | null>(null);
-  const [copiedPrivateId, setCopiedPrivateId] = useState<string | null>(null);
   const [formClosing, setFormClosing] = useState(false);
   const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
   const [showingPrivateKeyId, setShowingPrivateKeyId] = useState<string | null>(null);
@@ -1932,8 +1931,6 @@ function AdminPage() {
                                     privateKeyTextareaRef.current.select();
                                     try {
                                       await navigator.clipboard.writeText(privateKeyData[hotspot.id]);
-                                      setCopiedPrivateId(hotspot.id);
-                                      setTimeout(() => setCopiedPrivateId(null), 1500);
                                       showToast('Private key copied', 'success');
                                     } catch (e) {
                                       showToast('Text selected - tap to copy manually', 'info');
