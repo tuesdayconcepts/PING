@@ -1,0 +1,126 @@
+.notification-prompt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.notification-prompt {
+  background: #1a1a2e;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+.notification-prompt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.notification-prompt-header h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.notification-prompt-close {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.notification-prompt-close:hover {
+  color: #fff;
+}
+
+.notification-prompt-body {
+  margin-bottom: 24px;
+}
+
+.notification-prompt-body p {
+  color: #e0e0e0;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.notification-prompt-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.notification-prompt-later,
+.notification-prompt-enable {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.notification-prompt-later {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.notification-prompt-later:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.notification-prompt-enable {
+  background: #0b28ff;
+  color: #fff;
+}
+
+.notification-prompt-enable:hover:not(:disabled) {
+  background: #0d30ff;
+}
+
+.notification-prompt-enable:disabled,
+.notification-prompt-later:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+

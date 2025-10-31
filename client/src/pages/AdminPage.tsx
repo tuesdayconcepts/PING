@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share2 } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -9,6 +9,7 @@ import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import { HotspotSkeletonList } from '../components/HotspotSkeleton';
 import { ToastProvider, useToast } from '../components/Toast';
+import { NotificationPrompt } from '../components/NotificationPrompt';
 import { registerServiceWorker, subscribeToPush, isNotificationSupported, getNotificationPermission } from '../utils/pushNotifications';
 import './AdminPage.css';
 
@@ -73,6 +74,7 @@ function AdminPage() {
   const [showingPrivateKeyId, setShowingPrivateKeyId] = useState<string | null>(null);
   const [privateKeyData, setPrivateKeyData] = useState<Record<string, string>>({});
   const [copiedPrivateKeyId, setCopiedPrivateKeyId] = useState<string | null>(null);
+  const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   
   // State for sliding tab indicator
   const [indicatorReady, setIndicatorReady] = useState(false);
@@ -842,6 +844,19 @@ function AdminPage() {
     showToast('PING URL copied', 'success');
   };
 
+  // Copy share link to clipboard
+  const handleCopyShareLink = (hotspotId: string, shareToken: string | null) => {
+    if (!shareToken) {
+      showToast('Share link not available', 'error');
+      return;
+    }
+    const shareUrl = `${window.location.origin}/share/${shareToken}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopiedShareId(hotspotId);
+    setTimeout(() => setCopiedShareId(null), 2000);
+    showToast('Share link copied', 'success');
+  };
+
   // Center map on active ping
   const centerOnActivePing = () => {
     const activePing = hotspots.find(h => h.claimStatus === 'unclaimed' && h.queuePosition === 1);
@@ -1056,8 +1071,27 @@ function AdminPage() {
 
   // Admin dashboard view
   return (
-    <div className="admin-page">
-      {/* Mobile Top Bar (logo + logout) */}
+    <>
+      {isAuthenticated && (
+        <NotificationPrompt 
+          userType="admin" 
+          userId={(() => {
+            try {
+              const token = getToken();
+              if (token) {
+                const tokenPayload = token.split('.')[1];
+                const decoded = JSON.parse(atob(tokenPayload));
+                return decoded.adminId;
+              }
+            } catch (e) {
+              console.error('[Admin] Error decoding admin ID:', e);
+            }
+            return undefined;
+          })()}
+        />
+      )}
+      <div className="admin-page">
+        {/* Mobile Top Bar (logo + logout) */}
       <div className="mobile-top-bar">
         <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
         <div className="header-actions">
@@ -1277,6 +1311,15 @@ function AdminPage() {
                               aria-label={copiedWalletId === hotspot.id ? 'Copied!' : 'Copy Wallet Address'}
                             >
                               {copiedWalletId === hotspot.id ? <Check size={18} /> : <WalletIcon size={18} />}
+                            </button>
+                          )}
+                          {hotspot.shareToken && (
+                            <button
+                              onClick={() => handleCopyShareLink(hotspot.id, hotspot.shareToken || null)}
+                              className="action-icon-btn"
+                              aria-label={copiedShareId === hotspot.id ? 'Copied!' : 'Copy Share Link'}
+                            >
+                              {copiedShareId === hotspot.id ? <Check size={18} /> : <Share2 size={18} />}
                             </button>
                           )}
                           <button 
@@ -1885,6 +1928,17 @@ function AdminPage() {
                             {copiedId === hotspot.id ? <Check size={18} /> : <LinkIcon size={18} />}
                           </button>
 
+                          {/* Copy Share Link */}
+                          {hotspot.shareToken && (
+                            <button
+                              onClick={() => handleCopyShareLink(hotspot.id, hotspot.shareToken || null)}
+                              className="action-icon-btn"
+                              aria-label={copiedShareId === hotspot.id ? 'Copied!' : 'Copy Share Link'}
+                            >
+                              {copiedShareId === hotspot.id ? <Check size={18} /> : <Share2 size={18} />}
+                            </button>
+                          )}
+
                           {/* Tweet link */}
                           {hotspot.tweetUrl && (
                             <button
@@ -2389,8 +2443,8 @@ function AdminPage() {
           )}
         </div>
       </div>
-
     </div>
+    </>
   );
 }
 

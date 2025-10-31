@@ -18,6 +18,7 @@ export interface Hotspot {
   tweetUrl?: string | null;
   queuePosition?: number;
   locationName?: string | null;
+  shareToken?: string | null; // UUID for view-only/share links
   // Hint system fields
   hint1?: string | null;
   hint2?: string | null;

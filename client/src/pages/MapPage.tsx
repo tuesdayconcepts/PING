@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { registerServiceWorker, subscribeToPush, isNotificationSupported, getNotificationPermission, requestNotificationPermission, isIOSStandalone } from '../utils/pushNotifications';
+import { registerServiceWorker, subscribeToPush, isNotificationSupported, getNotificationPermission } from '../utils/pushNotifications';
 import { GoogleMap, useJsApiLoader, DirectionsRenderer } from '@react-google-maps/api';
 import Confetti from 'react-confetti';
 import { Gift, ClockPlus, ClockFading, Navigation, MapPin } from 'lucide-react';
@@ -13,6 +13,7 @@ import { HintModal } from '../components/HintModal';
 import { MenuContent } from '../components/MenuContent';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
+import { NotificationPrompt } from '../components/NotificationPrompt';
 import './MapPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -879,9 +880,14 @@ function MapPage() {
           }}
           onShowDetails={() => setShowHintModal(false)} // Just close hint modal, show main
         />
-      )}
-    </div>
-  );
+        )}
+
+        {/* Notification Prompt */}
+        {!isShareRoute && (
+          <NotificationPrompt userType="user" />
+        )}
+      </div>
+    );
 }
 
 export default MapPage;
