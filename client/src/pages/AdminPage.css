@@ -1830,154 +1830,85 @@ input:checked + .toggle-slider:before {
   transform: scale(1.02);
 }
 
-/* Private Key Modal */
-.private-key-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  padding: 20px;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-}
-
-.private-key-modal {
-  background: #1a1a2e;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
+/* Private Key Expansion (similar to delete confirmation) */
+.private-key-expansion {
+  position: relative;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.private-key-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.private-key-expansion-content {
+  /* margin-top: 10px; */
 }
 
-.private-key-modal-header h3 {
-  margin: 0;
-  color: #fff;
-  font-size: 1.2rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.private-key-modal-close {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 28px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background 0.2s;
-}
-
-.private-key-modal-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.private-key-modal-body {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.private-key-textarea {
+.private-key-textarea-expanded {
   width: 100%;
-  min-height: 120px;
-  padding: 15px;
+  min-height: 100px;
+  padding: 12px;
   background: #000;
   border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  border-radius: 8px;
   color: #d2b35f;
   font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   resize: vertical;
   word-break: break-all;
   -webkit-user-select: text;
   user-select: text;
   cursor: text;
+  margin-bottom: 12px;
 }
 
-.private-key-textarea:focus {
+.private-key-textarea-expanded:focus {
   outline: none;
   border-color: #d2b35f;
-  box-shadow: 0 0 10px rgba(210, 179, 95, 0.3);
+  box-shadow: 0 0 8px rgba(210, 179, 95, 0.3);
 }
 
-.private-key-copy-btn {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 10px;
+.private-key-expansion-buttons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.private-key-close-btn {
+  background: #ffffff40;
   color: #fff;
-  font-size: 1rem;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  flex: 1;
 }
 
-.private-key-copy-btn:hover {
+.private-key-close-btn:hover {
+  background: #ffffff50;
+  transform: scale(1.02);
+}
+
+.private-key-copy-expanded-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 2;
+}
+
+.private-key-copy-expanded-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.private-key-copy-btn:active {
+.private-key-copy-expanded-btn:active {
   transform: translateY(0);
-}
-
-@media (max-width: 768px) {
-  .private-key-modal {
-    max-width: 100%;
-    max-height: 85vh;
-    border-radius: 15px;
-  }
-
-  .private-key-modal-header {
-    padding: 15px;
-  }
-
-  .private-key-modal-header h3 {
-    font-size: 1rem;
-  }
-
-  .private-key-modal-body {
-    padding: 15px;
-  }
-
-  .private-key-textarea {
-    min-height: 100px;
-    font-size: 0.85rem;
-    padding: 12px;
-  }
-
-  .private-key-copy-btn {
-    padding: 14px 20px;
-    font-size: 0.95rem;
-  }
 }
 

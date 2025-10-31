@@ -70,7 +70,8 @@ function AdminPage() {
   const [copiedPrivateId, setCopiedPrivateId] = useState<string | null>(null);
   const [formClosing, setFormClosing] = useState(false);
   const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
-  const [privateKeyModal, setPrivateKeyModal] = useState<{ show: boolean; key: string; hotspotId: string } | null>(null);
+  const [showingPrivateKeyId, setShowingPrivateKeyId] = useState<string | null>(null);
+  const [privateKeyData, setPrivateKeyData] = useState<Record<string, string>>({});
   const privateKeyTextareaRef = useRef<HTMLTextAreaElement>(null);
   
   // State for sliding tab indicator
@@ -127,15 +128,15 @@ function AdminPage() {
   const [deletingHotspotId, setDeletingHotspotId] = useState<string | null>(null);
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
 
-  // Auto-select private key textarea when modal opens
+  // Auto-select private key textarea when expanded
   useEffect(() => {
-    if (privateKeyModal?.show && privateKeyTextareaRef.current) {
+    if (showingPrivateKeyId && privateKeyTextareaRef.current) {
       setTimeout(() => {
         privateKeyTextareaRef.current?.focus();
         privateKeyTextareaRef.current?.select();
       }, 100);
     }
-  }, [privateKeyModal?.show]);
+  }, [showingPrivateKeyId]);
 
   useEffect(() => {
     if (getToken()) {
@@ -1862,13 +1863,26 @@ function AdminPage() {
                           {currentUserRole === 'admin' && (
                             <button
                               onClick={async () => {
+                                // Toggle: if already showing, close it
+                                if (showingPrivateKeyId === hotspot.id) {
+                                  setShowingPrivateKeyId(null);
+                                  return;
+                                }
+                                
+                                // If we already have the key cached, just show it
+                                if (privateKeyData[hotspot.id]) {
+                                  setShowingPrivateKeyId(hotspot.id);
+                                  return;
+                                }
+                                
+                                // Otherwise, fetch it
                                 try {
                                   const r = await fetch(`${API_URL}/api/admin/hotspots/${hotspot.id}/key`, { headers: getAuthHeaders() });
                                   if (!r.ok) throw new Error('Failed to fetch key');
                                   const j = await r.json();
                                   if (j.privateKey) {
-                                    // Mobile Safari blocks clipboard after async - show modal for manual copy
-                                    setPrivateKeyModal({ show: true, key: j.privateKey, hotspotId: hotspot.id });
+                                    setPrivateKeyData(prev => ({ ...prev, [hotspot.id]: j.privateKey }));
+                                    setShowingPrivateKeyId(hotspot.id);
                                   } else {
                                     showToast('Private key not available', 'error');
                                   }
@@ -1877,13 +1891,62 @@ function AdminPage() {
                                 }
                               }}
                               className="action-icon-btn"
-                              aria-label={copiedPrivateId === hotspot.id ? 'Copied!' : 'Copy Private Key'}
+                              aria-label={showingPrivateKeyId === hotspot.id ? 'Hide Private Key' : 'Show Private Key'}
                             >
-                              {copiedPrivateId === hotspot.id ? <Check size={18} /> : <KeyRound size={18} />}
+                              {showingPrivateKeyId === hotspot.id ? <Check size={18} /> : <KeyRound size={18} />}
                             </button>
                           )}
                         </div>
                       </div>
+
+                      {/* Private key expansion (admin only) */}
+                      {currentUserRole === 'admin' && showingPrivateKeyId === hotspot.id && privateKeyData[hotspot.id] && (
+                        <div className="private-key-expansion">
+                          <div className="private-key-expansion-content">
+                            <p style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#ccc' }}>
+                              Private Key (base58) — Tap and hold to select, then copy:
+                            </p>
+                            <textarea
+                              ref={privateKeyTextareaRef}
+                              value={privateKeyData[hotspot.id]}
+                              readOnly
+                              className="private-key-textarea-expanded"
+                              onClick={(e) => {
+                                (e.target as HTMLTextAreaElement).select();
+                              }}
+                              onFocus={(e) => {
+                                e.target.select();
+                              }}
+                            />
+                            <div className="private-key-expansion-buttons">
+                              <button
+                                className="private-key-close-btn"
+                                onClick={() => setShowingPrivateKeyId(null)}
+                              >
+                                Close
+                              </button>
+                              <button
+                                className="private-key-copy-expanded-btn"
+                                onClick={async () => {
+                                  if (privateKeyTextareaRef.current) {
+                                    privateKeyTextareaRef.current.select();
+                                    try {
+                                      await navigator.clipboard.writeText(privateKeyData[hotspot.id]);
+                                      setCopiedPrivateId(hotspot.id);
+                                      setTimeout(() => setCopiedPrivateId(null), 1500);
+                                      showToast('Private key copied', 'success');
+                                    } catch (e) {
+                                      showToast('Text selected - tap to copy manually', 'info');
+                                    }
+                                  }
+                                }}
+                              >
+                                Copy to Clipboard
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -2234,67 +2297,6 @@ function AdminPage() {
         </div>
       </div>
 
-      {/* Private Key Modal - Mobile Safari compatible */}
-      {privateKeyModal?.show && (
-        <div 
-          className="private-key-modal-overlay" 
-          onClick={() => setPrivateKeyModal(null)}
-        >
-          <div 
-            className="private-key-modal" 
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="private-key-modal-header">
-              <h3>Private Key (base58)</h3>
-              <button 
-                className="private-key-modal-close"
-                onClick={() => setPrivateKeyModal(null)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-            <div className="private-key-modal-body">
-              <p style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#ccc', textAlign: 'center' }}>
-                Tap and hold to select, then copy
-              </p>
-              <textarea
-                ref={privateKeyTextareaRef}
-                value={privateKeyModal.key}
-                readOnly
-                className="private-key-textarea"
-                onClick={(e) => {
-                  (e.target as HTMLTextAreaElement).select();
-                }}
-                onFocus={(e) => {
-                  e.target.select();
-                }}
-              />
-              <button
-                className="private-key-copy-btn"
-                onClick={async () => {
-                  if (privateKeyTextareaRef.current) {
-                    privateKeyTextareaRef.current.select();
-                    // Try to copy - might work on some devices
-                    try {
-                      await navigator.clipboard.writeText(privateKeyModal.key);
-                      setCopiedPrivateId(privateKeyModal.hotspotId);
-                      setTimeout(() => setCopiedPrivateId(null), 1500);
-                      showToast('Private key copied', 'success');
-                      setPrivateKeyModal(null);
-                    } catch (e) {
-                      // If clipboard API fails, user can manually copy (text is already selected)
-                      showToast('Text selected - tap to copy manually', 'info');
-                    }
-                  }
-                }}
-              >
-                Try Copy Button
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
