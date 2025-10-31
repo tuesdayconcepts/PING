@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -1882,7 +1882,7 @@ function AdminPage() {
                               className="action-icon-btn"
                               aria-label={showingPrivateKeyId === hotspot.id ? 'Hide Private Key' : 'Show Private Key'}
                             >
-                              {showingPrivateKeyId === hotspot.id ? <Check size={18} /> : <KeyRound size={18} />}
+                              {showingPrivateKeyId === hotspot.id ? <Unlock size={18} /> : <KeyRound size={18} />}
                             </button>
                           )}
                         </div>
@@ -1955,28 +1955,6 @@ function AdminPage() {
                               >
                                 {privateKeyData[hotspot.id]}
                               </div>
-                            </div>
-                            <div className="private-key-expansion-buttons">
-                              <button
-                                className="private-key-close-btn"
-                                onClick={() => setShowingPrivateKeyId(null)}
-                              >
-                                Close
-                              </button>
-                              <button
-                                className="private-key-copy-expanded-btn"
-                                onClick={async () => {
-                                  const key = privateKeyData[hotspot.id];
-                                  try {
-                                    await navigator.clipboard.writeText(key);
-                                    showToast('Private key copied', 'success');
-                                  } catch (e) {
-                                    showToast('Failed to copy. Please tap the key above.', 'error');
-                                  }
-                                }}
-                              >
-                                Copy to Clipboard
-                              </button>
                             </div>
                           </div>
                         </div>

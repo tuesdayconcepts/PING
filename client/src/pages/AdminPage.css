@@ -1849,7 +1849,7 @@ input:checked + .toggle-slider:before {
   background: #ffffff1a;
   border: 2px solid rgb(255 255 255 / 7%);
   border-radius: 15px;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 
 .private-key-input-container p {
@@ -1871,48 +1871,4 @@ input:checked + .toggle-slider:before {
   /* padding: 8px 0; */
 }
 
-.private-key-expansion-buttons {
-  display: flex;
-  gap: 10px;
-  width: 100%;
-}
-
-.private-key-close-btn {
-  background: #ffffff40;
-  color: #fff;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 50px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex: 1;
-}
-
-.private-key-close-btn:hover {
-  background: #ffffff50;
-  transform: scale(1.02);
-}
-
-.private-key-copy-expanded-btn {
-  background: linear-gradient(135deg, #ffe87c, #ffd700);
-  color: #fff;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 50px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex: 2;
-}
-
-.private-key-copy-expanded-btn:hover {
-  background: linear-gradient(135deg, #ffd700, #ffc700);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
-}
-
-.private-key-copy-expanded-btn:active {
-  transform: translateY(0);
-}
 
