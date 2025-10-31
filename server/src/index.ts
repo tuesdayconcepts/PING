@@ -1823,7 +1823,7 @@ app.get("/api/admin/wallet/balance", authenticateAdmin, async (_req, res) => {
 
     // Get public key from private key
     const { Keypair } = await import('@solana/web3.js');
-    const bs58 = await import('bs58');
+    const bs58 = (await import('bs58')).default;
     const secretKey = bs58.decode(treasuryPrivateKey);
     const keypair = Keypair.fromSecretKey(secretKey);
     const publicKey = keypair.publicKey.toBase58();
