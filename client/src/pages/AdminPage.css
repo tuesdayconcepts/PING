@@ -1607,7 +1607,7 @@ input:checked + .toggle-slider:before {
     bottom: 0;
     width: 100%;
     height: 100%;
-    max-height: 95px;
+    max-height: 105px;
     border-right: none;
     border-top: 1.5px solid #c0c0c021;
     transition: max-height .3s ease;
@@ -1618,8 +1618,7 @@ input:checked + .toggle-slider:before {
   }
 
   .admin-sidebar.expanded {
-    max-height: calc(100dvh - 70px); /* Expanded to top */
-    /* bottom: -20px; */
+    max-height: calc(100dvh - 70px);
   }
 
   /* Hide desktop elements */
@@ -1663,12 +1662,12 @@ input:checked + .toggle-slider:before {
     left: 0;
     right: 0;
     background: linear-gradient(to top, #0b28ff, transparent);
-    /* border-top: 1.5px solid #c0c0c021; */
     z-index: 101;
     display: flex;
     flex-direction: column;
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
+    padding-bottom: 15px;
   }
 
   /* Hide mobile-footer drag handle - using sidebar's handle instead */
@@ -1712,10 +1711,10 @@ input:checked + .toggle-slider:before {
   /* Sidebar content on mobile */
   .sidebar-content {
     padding: 16px;
-    max-height: calc(100vh - 200px);
+    max-height: calc(100vh - 180px);
     overflow-y: auto;
     flex: 1;
-    min-height: 0; /* Allow content to shrink when collapsed */
+    min-height: 0;
   }
 
   /* Form and content adjustments */
