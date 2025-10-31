@@ -197,6 +197,40 @@ function AdminPage() {
     }
   }, [isAuthenticated]);
 
+  // Handle hash-based navigation (e.g., from push notifications: /admin#hotspot-{id})
+  useEffect(() => {
+    if (!isAuthenticated || hotspotsLoading) return;
+
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#hotspot-')) {
+      const hotspotId = hash.replace('#hotspot-', '');
+      
+      // Switch to active tab (where pending claims are shown)
+      setActiveTab('active');
+      
+      // Wait for tab switch and DOM update, then scroll to the card
+      setTimeout(() => {
+        // Try both id and data-hotspot-id selectors
+        const hotspotElement = document.getElementById(`hotspot-${hotspotId}`) || 
+                               document.querySelector(`[data-hotspot-id="${hotspotId}"]`) as HTMLElement;
+        
+        if (hotspotElement) {
+          hotspotElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          
+          // Briefly highlight the card
+          hotspotElement.style.transition = 'box-shadow 0.3s ease';
+          hotspotElement.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.5)';
+          setTimeout(() => {
+            hotspotElement.style.boxShadow = '';
+          }, 2000);
+        }
+      }, 300); // Small delay to ensure tab switch completes
+    }
+  }, [isAuthenticated, hotspotsLoading, hotspots]);
+
   // Calculate active tab position and width for sliding indicator
   useEffect(() => {
     // Use requestAnimationFrame to avoid forced reflow
