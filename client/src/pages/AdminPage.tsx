@@ -1852,7 +1852,10 @@ function AdminPage() {
                           {/* Copy private key (admin only) */}
                           {currentUserRole === 'admin' && (
                             <button
-                              onClick={async () => {
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
                                 // Toggle: if already showing, close it
                                 if (showingPrivateKeyId === hotspot.id) {
                                   setShowingPrivateKeyId(null);
@@ -1879,6 +1882,11 @@ function AdminPage() {
                                 } catch (e) {
                                   showToast('Failed to fetch private key', 'error');
                                 }
+                              }}
+                              onTouchStart={(e) => {
+                                // On mobile, trigger click on touchstart for immediate response
+                                e.currentTarget.click();
+                                e.preventDefault();
                               }}
                               className="action-icon-btn"
                               aria-label={showingPrivateKeyId === hotspot.id ? 'Hide Private Key' : 'Show Private Key'}
