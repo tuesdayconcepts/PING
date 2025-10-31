@@ -205,6 +205,9 @@ function AdminPage() {
     if (hash && hash.startsWith('#hotspot-')) {
       const hotspotId = hash.replace('#hotspot-', '');
       
+      // Expand sidebar on mobile (especially important when navigating from push notification)
+      setDrawerExpanded(true);
+      
       // Switch to active tab (where pending claims are shown)
       setActiveTab('active');
       
