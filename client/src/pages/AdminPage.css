@@ -1846,14 +1846,14 @@ input:checked + .toggle-slider:before {
 
 .private-key-textarea-expanded {
   width: 100%;
-  min-height: 100px;
+  min-height: 75px;
   padding: 12px;
-  background: #000;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #d2b35f;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
+  background: #ffffff1a;
+  border: 2px solid rgb(255 255 255 / 7%);
+  border-radius: 15px;
+  color: #ffffff;
+  font-family: Courier New, monospace;
+  font-size: .85rem;
   resize: vertical;
   word-break: break-all;
   -webkit-user-select: text;
