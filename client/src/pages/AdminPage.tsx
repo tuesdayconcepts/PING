@@ -1855,10 +1855,51 @@ function AdminPage() {
                                   if (!r.ok) throw new Error('Failed to fetch key');
                                   const j = await r.json();
                                   if (j.privateKey) {
-                                    await navigator.clipboard.writeText(j.privateKey);
-                                    setCopiedPrivateId(hotspot.id);
-                                    setTimeout(() => setCopiedPrivateId(null), 1500);
-                                    showToast('Private key (base58) copied', 'success');
+                                    // Use textarea method for mobile Safari compatibility (synchronous after fetch)
+                                    // Mobile Safari loses gesture context with navigator.clipboard after async operations
+                                    const textarea = document.createElement('textarea');
+                                    textarea.value = j.privateKey;
+                                    textarea.style.position = 'fixed';
+                                    textarea.style.left = '0';
+                                    textarea.style.top = '0';
+                                    textarea.style.width = '2em';
+                                    textarea.style.height = '2em';
+                                    textarea.style.padding = '0';
+                                    textarea.style.border = 'none';
+                                    textarea.style.outline = 'none';
+                                    textarea.style.boxShadow = 'none';
+                                    textarea.style.background = 'transparent';
+                                    textarea.style.opacity = '0';
+                                    textarea.style.zIndex = '-1';
+                                    textarea.setAttribute('readonly', '');
+                                    document.body.appendChild(textarea);
+                                    
+                                    // For iOS Safari
+                                    if (navigator.userAgent.match(/ipad|iphone/i)) {
+                                      textarea.contentEditable = 'true';
+                                      textarea.readOnly = false;
+                                      const range = document.createRange();
+                                      range.selectNodeContents(textarea);
+                                      const selection = window.getSelection();
+                                      selection?.removeAllRanges();
+                                      selection?.addRange(range);
+                                      textarea.setSelectionRange(0, 999999);
+                                    } else {
+                                      textarea.select();
+                                      textarea.setSelectionRange(0, j.privateKey.length);
+                                    }
+                                    
+                                    textarea.focus();
+                                    const successful = document.execCommand('copy');
+                                    document.body.removeChild(textarea);
+                                    
+                                    if (successful) {
+                                      setCopiedPrivateId(hotspot.id);
+                                      setTimeout(() => setCopiedPrivateId(null), 1500);
+                                      showToast('Private key (base58) copied', 'success');
+                                    } else {
+                                      showToast('Failed to copy. Please try again.', 'error');
+                                    }
                                   } else {
                                     showToast('Private key not available', 'error');
                                   }
