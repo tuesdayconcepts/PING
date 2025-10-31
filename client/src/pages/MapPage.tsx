@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { registerServiceWorker, subscribeToPush, isNotificationSupported, getNotificationPermission, requestNotificationPermission, isIOSStandalone } from '../utils/pushNotifications';
 import { GoogleMap, useJsApiLoader, DirectionsRenderer } from '@react-google-maps/api';
 import Confetti from 'react-confetti';
 import { Gift, ClockPlus, ClockFading, Navigation, MapPin } from 'lucide-react';
@@ -47,7 +48,8 @@ const getClaimSession = (hotspotId: string) => {
 
 
 function MapPage() {
-  const { id } = useParams<{ id: string }>(); // Get hotspot ID from URL params
+  const { id, shareToken } = useParams<{ id?: string; shareToken?: string }>(); // Get hotspot ID or shareToken from URL params
+  const isShareRoute = !!shareToken; // Determine if this is a share/view-only route
   
   // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
@@ -173,12 +175,14 @@ function MapPage() {
     window.open(twitterUrl, '_blank', 'width=550,height=420');
   };
 
-  // Check URL for NFC routing (e.g., /ping/:id)
+  // Check URL for NFC routing (e.g., /ping/:id) or share route (/share/:shareToken)
   useEffect(() => {
-    if (id) {
+    if (shareToken) {
+      fetchHotspotByShareToken(shareToken);
+    } else if (id) {
       fetchHotspotById(id);
     }
-  }, [id]);
+  }, [id, shareToken]);
 
   useEffect(() => {
     fetchHotspots();
@@ -187,6 +191,48 @@ function MapPage() {
     const interval = setInterval(fetchHotspots, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Register service worker and handle push notifications (for users, not share routes)
+  useEffect(() => {
+    if (isShareRoute) return; // Skip push notifications for share routes
+    
+    const initPushNotifications = async () => {
+      if (!isNotificationSupported()) {
+        console.log('[Push] Notifications not supported');
+        return;
+      }
+
+      // Register service worker
+      const registration = await registerServiceWorker();
+      if (!registration) {
+        console.log('[Push] Service worker registration failed');
+        return;
+      }
+
+      // Check current permission status
+      const permission = getNotificationPermission();
+      
+      // Only prompt if permission is default (not granted or denied)
+      // For iOS PWA, we'll show a custom prompt (handled separately)
+      if (permission === 'default') {
+        // Don't auto-prompt, wait for user action or custom prompt
+        console.log('[Push] Notification permission not yet requested');
+        return;
+      }
+
+      // If permission is granted, subscribe
+      if (permission === 'granted') {
+        const subscribed = await subscribeToPush(registration, 'user');
+        if (subscribed) {
+          console.log('[Push] Successfully subscribed to push notifications');
+        }
+      }
+    };
+
+    initPushNotifications().catch((err) => {
+      console.error('[Push] Error initializing push notifications:', err);
+    });
+  }, [isShareRoute]);
 
   // Fetch social settings
   useEffect(() => {
@@ -295,6 +341,26 @@ function MapPage() {
     }
   };
 
+  // Fetch specific hotspot by share token (view-only mode)
+  const fetchHotspotByShareToken = async (token: string) => {
+    try {
+      const response = await fetch(`${API_URL}/api/share/${token}`);
+      if (!response.ok) {
+        console.error('Hotspot not found');
+        return;
+      }
+      const hotspot = await response.json();
+      setSelectedHotspot(hotspot);
+      setCenter({ lat: hotspot.lat, lng: hotspot.lng });
+      setZoom(16);
+      
+      // Share routes are always view-only - no claim flow
+      setClaimStatus('unclaimed'); // Show as unclaimed but without claim buttons
+    } catch (err) {
+      console.error('Error fetching hotspot by share token:', err);
+    }
+  };
+
   // Fetch specific hotspot by ID (for NFC routing)
   const fetchHotspotById = async (hotspotId: string) => {
     try {
@@ -327,10 +393,12 @@ function MapPage() {
         setClaimStatus('pending');
       } else {
         setClaimStatus('unclaimed');
-        // Trigger discovery celebration
-        setShowDiscoveryConfetti(true);
-        playSuccessSound();
-        setTimeout(() => setShowDiscoveryConfetti(false), 6000); // 6 seconds to let confetti fall completely
+        // Trigger discovery celebration (only for claim routes, not share routes)
+        if (!isShareRoute) {
+          setShowDiscoveryConfetti(true);
+          playSuccessSound();
+          setTimeout(() => setShowDiscoveryConfetti(false), 6000); // 6 seconds to let confetti fall completely
+        }
       }
     } catch (err) {
       console.error('Error fetching hotspot:', err);
@@ -603,7 +671,7 @@ function MapPage() {
               ) : (
                 <>
                   {/* Show congratulations for claim flow (unique URLs), otherwise show all sections */}
-                  {claimStatus === 'unclaimed' && id && selectedHotspot.queuePosition === 1 ? (
+                  {claimStatus === 'unclaimed' && id && !isShareRoute && selectedHotspot.queuePosition === 1 ? (
                     <div className="modal-section modal-claim-intro">
                       <h3>GREAT JOB!</h3>
                       <p>You found the PING! That means you are almost <span className="prize-amount">{selectedHotspot.prize} SOL</span> richer!</p>
@@ -612,7 +680,7 @@ function MapPage() {
                   ) : (
                     <>
                       {/* Show all sections except when claimed or pending (for claim flow) */}
-                      {claimStatus !== 'claimed' && !(claimStatus === 'pending' && id) && (
+                      {claimStatus !== 'claimed' && !(claimStatus === 'pending' && id && !isShareRoute) && (
                         <>
                           {/* Image section (if available) - First */}
                           {selectedHotspot.imageUrl && (
@@ -697,8 +765,8 @@ function MapPage() {
               )}
 
               {/* Action section - Different states */}
-              {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not queued */}
-              {claimStatus === 'unclaimed' && id && selectedHotspot.queuePosition === 1 && (
+              {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not queued, and not share routes */}
+              {claimStatus === 'unclaimed' && id && !isShareRoute && selectedHotspot.queuePosition === 1 && (
                 <div className="modal-section modal-actions">
                   {claimError && (
                     <p className="claim-error">{claimError}</p>

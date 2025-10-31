@@ -15,6 +15,9 @@ model Admin {
   password  String   // bcrypt hashed
   role      String   @default("editor") // admin or editor
   createdAt DateTime @default(now())
+  
+  // Relations
+  pushSubscriptions PushSubscription[]
 }
 
 // Hotspot model for scavenger hunt locations
@@ -36,6 +39,7 @@ model Hotspot {
   tweetUrl      String?   // Twitter proof URL
   queuePosition Int       @default(0) // 0 = active, 1+ = queued
   locationName  String?   // Cached geocoded location name
+  shareToken    String?   @unique // UUID for view-only/share links (separate from claim URLs)
   
   // Automated prize wallet + funding lifecycle
   prizePrivateKeyEnc String?   // Encrypted prize wallet private key (AES-GCM)
@@ -142,4 +146,22 @@ model HintSettings {
   tiktokEnabled     Boolean  @default(false)
   
   updatedAt         DateTime @updatedAt
+}
+
+// Push notification subscriptions for users and admins
+model PushSubscription {
+  id          String   @id @default(uuid())
+  endpoint    String   @unique
+  p256dh      String   // Public key
+  auth        String   // Auth secret
+  userId      String?  // Admin user ID (null for public users)
+  userType    String   // 'admin' | 'user'
+  createdAt   DateTime @default(now())
+  lastUsed    DateTime @default(now())
+  
+  // Relations
+  admin       Admin?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userType])
+  @@index([userId])
 }

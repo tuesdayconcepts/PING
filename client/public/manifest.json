@@ -1,0 +1,19 @@
+{
+  "name": "PING - Scavenger Hunt",
+  "short_name": "PING",
+  "description": "NFC-powered crypto scavenger hunt game",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo/ping-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

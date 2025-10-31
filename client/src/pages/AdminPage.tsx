@@ -9,6 +9,7 @@ import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import { HotspotSkeletonList } from '../components/HotspotSkeleton';
 import { ToastProvider, useToast } from '../components/Toast';
+import { registerServiceWorker, subscribeToPush, isNotificationSupported, getNotificationPermission } from '../utils/pushNotifications';
 import './AdminPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -149,6 +150,40 @@ function AdminPage() {
       };
       
       loadData();
+      
+      // Subscribe to push notifications if already authenticated
+      const initAdminPushNotifications = async () => {
+        if (!isNotificationSupported()) {
+          return;
+        }
+
+        const registration = await registerServiceWorker();
+        if (!registration) {
+          return;
+        }
+
+        const permission = getNotificationPermission();
+        if (permission === 'granted') {
+          // Decode JWT to get adminId
+          try {
+            const token = getToken();
+            if (token) {
+              const tokenPayload = token.split('.')[1];
+              const decoded = JSON.parse(atob(tokenPayload));
+              const adminId = decoded.adminId;
+              
+              await subscribeToPush(registration, 'admin', adminId);
+              console.log('[Push] Admin subscribed to push notifications');
+            }
+          } catch (err) {
+            console.error('[Push] Error subscribing admin:', err);
+          }
+        }
+      };
+      
+      initAdminPushNotifications().catch((err) => {
+        console.error('[Push] Error initializing admin push notifications:', err);
+      });
     }
   }, []);
 
@@ -243,6 +278,37 @@ function AdminPage() {
       setIsAuthenticated(true);
       fetchHotspots();
       fetchLogs();
+      
+      // Subscribe to push notifications for admin
+      const initAdminPushNotifications = async () => {
+        if (!isNotificationSupported()) {
+          return;
+        }
+
+        const registration = await registerServiceWorker();
+        if (!registration) {
+          return;
+        }
+
+        const permission = getNotificationPermission();
+        if (permission === 'granted') {
+          // Decode JWT to get adminId (payload is base64 encoded)
+          try {
+            const tokenPayload = data.token.split('.')[1];
+            const decoded = JSON.parse(atob(tokenPayload));
+            const adminId = decoded.adminId;
+            
+            await subscribeToPush(registration, 'admin', adminId);
+            console.log('[Push] Admin subscribed to push notifications');
+          } catch (err) {
+            console.error('[Push] Error subscribing admin:', err);
+          }
+        }
+      };
+      
+      initAdminPushNotifications().catch((err) => {
+        console.error('[Push] Error initializing admin push notifications:', err);
+      });
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : 'Login failed');
     }

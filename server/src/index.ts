@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import { getLocationName } from "./utils/geocoding.js";
 import { verifyHintPurchaseTransaction, getPingPriceFromJupiter } from "./utils/solanaVerify.js";
+import { sendPushToUserType, sendPushToAdmin, getVapidPublicKey } from "./services/pushNotifications.js";
 
 // Extend Express Request type to include adminId
 declare global {
@@ -554,6 +555,9 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
     // Fetch location name for the coordinates
     const locationName = await getLocationName(roundedLat, roundedLng);
 
+    // Generate shareToken (UUID) for view-only/share links
+    const shareToken = crypto.randomUUID();
+
     // Create hotspot
     const hotspot = await prisma.hotspot.create({
       data: {
@@ -570,6 +574,7 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
         queuePosition,
         claimStatus: 'unclaimed',
         locationName,
+        shareToken, // UUID for share links
         // Prize wallet lifecycle (no funding yet)
         prizePrivateKeyEnc: encryptedPrizeSecret,
         prizePublicKey: publicKeyBase58,
@@ -595,6 +600,19 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
       hotspot.id,
       `Created hotspot: ${hotspot.title} (queue position: ${queuePosition})`
     );
+
+    // Send push notification to all users about new ping
+    if (hotspot.active && hotspot.claimStatus === 'unclaimed') {
+      sendPushToUserType('user', {
+        title: 'New PING Available!',
+        body: `${hotspot.title} - ${hotspot.prize || 0} SOL`,
+        data: {
+          shareToken: hotspot.shareToken,
+          hotspotId: hotspot.id,
+        },
+        tag: 'new-ping',
+      }).catch((err) => console.error('[Push] Error sending new ping notification:', err));
+    }
 
     res.status(201).json(serializeBigInts(hotspot));
   } catch (error) {
@@ -794,6 +812,18 @@ app.post("/api/hotspots/:id/claim", async (req, res) => {
         tweetUrl: tweetUrl || null,
       },
     });
+
+    // Send push notification to all admins about new claim request
+    sendPushToUserType('admin', {
+      title: 'New Claim Request',
+      body: `${hotspot.title} - Waiting for approval`,
+      data: {
+        hotspotId: hotspot.id,
+        url: `/admin`,
+      },
+      tag: 'claim-request',
+      requireInteraction: true,
+    }).catch((err) => console.error('[Push] Error sending claim notification:', err));
 
     res.json({
       success: true,
@@ -1644,6 +1674,176 @@ app.put("/api/admin/hints/settings", authenticateAdmin, async (req, res) => {
     res.json(settings);
   } catch (error) {
     console.error("Update hint settings error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ===== SHARE ROUTES =====
+
+// GET /api/share/:shareToken - Get hotspot by share token (view-only, public)
+app.get("/api/share/:shareToken", async (req, res) => {
+  try {
+    const { shareToken } = req.params;
+
+    const hotspot = await prisma.hotspot.findUnique({
+      where: { shareToken },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        lat: true,
+        lng: true,
+        prize: true,
+        startDate: true,
+        endDate: true,
+        active: true,
+        imageUrl: true,
+        claimStatus: true,
+        queuePosition: true,
+        locationName: true,
+        shareToken: true,
+        hint1: true,
+        hint2: true,
+        hint3: true,
+        hint1PriceUsd: true,
+        hint2PriceUsd: true,
+        hint3PriceUsd: true,
+        firstHintFree: true,
+        createdAt: true,
+        updatedAt: true,
+        // Exclude private keys and sensitive data
+      },
+    });
+
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    res.json(serializeBigInts(hotspot));
+  } catch (error) {
+    console.error("Get share hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ===== PUSH NOTIFICATION ROUTES =====
+
+// GET /api/push/vapid-public-key - Get VAPID public key for frontend
+app.get("/api/push/vapid-public-key", (_req, res) => {
+  try {
+    const publicKey = getVapidPublicKey();
+    if (!publicKey) {
+      return res.status(503).json({ error: "VAPID keys not configured" });
+    }
+    res.json({ publicKey });
+  } catch (error) {
+    console.error("Get VAPID key error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/push/subscribe - Subscribe to push notifications (public)
+app.post("/api/push/subscribe", async (req, res) => {
+  try {
+    const { endpoint, keys, userType, userId } = req.body;
+
+    if (!endpoint || !keys || !keys.p256dh || !keys.auth || !userType) {
+      return res.status(400).json({
+        error: "Missing required fields: endpoint, keys.p256dh, keys.auth, userType",
+      });
+    }
+
+    if (userType !== 'user' && userType !== 'admin') {
+      return res.status(400).json({
+        error: "userType must be 'user' or 'admin'",
+      });
+    }
+
+    // If admin, verify userId exists
+    if (userType === 'admin' && userId) {
+      const admin = await prisma.admin.findUnique({ where: { id: userId } });
+      if (!admin) {
+        return res.status(404).json({ error: "Admin user not found" });
+      }
+    }
+
+    // Upsert subscription (update if exists, create if not)
+    const subscription = await prisma.pushSubscription.upsert({
+      where: { endpoint },
+      update: {
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+        userId: userType === 'admin' ? userId : null,
+        userType,
+        lastUsed: new Date(),
+      },
+      create: {
+        endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+        userId: userType === 'admin' ? userId : null,
+        userType,
+      },
+    });
+
+    res.json({ success: true, subscriptionId: subscription.id });
+  } catch (error) {
+    console.error("Subscribe to push error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/push/unsubscribe - Unsubscribe from push notifications
+app.post("/api/push/unsubscribe", async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+
+    if (!endpoint) {
+      return res.status(400).json({ error: "endpoint is required" });
+    }
+
+    await prisma.pushSubscription.deleteMany({
+      where: { endpoint },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Unsubscribe from push error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/wallet/balance - Get treasury wallet balance (admin only)
+app.get("/api/admin/wallet/balance", authenticateAdmin, async (_req, res) => {
+  try {
+    const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY;
+    if (!treasuryPrivateKey) {
+      return res.status(500).json({ error: "Treasury wallet not configured" });
+    }
+
+    // Get public key from private key
+    const { Keypair } = await import('@solana/web3.js');
+    const bs58 = await import('bs58');
+    const secretKey = bs58.decode(treasuryPrivateKey);
+    const keypair = Keypair.fromSecretKey(secretKey);
+    const publicKey = keypair.publicKey.toBase58();
+
+    const balance = await getSolBalance(publicKey);
+    const balanceSol = Number(balance) / 1e9;
+
+    // Check low balance threshold
+    const lowBalanceThreshold = parseFloat(process.env.LOW_BALANCE_THRESHOLD_SOL || '1.0');
+    const isLowBalance = balanceSol < lowBalanceThreshold;
+
+    res.json({
+      balance: balanceSol,
+      balanceLamports: balance.toString(),
+      publicKey,
+      isLowBalance,
+      threshold: lowBalanceThreshold,
+    });
+  } catch (error) {
+    console.error("Get wallet balance error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

@@ -195,6 +195,11 @@ railway login
 4. **Set environment variables:**
 - `JWT_SECRET` - Your secret key for JWT tokens
 - `ENCRYPTION_KEY` - 32-byte hex key for encrypting Solana private keys (generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
+- `TREASURY_PRIVATE_KEY` - Base64-encoded Solana private key for treasury wallet
+- `VAPID_PUBLIC_KEY` - VAPID public key for push notifications
+- `VAPID_PRIVATE_KEY` - VAPID private key for push notifications
+- `VAPID_SUBJECT` - VAPID subject (mailto: or https: URL, e.g., `mailto:admin@ping.com`)
+- `LOW_BALANCE_THRESHOLD_SOL` - Threshold for low balance alerts (default: 1.0)
 - `PORT` - Will be set automatically by Railway
 
 5. **Deploy:**
@@ -324,3 +329,12 @@ Built with ❤️ using React, Express, Prisma, and Leaflet
 
 FOR CONVERTING BASE58 to BASE64:
 node -e "import('bs58').then(({default: bs58})=>{const s='YOUR_BASE58';const b=bs58.decode(s);console.log('base64:',Buffer.from(b).toString('base64'));console.log('json:',JSON.stringify(Array.from(b)));})"
+
+
+vapid keys:
+
+Public Key:
+BN9buyiXVeVNRBWzRrnFhexj14_c-yMdkyX932rBB9Wa2G95ly8hI1LZ3TGKpVfE6-F2sIKR-XhI6w7mQxCmo2o
+
+Private Key:
+e8B2AR5OtrvU_httxHQ3HGDAZTK3ktcavVK3ewDTsYM
