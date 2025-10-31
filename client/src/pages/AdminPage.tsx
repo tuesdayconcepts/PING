@@ -1909,8 +1909,53 @@ function AdminPage() {
                                 value={privateKeyData[hotspot.id]}
                                 readOnly
                                 className="private-key-textarea-expanded"
-                                onClick={(e) => {
-                                  (e.target as HTMLTextAreaElement).select();
+                                onClick={async (e) => {
+                                  const textarea = e.target as HTMLTextAreaElement;
+                                  const key = privateKeyData[hotspot.id];
+                                  
+                                  // Try clipboard API first (works on some devices even after async)
+                                  try {
+                                    await navigator.clipboard.writeText(key);
+                                    showToast('Private key copied to clipboard', 'success');
+                                    return;
+                                  } catch (clipboardErr) {
+                                    // Fall through to execCommand
+                                  }
+                                  
+                                  // Fallback: Use execCommand (more reliable on iOS)
+                                  try {
+                                    textarea.select();
+                                    textarea.setSelectionRange(0, key.length);
+                                    
+                                    // For iOS Safari
+                                    if (navigator.userAgent.match(/ipad|iphone/i)) {
+                                      textarea.contentEditable = 'true';
+                                      textarea.readOnly = false;
+                                      const range = document.createRange();
+                                      range.selectNodeContents(textarea);
+                                      const selection = window.getSelection();
+                                      selection?.removeAllRanges();
+                                      selection?.addRange(range);
+                                      textarea.setSelectionRange(0, 999999);
+                                      textarea.contentEditable = 'false';
+                                      textarea.readOnly = true;
+                                    }
+                                    
+                                    textarea.focus();
+                                    const successful = document.execCommand('copy');
+                                    
+                                    if (successful) {
+                                      showToast('Private key copied to clipboard', 'success');
+                                    } else {
+                                      // Last resort: just select the text so user can manually copy
+                                      textarea.select();
+                                      showToast('Text selected - tap and hold to copy', 'info');
+                                    }
+                                  } catch (execErr) {
+                                    // If all else fails, just select the text
+                                    textarea.select();
+                                    showToast('Text selected - tap and hold to copy', 'info');
+                                  }
                                 }}
                                 onFocus={(e) => {
                                   e.target.select();
