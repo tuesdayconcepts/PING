@@ -12,18 +12,57 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="PING" />
     
-    <!-- Web App Manifest -->
-    <link rel="manifest" href="/manifest.json" />
-    
-    <!-- iOS PWA Path Preservation Script -->
+    <!-- Dynamic Manifest for iOS PWA Path Preservation -->
     <script>
-      // Store current path before React Router loads
-      // This preserves paths when iOS strips them during "Add to Home Screen"
       (function() {
-        // Only store if not root and we're not already in standalone mode
         const currentPath = window.location.pathname + window.location.search;
+        
+        // Remove static manifest link if it exists
+        const existingManifest = document.querySelector('link[rel="manifest"]');
+        if (existingManifest) {
+          existingManifest.remove();
+        }
+        
+        // For non-root paths, dynamically create manifest with current path as start_url
+        // This prevents iOS from stripping the path when adding to home screen
         if (currentPath !== '/') {
-          // Store in sessionStorage (persists during session, cleared on close)
+          const manifestData = {
+            name: "PING - Scavenger Hunt",
+            short_name: "PING",
+            description: "NFC-powered crypto scavenger hunt game",
+            start_url: currentPath, // Use current path to preserve it
+            scope: "/",
+            display: "standalone",
+            background_color: "#000000",
+            theme_color: "#000000",
+            orientation: "portrait-primary",
+            icons: [{
+              src: "/logo/ping-logo.svg",
+              sizes: "any",
+              type: "image/svg+xml",
+              purpose: "any maskable"
+            }]
+          };
+          
+          // Create blob URL with dynamic manifest
+          const blob = new Blob([JSON.stringify(manifestData, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          
+          // Create and append manifest link
+          const link = document.createElement('link');
+          link.rel = 'manifest';
+          link.href = url;
+          document.head.appendChild(link);
+        } else {
+          // For root path, use static manifest.json
+          const link = document.createElement('link');
+          link.rel = 'manifest';
+          link.href = '/manifest.json';
+          document.head.appendChild(link);
+        }
+        
+        // Store current path for fallback restoration if needed
+        if (currentPath !== '/') {
           sessionStorage.setItem('pwa_last_path', currentPath);
         }
       })();
