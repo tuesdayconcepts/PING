@@ -71,6 +71,7 @@ function AdminPage() {
   const [previewMarker, setPreviewMarker] = useState<{ lat: number; lng: number } | null>(null);
   const [showingPrivateKeyId, setShowingPrivateKeyId] = useState<string | null>(null);
   const [privateKeyData, setPrivateKeyData] = useState<Record<string, string>>({});
+  const [copiedPrivateKeyId, setCopiedPrivateKeyId] = useState<string | null>(null);
   
   // State for sliding tab indicator
   const [indicatorReady, setIndicatorReady] = useState(false);
@@ -1898,12 +1899,12 @@ function AdminPage() {
                                 className="private-key-display"
                                 onClick={async () => {
                                   const key = privateKeyData[hotspot.id];
+                                  let copySuccessful = false;
                                   
                                   // Try clipboard API first
                                   try {
                                     await navigator.clipboard.writeText(key);
-                                    showToast('Private key copied to clipboard', 'success');
-                                    return;
+                                    copySuccessful = true;
                                   } catch (clipboardErr) {
                                     // Fallback: create temporary textarea for execCommand
                                     try {
@@ -1939,21 +1940,27 @@ function AdminPage() {
                                       }
                                       
                                       textarea.focus();
-                                      const successful = document.execCommand('copy');
+                                      copySuccessful = document.execCommand('copy');
                                       document.body.removeChild(textarea);
                                       
-                                      if (successful) {
-                                        showToast('Private key copied to clipboard', 'success');
-                                      } else {
+                                      if (!copySuccessful) {
                                         showToast('Failed to copy. Please try again.', 'error');
                                       }
                                     } catch (execErr) {
                                       showToast('Failed to copy. Please try again.', 'error');
                                     }
                                   }
+                                  
+                                  // If copy was successful, show the success message
+                                  if (copySuccessful) {
+                                    setCopiedPrivateKeyId(hotspot.id);
+                                    setTimeout(() => {
+                                      setCopiedPrivateKeyId(null);
+                                    }, 2000);
+                                  }
                                 }}
                               >
-                                {privateKeyData[hotspot.id]}
+                                {copiedPrivateKeyId === hotspot.id ? 'Private key copied to clipboard!' : privateKeyData[hotspot.id]}
                               </div>
                             </div>
                           </div>
