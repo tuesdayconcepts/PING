@@ -1856,7 +1856,7 @@ input:checked + .toggle-slider:before {
   font-size: .8rem;
   color: #fff;
   font-weight: 600;
-  padding-left: 4px;
+  /* padding-left: 4px; */
 }
 
 .private-key-display {
