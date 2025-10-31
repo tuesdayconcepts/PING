@@ -1902,21 +1902,23 @@ function AdminPage() {
                       {currentUserRole === 'admin' && showingPrivateKeyId === hotspot.id && privateKeyData[hotspot.id] && (
                         <div className="private-key-expansion">
                           <div className="private-key-expansion-content">
-                            <p style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#ccc' }}>
-                              Private Key (base58) — Tap and hold to select, then copy:
-                            </p>
-                            <textarea
-                              ref={privateKeyTextareaRef}
-                              value={privateKeyData[hotspot.id]}
-                              readOnly
-                              className="private-key-textarea-expanded"
-                              onClick={(e) => {
-                                (e.target as HTMLTextAreaElement).select();
-                              }}
-                              onFocus={(e) => {
-                                e.target.select();
-                              }}
-                            />
+                            <div className="private-key-input-container">
+                              <p style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#ccc' }}>
+                                Private Key (base58) — Tap and hold to select, then copy:
+                              </p>
+                              <textarea
+                                ref={privateKeyTextareaRef}
+                                value={privateKeyData[hotspot.id]}
+                                readOnly
+                                className="private-key-textarea-expanded"
+                                onClick={(e) => {
+                                  (e.target as HTMLTextAreaElement).select();
+                                }}
+                                onFocus={(e) => {
+                                  e.target.select();
+                                }}
+                              />
+                            </div>
                             <div className="private-key-expansion-buttons">
                               <button
                                 className="private-key-close-btn"
