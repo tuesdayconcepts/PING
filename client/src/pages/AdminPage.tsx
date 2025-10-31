@@ -8,7 +8,7 @@ import { formatDate } from '../utils/time';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import { HotspotSkeletonList } from '../components/HotspotSkeleton';
-import { ToastProvider, useToast } from '../components/Toast';
+import { useToast } from '../components/Toast';
 import { NotificationPrompt } from '../components/NotificationPrompt';
 import { registerServiceWorker, subscribeToPush, isNotificationSupported, getNotificationPermission } from '../utils/pushNotifications';
 import './AdminPage.css';
@@ -2448,14 +2448,6 @@ function AdminPage() {
   );
 }
 
-// Wrap AdminPage with ToastProvider
-const AdminPageWithToast = () => {
-  return (
-    <ToastProvider>
-      <AdminPage />
-    </ToastProvider>
-  );
-};
-
-export default AdminPageWithToast;
+// AdminPage no longer needs its own ToastProvider wrapper since App.tsx wraps everything
+export default AdminPage;
 
