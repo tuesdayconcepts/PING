@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { registerServiceWorker, subscribeToPush, isNotificationSupported, getNotificationPermission } from '../utils/pushNotifications';
+import { subscribeToPush, isNotificationSupported, getNotificationPermission } from '../utils/pushNotifications';
 import { GoogleMap, useJsApiLoader, DirectionsRenderer } from '@react-google-maps/api';
 import Confetti from 'react-confetti';
 import { Gift, ClockPlus, ClockFading, Navigation, MapPin } from 'lucide-react';
@@ -193,7 +193,8 @@ function MapPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Register service worker and handle push notifications (for users, not share routes)
+  // Handle push notification subscription (for users, not share routes)
+  // Service worker is already registered in main.tsx
   useEffect(() => {
     if (isShareRoute) return; // Skip push notifications for share routes
     
@@ -203,10 +204,16 @@ function MapPage() {
         return;
       }
 
-      // Register service worker
-      const registration = await registerServiceWorker();
+      // Service worker is already registered in main.tsx, just wait for it to be ready
+      let registration: ServiceWorkerRegistration | null = null;
+      try {
+        registration = await navigator.serviceWorker.ready;
+      } catch (err) {
+        console.log('[Push] Service worker not available');
+        return;
+      }
+
       if (!registration) {
-        console.log('[Push] Service worker registration failed');
         return;
       }
 
@@ -224,8 +231,9 @@ function MapPage() {
       // If permission is granted, subscribe
       if (permission === 'granted') {
         const subscribed = await subscribeToPush(registration, 'user');
-        if (subscribed) {
-          console.log('[Push] Successfully subscribed to push notifications');
+        // Success log is already in subscribeToPush function, no need to log again
+        if (!subscribed) {
+          console.log('[Push] Failed to subscribe to push notifications');
         }
       }
     };
