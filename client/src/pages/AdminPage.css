@@ -1045,10 +1045,6 @@ input:checked + .toggle-slider:before {
   transform: translateY(-1px);
 }
 
-.action-icon-btn:nth-child(3):hover {
-  color: #e74c3c;
-}
-
 /* Icon transition animation */
 @keyframes iconSwap {
   0% {
