@@ -1903,9 +1903,7 @@ function AdminPage() {
                         <div className="private-key-expansion">
                           <div className="private-key-expansion-content">
                             <div className="private-key-input-container">
-                              <p style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#ccc' }}>
-                                Private Key (base58) — Tap and hold to select, then copy:
-                              </p>
+                              <p>PRIVATE KEY</p>
                               <textarea
                                 ref={privateKeyTextareaRef}
                                 value={privateKeyData[hotspot.id]}
