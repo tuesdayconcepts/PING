@@ -17,9 +17,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000; /* Above map */
+  z-index: 1000;
   padding: 20px;
-  pointer-events: none; /* Allow map interaction behind, but block where card is */
+  pointer-events: none;
+  background: #0b28ff69;
+  backdrop-filter: blur(10px);
 }
 
 .login-card {
