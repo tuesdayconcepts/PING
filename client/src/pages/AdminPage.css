@@ -1626,6 +1626,14 @@ input:checked + .toggle-slider:before {
     display: none;
   }
 
+  .share-banner-container {
+    padding: 0 16px 15px 16px;
+  }
+
+  .share-banner {
+    max-height: 100px; /* Smaller on mobile */
+  }
+
   .sidebar-footer {
     display: none;
   }

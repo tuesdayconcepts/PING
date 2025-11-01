@@ -1234,7 +1234,6 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
   .map-nav {
     padding: 25px 15px 0 25px;
   }
-  
 
   .hotspot-popup h3 {
     font-size: 1rem;

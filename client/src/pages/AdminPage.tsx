@@ -1213,6 +1213,11 @@ function AdminPage() {
           </div>
         </div>
 
+        {/* Share Banner */}
+        <div className="share-banner-container">
+          <img src="/share-banner.png" alt="Share PING" className="share-banner" />
+        </div>
+
         {/* Mobile drag handle */}
         <div className="drag-handle" onClick={() => {
           setDrawerExpanded(!drawerExpanded);
