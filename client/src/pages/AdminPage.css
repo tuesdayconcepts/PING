@@ -25,8 +25,8 @@
 }
 
 .login-card {
-  background: #ffffff40;
-  transform: translateZ(0); /* GPU acceleration */
+  background: #ffffff26;
+  transform: translateZ(0);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border: 2px solid rgb(255 255 255 / 3%);
@@ -34,9 +34,9 @@
   border-radius: 25px;
   width: 100%;
   max-width: 400px;
-  pointer-events: auto; /* Re-enable pointer events for the card */
-  animation: slideUp 0.3s ease;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  animation: slideUp .3s ease;
+  box-shadow: 0 10px 40px #0000004d;
 }
 
 @keyframes slideUp {
@@ -118,15 +118,15 @@
 .login-btn {
   width: 100%;
   padding: 14px 24px;
-  background: linear-gradient(135deg, #ffe87c, #ffd700);
+  background: linear-gradient(135deg, #ffe87c, gold);
   color: #000;
   border: none;
-  border-radius: 15px;
+  border-radius: 25px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  transition: all .3s;
+  box-shadow: 0 4px 15px #ffd7004d;
 }
 
 .login-btn:hover {
