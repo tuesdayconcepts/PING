@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share2 } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -1313,6 +1313,15 @@ function AdminPage() {
                         </p>
                         {/* Funding summary removed from footer per request */}
                         <div className="hotspot-actions">
+                          {hotspot.shareToken && (
+                            <button
+                              onClick={() => handleCopyShareLink(hotspot.id, hotspot.shareToken || null)}
+                              className="action-icon-btn"
+                              aria-label={copiedShareId === hotspot.id ? 'Copied!' : 'Copy Share Link'}
+                            >
+                              {copiedShareId === hotspot.id ? <Check size={18} /> : <Share size={18} />}
+                            </button>
+                          )}
                           {hotspot.claimStatus !== 'pending' && !hasPendingClaim && (
                             <button 
                               onClick={() => {
@@ -1348,15 +1357,6 @@ function AdminPage() {
                               aria-label={copiedWalletId === hotspot.id ? 'Copied!' : 'Copy Wallet Address'}
                             >
                               {copiedWalletId === hotspot.id ? <Check size={18} /> : <WalletIcon size={18} />}
-                            </button>
-                          )}
-                          {hotspot.shareToken && (
-                            <button
-                              onClick={() => handleCopyShareLink(hotspot.id, hotspot.shareToken || null)}
-                              className="action-icon-btn"
-                              aria-label={copiedShareId === hotspot.id ? 'Copied!' : 'Copy Share Link'}
-                            >
-                              {copiedShareId === hotspot.id ? <Check size={18} /> : <Share2 size={18} />}
                             </button>
                           )}
                           <button 
@@ -1972,7 +1972,7 @@ function AdminPage() {
                               className="action-icon-btn"
                               aria-label={copiedShareId === hotspot.id ? 'Copied!' : 'Copy Share Link'}
                             >
-                              {copiedShareId === hotspot.id ? <Check size={18} /> : <Share2 size={18} />}
+                              {copiedShareId === hotspot.id ? <Check size={18} /> : <Share size={18} />}
                             </button>
                           )}
 
