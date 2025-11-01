@@ -9,31 +9,52 @@
 
 /* Login Screen */
 .login-container {
-  width: 100%;
-  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: 1000; /* Above map */
+  padding: 20px;
+  pointer-events: none; /* Allow map interaction behind, but block where card is */
 }
 
 .login-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: #ffffff40;
   transform: translateZ(0); /* GPU acceleration */
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  border: 2px solid rgb(130 130 130 / 24%);
+  border: 2px solid rgb(255 255 255 / 3%);
   padding: 40px;
-  border-radius: 30px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 25px;
   width: 100%;
   max-width: 400px;
+  pointer-events: auto; /* Re-enable pointer events for the card */
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .login-card h2 {
   margin: 0 0 30px 0;
   text-align: center;
   color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .form-group {
@@ -50,13 +71,13 @@
 .form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 10px;
-  border: 0;
-  border-radius: 10px;
+  padding: 12px 16px;
+  border: 2px solid rgb(255 255 255 / 7%);
+  border-radius: 15px;
   font-size: 1rem;
   box-sizing: border-box;
-  background: #ffffff26;
-  color: #e0e0e0;
+  background: #ffffff1a;
+  color: #ffffff;
   transition: all .3s;
   max-width: 100%; /* Fix Safari datetime-local overflow */
 }
@@ -73,14 +94,14 @@
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-  color: #ffffff80;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #ffd700;
-  background: rgba(255, 255, 255, 0.08);
+  border-color: rgb(255 255 255 / 15%);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .error-message {
@@ -94,30 +115,39 @@
 
 .login-btn {
   width: 100%;
-  padding: 12px;
-  background: #3498db;
-  color: white;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #ffe87c, #ffd700);
+  color: #000;
   border: none;
-  border-radius: 4px;
+  border-radius: 15px;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
 }
 
 .login-btn:hover {
-  background: #2980b9;
+  background: linear-gradient(135deg, #ffd700, #ffc700);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+}
+
+.login-btn:active {
+  transform: translateY(0);
 }
 
 .back-link {
   display: block;
   text-align: center;
   margin-top: 20px;
-  color: #a0a0a0;
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
+  transition: color 0.3s;
 }
 
 .back-link:hover {
-  color: #3498db;
+  color: #ffffff;
 }
 
 /* Mobile Top Bar - Hidden on Desktop */
@@ -1624,14 +1654,6 @@ input:checked + .toggle-slider:before {
   /* Hide desktop elements */
   .sidebar-header {
     display: none;
-  }
-
-  .share-banner-container {
-    padding: 0 16px 15px 16px;
-  }
-
-  .share-banner {
-    max-height: 100px; /* Smaller on mobile */
   }
 
   .sidebar-footer {

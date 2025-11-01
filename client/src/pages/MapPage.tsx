@@ -571,11 +571,6 @@ function MapPage() {
         )}
       </nav>
 
-      {/* Share Banner */}
-      <div className="share-banner-container">
-        <img src="/share-banner.png" alt="Share PING" className="share-banner" />
-      </div>
-
       {/* Loading/Error States */}
       {loading && (
         <div className="map-overlay">

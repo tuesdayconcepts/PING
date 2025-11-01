@@ -1071,6 +1071,26 @@ function AdminPage() {
   if (!isAuthenticated) {
     return (
       <div className="admin-page">
+        {/* Map behind login */}
+        <div className="admin-map-container">
+          {isLoaded && (
+            <GoogleMap
+              center={mapCenter}
+              zoom={13}
+              mapContainerClassName="admin-map"
+              options={{
+                styles: customMapStyles,
+                disableDefaultUI: false,
+                zoomControl: true,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
+                gestureHandling: 'greedy',
+                clickableIcons: false,
+              }}
+            />
+          )}
+        </div>
         <div className="login-container">
           <div className="login-card">
             <h2>🔐 Admin Login</h2>
@@ -1211,11 +1231,6 @@ function AdminPage() {
               <LogOut size={24} />
             </button>
           </div>
-        </div>
-
-        {/* Share Banner */}
-        <div className="share-banner-container">
-          <img src="/share-banner.png" alt="Share PING" className="share-banner" />
         </div>
 
         {/* Mobile drag handle */}
