@@ -1956,15 +1956,6 @@ function AdminPage() {
                           {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}
                         </p>
                         <div className="hotspot-actions">
-                          {/* Copy PING URL */}
-                          <button 
-                            onClick={() => handleCopyUrl(hotspot.id, `${window.location.origin}/ping/${hotspot.id}`)} 
-                            className="action-icon-btn"
-                            aria-label={copiedId === hotspot.id ? 'Copied!' : 'Copy PING URL'}
-                          >
-                            {copiedId === hotspot.id ? <Check size={18} /> : <LinkIcon size={18} />}
-                          </button>
-
                           {/* Copy Share Link */}
                           {hotspot.shareToken && (
                             <button
@@ -1975,6 +1966,15 @@ function AdminPage() {
                               {copiedShareId === hotspot.id ? <Check size={18} /> : <Share size={18} />}
                             </button>
                           )}
+
+                          {/* Copy PING URL */}
+                          <button 
+                            onClick={() => handleCopyUrl(hotspot.id, `${window.location.origin}/ping/${hotspot.id}`)} 
+                            className="action-icon-btn"
+                            aria-label={copiedId === hotspot.id ? 'Copied!' : 'Copy PING URL'}
+                          >
+                            {copiedId === hotspot.id ? <Check size={18} /> : <LinkIcon size={18} />}
+                          </button>
 
                           {/* Tweet link */}
                           {hotspot.tweetUrl && (
