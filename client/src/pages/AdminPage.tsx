@@ -1322,22 +1322,6 @@ function AdminPage() {
                               {copiedShareId === hotspot.id ? <Check size={18} /> : <Share size={18} />}
                             </button>
                           )}
-                          {hotspot.claimStatus !== 'pending' && !hasPendingClaim && (
-                            <button 
-                              onClick={() => {
-                                // If this hotspot's form is open, close it; otherwise open it
-                                if (formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id) {
-                                  handleCancel();
-                                } else {
-                                  handleEdit(hotspot);
-                                }
-                              }} 
-                              className="action-icon-btn" 
-                              aria-label={formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id ? 'Close Edit Form' : 'Edit PING'}
-                            >
-                              {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id ? <X size={18} /> : <SquarePen size={18} />}
-                            </button>
-                          )}
                           <button 
                             onClick={() => handleCopyUrl(hotspot.id, nfcUrl)} 
                             className="action-icon-btn"
@@ -1357,6 +1341,22 @@ function AdminPage() {
                               aria-label={copiedWalletId === hotspot.id ? 'Copied!' : 'Copy Wallet Address'}
                             >
                               {copiedWalletId === hotspot.id ? <Check size={18} /> : <WalletIcon size={18} />}
+                            </button>
+                          )}
+                          {hotspot.claimStatus !== 'pending' && !hasPendingClaim && (
+                            <button 
+                              onClick={() => {
+                                // If this hotspot's form is open, close it; otherwise open it
+                                if (formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id) {
+                                  handleCancel();
+                                } else {
+                                  handleEdit(hotspot);
+                                }
+                              }} 
+                              className="action-icon-btn" 
+                              aria-label={formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id ? 'Close Edit Form' : 'Edit PING'}
+                            >
+                              {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id ? <X size={18} /> : <SquarePen size={18} />}
                             </button>
                           )}
                           <button 
