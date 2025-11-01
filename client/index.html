@@ -81,10 +81,22 @@
           sessionStorage.setItem('pwa_last_path', currentPath);
         }
         
-        // Update OG URL meta tag with current full URL
+        // Update OG URL and image meta tags with full URLs
         const ogUrlMeta = document.getElementById('og-url');
         if (ogUrlMeta) {
           ogUrlMeta.setAttribute('content', window.location.origin + currentPath);
+        }
+        
+        // Update OG image to use absolute URL (required for social media crawlers)
+        const ogImageMeta = document.querySelector('meta[property="og:image"]');
+        if (ogImageMeta && ogImageMeta.getAttribute('content').startsWith('/')) {
+          ogImageMeta.setAttribute('content', window.location.origin + '/share-banner.png');
+        }
+        
+        // Update Twitter image to use absolute URL
+        const twitterImageMeta = document.querySelector('meta[name="twitter:image"]');
+        if (twitterImageMeta && twitterImageMeta.getAttribute('content').startsWith('/')) {
+          twitterImageMeta.setAttribute('content', window.location.origin + '/share-banner.png');
         }
       })();
     </script>
