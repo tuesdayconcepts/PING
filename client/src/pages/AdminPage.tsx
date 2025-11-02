@@ -1388,7 +1388,7 @@ function AdminPage() {
               <LocateFixed size={24} />
             </button>
             <button onClick={toggleNotifications} className="center-btn" aria-label="Toggle notifications">
-              {isNotificationSubscribed ? <BellOff size={24} /> : <Bell size={24} />}
+              {isNotificationSubscribed ? <Bell size={24} /> : <BellOff size={24} />}
             </button>
             <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
               <LogOut size={24} />
