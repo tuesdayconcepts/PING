@@ -75,6 +75,7 @@ function AdminPage() {
   const [privateKeyData, setPrivateKeyData] = useState<Record<string, string>>({});
   const [copiedPrivateKeyId, setCopiedPrivateKeyId] = useState<string | null>(null);
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // State for sliding tab indicator
   const [indicatorReady, setIndicatorReady] = useState(false);
@@ -736,7 +737,11 @@ function AdminPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Prevent double submission
+    if (isSubmitting) return;
+
     try {
+      setIsSubmitting(true);
       const method = selectedHotspot ? 'PUT' : 'POST';
       const url = selectedHotspot 
         ? `${API_URL}/api/hotspots/${selectedHotspot.id}`
@@ -785,6 +790,8 @@ function AdminPage() {
       showToast(selectedHotspot ? 'Hotspot updated!' : 'Hotspot created!', 'success');
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to save hotspot', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1651,8 +1658,8 @@ function AdminPage() {
                             </div>
 
                             <div className="form-actions">
-                              <button type="submit" className="save-btn" disabled={isSelectedPending}>
-                                Save Changes
+                              <button type="submit" className="save-btn" disabled={isSelectedPending || isSubmitting}>
+                                {isSubmitting ? 'Saving...' : 'Save Changes'}
                               </button>
                               <button type="button" className="cancel-btn" onClick={handleCancel}>
                                 Cancel
@@ -1896,8 +1903,8 @@ function AdminPage() {
                     </div>
 
                     <div className="form-actions">
-                      <button type="submit" className="save-btn">
-                        Create PING
+                      <button type="submit" className="save-btn" disabled={isSubmitting}>
+                        {isSubmitting ? 'Creating...' : 'Create PING'}
                       </button>
                       <button type="button" onClick={handleCancel} className="cancel-btn">
                         Cancel
