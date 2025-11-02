@@ -2293,7 +2293,6 @@ function AdminPage() {
           {/* General Settings Tab */}
           {activeTab === 'hints' && currentUserRole === 'admin' && (
             <div className="hint-settings-content">
-              <h3>General Settings</h3>
               <form onSubmit={handleSaveHintSettings}>
                   {/* Social Media Links */}
                   <div className="settings-group">
