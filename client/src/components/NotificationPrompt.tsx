@@ -95,13 +95,9 @@ export const NotificationPrompt: React.FC<NotificationPromptProps> = ({ userType
         <button className="notification-prompt-close" onClick={handleLater}>✕</button>
         
         <div className="notification-prompt-sections">
-          {/* Header section */}
+          {/* Combined Header and Body section */}
           <div className="notification-prompt-header-section">
             <h3>Enable Notifications</h3>
-          </div>
-          
-          {/* Body section */}
-          <div className="notification-prompt-body">
             <p>
               {userType === 'user' 
                 ? 'Get notified when new PINGs are available!'
@@ -116,14 +112,14 @@ export const NotificationPrompt: React.FC<NotificationPromptProps> = ({ userType
               onClick={handleLater}
               disabled={isRequesting}
             >
-              Do it later
+              LATER
             </button>
             <button 
               className="notification-prompt-enable" 
               onClick={handleEnable}
               disabled={isRequesting}
             >
-              {isRequesting ? 'Enabling...' : 'Enable Notifications'}
+              {isRequesting ? 'Enabling...' : 'ENABLE'}
             </button>
           </div>
         </div>

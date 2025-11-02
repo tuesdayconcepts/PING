@@ -35,7 +35,7 @@
   gap: 15px;
 }
 
-/* Match modal-section styling */
+/* Match modal-section styling - Combined header and body */
 .notification-prompt-header-section {
   padding: 20px 25px;
   margin: 0;
@@ -45,17 +45,21 @@
   transform: translateZ(0);
   -webkit-backdrop-filter: blur(8px);
   background: #ffffff40;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
-.notification-prompt-header h3 {
-  margin: 0;
+.notification-prompt-header-section h3 {
+  margin: 0 0 12px 0;
   color: #fff;
   font-size: 1.1rem;
   font-weight: 600;
   text-transform: uppercase;
+}
+
+.notification-prompt-header-section p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 1rem;
 }
 
 /* Match modal-close button styling */
@@ -85,25 +89,6 @@
 .notification-prompt-close:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: rotate(90deg);
-}
-
-/* Match modal-section for body */
-.notification-prompt-body {
-  padding: 20px 25px;
-  margin: 0;
-  border: 2px solid rgb(255 255 255 / 3%);
-  color: #fffffff2;
-  border-radius: 25px;
-  transform: translateZ(0);
-  -webkit-backdrop-filter: blur(8px);
-  background: #ffffff40;
-}
-
-.notification-prompt-body p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
-  font-size: 1rem;
 }
 
 /* Match modal-actions styling */
