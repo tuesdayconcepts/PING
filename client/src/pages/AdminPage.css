@@ -745,8 +745,7 @@ input:checked + .toggle-slider:before {
 }
 
 .hotspot-item.claimed-hotspot {
-  background: #88888863;
-  /* opacity: .7; */
+  background: #ffffff40;
 }
 
 .hotspot-item.pending-claim {
@@ -1026,15 +1025,15 @@ input:checked + .toggle-slider:before {
 .load-more-btn {
   width: 100%;
   padding: 12px 20px;
-  margin-top: 20px;
-  background: rgba(255, 215, 0, 0.1);
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  border-radius: 12px;
-  color: #ffd700;
-  font-size: 0.9rem;
+  /* margin-top: 20px; */
+  background: #ffffff40;
+  border: 2px solid rgb(255 255 255 / 7%);
+  border-radius: 50px;
+  color: #ffffff;
+  font-size: .9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all .3s ease;
 }
 
 .load-more-btn:hover:not(:disabled) {
