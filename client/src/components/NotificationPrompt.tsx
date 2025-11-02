@@ -91,32 +91,41 @@ export const NotificationPrompt: React.FC<NotificationPromptProps> = ({ userType
   return (
     <div className="notification-prompt-overlay">
       <div className="notification-prompt">
-        <div className="notification-prompt-header">
-          <h3>Enable Notifications</h3>
-          <button className="notification-prompt-close" onClick={handleLater}>×</button>
-        </div>
-        <div className="notification-prompt-body">
-          <p>
-            {userType === 'user' 
-              ? 'Get notified when new PINGs are available!'
-              : 'Get notified when claims need approval and other admin events.'}
-          </p>
-        </div>
-        <div className="notification-prompt-actions">
-          <button 
-            className="notification-prompt-later" 
-            onClick={handleLater}
-            disabled={isRequesting}
-          >
-            Do it later
-          </button>
-          <button 
-            className="notification-prompt-enable" 
-            onClick={handleEnable}
-            disabled={isRequesting}
-          >
-            {isRequesting ? 'Enabling...' : 'Enable Notifications'}
-          </button>
+        {/* Close button - positioned absolutely */}
+        <button className="notification-prompt-close" onClick={handleLater}>✕</button>
+        
+        <div className="notification-prompt-sections">
+          {/* Header section */}
+          <div className="notification-prompt-header-section">
+            <h3>Enable Notifications</h3>
+          </div>
+          
+          {/* Body section */}
+          <div className="notification-prompt-body">
+            <p>
+              {userType === 'user' 
+                ? 'Get notified when new PINGs are available!'
+                : 'Get notified when claims need approval and other admin events.'}
+            </p>
+          </div>
+          
+          {/* Actions section */}
+          <div className="notification-prompt-actions">
+            <button 
+              className="notification-prompt-later" 
+              onClick={handleLater}
+              disabled={isRequesting}
+            >
+              Do it later
+            </button>
+            <button 
+              className="notification-prompt-enable" 
+              onClick={handleEnable}
+              disabled={isRequesting}
+            >
+              {isRequesting ? 'Enabling...' : 'Enable Notifications'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
