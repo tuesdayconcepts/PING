@@ -211,6 +211,59 @@ function AdminPage() {
     }
   }, [isAuthenticated]);
 
+  // Fetch claimed hotspots with pagination (lazy-loaded)
+  // Defined before useEffect to avoid "used before declaration" error
+  const fetchClaimedHotspots = useCallback(async (offset: number = 0, append: boolean = false) => {
+    setClaimedLoading(true);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch(
+        `${API_URL}/api/admin/hotspots/claimed?limit=10&offset=${offset}`,
+        {
+          headers: getAuthHeaders(),
+          signal: controller.signal,
+        }
+      );
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (append) {
+          setClaimedHotspots(prev => [...prev, ...data.hotspots]);
+        } else {
+          setClaimedHotspots(data.hotspots);
+        }
+        setClaimedHasMore(data.hasMore);
+        setClaimedOffset(offset + data.hotspots.length);
+        
+        // Preload wallet balances for new hotspots
+        data.hotspots.forEach((h: Hotspot) => {
+          if (h.prizePublicKey) {
+            // Check current balances state before fetching
+            setWalletBalances(prev => {
+              if (prev[h.prizePublicKey!] === undefined) {
+                // Fetch balance asynchronously (don't await)
+                fetchWalletBalance(h.prizePublicKey!).catch(console.error);
+              }
+              return prev;
+            });
+          }
+        });
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Claimed hotspots fetch timed out');
+      } else {
+        console.error('Failed to fetch claimed hotspots:', err);
+      }
+    } finally {
+      setClaimedLoading(false);
+    }
+  }, []);
+
   // Lazy-load claimed hotspots when History tab is opened
   useEffect(() => {
     if (activeTab === 'history' && claimedHotspots.length === 0 && !claimedLoading && isAuthenticated) {
@@ -489,57 +542,6 @@ function AdminPage() {
     }
   };
 
-  // Fetch claimed hotspots with pagination (lazy-loaded)
-  const fetchClaimedHotspots = useCallback(async (offset: number = 0, append: boolean = false) => {
-    setClaimedLoading(true);
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-      
-      const response = await fetch(
-        `${API_URL}/api/admin/hotspots/claimed?limit=10&offset=${offset}`,
-        {
-          headers: getAuthHeaders(),
-          signal: controller.signal,
-        }
-      );
-      
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (append) {
-          setClaimedHotspots(prev => [...prev, ...data.hotspots]);
-        } else {
-          setClaimedHotspots(data.hotspots);
-        }
-        setClaimedHasMore(data.hasMore);
-        setClaimedOffset(offset + data.hotspots.length);
-        
-        // Preload wallet balances for new hotspots
-        data.hotspots.forEach((h: Hotspot) => {
-          if (h.prizePublicKey) {
-            // Check current balances state before fetching
-            setWalletBalances(prev => {
-              if (prev[h.prizePublicKey!] === undefined) {
-                // Fetch balance asynchronously (don't await)
-                fetchWalletBalance(h.prizePublicKey!).catch(console.error);
-              }
-              return prev;
-            });
-          }
-        });
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        console.warn('Claimed hotspots fetch timed out');
-      } else {
-        console.error('Failed to fetch claimed hotspots:', err);
-      }
-    } finally {
-      setClaimedLoading(false);
-    }
-  }, []);
 
   // Fetch pending claims
   const fetchPendingClaims = async () => {
