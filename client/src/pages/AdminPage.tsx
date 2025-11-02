@@ -468,24 +468,25 @@ function AdminPage() {
       return null;
     };
 
-    // Format action based on entity and action
-    const formatAction = () => {
-      const username = (log.username || 'UNKNOWN').toUpperCase();
-      
+    // Get action text based on entity and action
+    const getActionText = () => {
       if (log.entity === 'Hotspot') {
-        if (log.action === 'CREATE') return `${username} CREATED`;
-        if (log.action === 'UPDATE') return `${username} UPDATED`;
-        if (log.action === 'DELETE') return `${username} DELETED`;
+        if (log.action === 'CREATE') return 'CREATED';
+        if (log.action === 'UPDATE') return 'UPDATED';
+        if (log.action === 'DELETE') return 'DELETED';
       }
       
       // Generic fallback
-      return `${username} ${log.action}`;
+      return log.action;
     };
 
     const title = extractTitle();
+    const username = (log.username || 'UNKNOWN').toUpperCase();
+    const actionText = getActionText();
     
     return {
-      actionLine: formatAction(),
+      username,
+      actionText,
       titleLine: title ? `Ping ${title}` : null,
       timeLine: formatDate(log.timestamp)
     };
@@ -2372,7 +2373,10 @@ function AdminPage() {
                 const formatted = formatLogDisplay(log);
                 return (
                   <div key={log.id} className="log-item">
-                    <div className="log-action-line">{formatted.actionLine}</div>
+                    <div className="log-action-line">
+                      <span className="log-username">{formatted.username}</span>{' '}
+                      <span className="log-action">{formatted.actionText}</span>
+                    </div>
                     {formatted.titleLine && (
                       <div className="log-title-line">{formatted.titleLine}</div>
                     )}

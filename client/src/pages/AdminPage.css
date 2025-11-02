@@ -372,8 +372,7 @@
 
 .log-item {
   display: flex;
-  gap: 3px;
-  padding: 15px;
+  padding: 20px;
   border: 2px solid #6d6d6d30;
   font-size: .9rem;
   background: #ffffff2b;
@@ -388,9 +387,16 @@
 
 .log-action-line {
   font-weight: bold;
-  color: #ffffff;
   font-size: 1rem;
   margin-bottom: 4px;
+}
+
+.log-username {
+  color: #ffffff;
+}
+
+.log-action {
+  color: #ffd700;
 }
 
 .log-title-line {
@@ -400,8 +406,8 @@
 }
 
 .log-time-line {
-  color: #808080;
-  font-size: 0.85rem;
+  color: #8e9bff;
+  font-size: .85rem;
 }
 
 /* Active PINGs Content */
