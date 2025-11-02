@@ -89,8 +89,8 @@ export const NotificationPrompt: React.FC<NotificationPromptProps> = ({ userType
   if (!showPrompt) return null;
 
   return (
-    <div className="notification-prompt-overlay">
-      <div className="notification-prompt">
+    <div className="notification-prompt-overlay" onClick={handleLater}>
+      <div className="notification-prompt" onClick={(e) => e.stopPropagation()}>
         {/* Close button - positioned absolutely */}
         <button className="notification-prompt-close" onClick={handleLater}>✕</button>
         
