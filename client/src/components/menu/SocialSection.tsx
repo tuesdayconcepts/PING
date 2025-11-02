@@ -17,7 +17,8 @@ interface SocialSectionProps {
 export function SocialSection({ socialSettings }: SocialSectionProps) {
   const socialLinks = [];
 
-  if (socialSettings.pumpFunEnabled && socialSettings.pumpFunUrl) {
+  // Show links if fields are filled (no longer checking enabled flags)
+  if (socialSettings.pumpFunUrl) {
     socialLinks.push({
       name: 'Pump.fun',
       url: socialSettings.pumpFunUrl,
@@ -25,7 +26,7 @@ export function SocialSection({ socialSettings }: SocialSectionProps) {
     });
   }
 
-  if (socialSettings.xEnabled && socialSettings.xUsername) {
+  if (socialSettings.xUsername) {
     socialLinks.push({
       name: 'X (Twitter)',
       url: `https://x.com/${socialSettings.xUsername}`,
@@ -33,7 +34,7 @@ export function SocialSection({ socialSettings }: SocialSectionProps) {
     });
   }
 
-  if (socialSettings.instagramEnabled && socialSettings.instagramUsername) {
+  if (socialSettings.instagramUsername) {
     socialLinks.push({
       name: 'Instagram',
       url: `https://instagram.com/${socialSettings.instagramUsername}`,
@@ -41,7 +42,7 @@ export function SocialSection({ socialSettings }: SocialSectionProps) {
     });
   }
 
-  if (socialSettings.tiktokEnabled && socialSettings.tiktokUsername) {
+  if (socialSettings.tiktokUsername) {
     socialLinks.push({
       name: 'TikTok',
       url: `https://tiktok.com/@${socialSettings.tiktokUsername}`,

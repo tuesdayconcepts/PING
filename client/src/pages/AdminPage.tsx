@@ -2009,7 +2009,7 @@ function AdminPage() {
           {activeTab === 'history' && (
             <div className="history-content">
               {claimedLoading && claimedHotspots.length === 0 ? (
-                <HotspotSkeletonList count={3} />
+                <HotspotSkeletonList count={1} />
               ) : (
                 <>
                   {claimedHotspots.map((hotspot, index) => (
@@ -2300,102 +2300,54 @@ function AdminPage() {
                     <h4>Social Media Links</h4>
                     
                     {/* Pump.fun */}
-                    <div className="toggle-field">
-                      <div className="toggle-label">
-                        <div className="form-group">
-                          <label htmlFor="pump-fun-url">Pump.fun URL</label>
-                          <input
-                            type="url"
-                            id="pump-fun-url"
-                            value={hintSettings.pumpFunUrl}
-                            onChange={(e) => setHintSettings({ ...hintSettings, pumpFunUrl: e.target.value })}
-                            placeholder="https://pump.fun/..."
-                          />
-                        </div>
-                      </div>
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={hintSettings.pumpFunEnabled}
-                          onChange={(e) => setHintSettings({ ...hintSettings, pumpFunEnabled: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
+                    <div className="form-group">
+                      <label htmlFor="pump-fun-url">Pump.fun URL</label>
+                      <input
+                        type="url"
+                        id="pump-fun-url"
+                        value={hintSettings.pumpFunUrl}
+                        onChange={(e) => setHintSettings({ ...hintSettings, pumpFunUrl: e.target.value })}
+                        placeholder="https://pump.fun/..."
+                      />
                     </div>
 
                     {/* X (Twitter) */}
-                    <div className="toggle-field">
-                      <div className="toggle-label">
-                        <div className="form-group">
-                          <label htmlFor="x-username">X (Twitter) Username</label>
-                          <input
-                            type="text"
-                            id="x-username"
-                            value={hintSettings.xUsername}
-                            onChange={(e) => setHintSettings({ ...hintSettings, xUsername: e.target.value })}
-                            placeholder="username (without @)"
-                          />
-                          <small className="form-hint">Will link to: https://x.com/{hintSettings.xUsername || 'username'}</small>
-                        </div>
-                      </div>
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={hintSettings.xEnabled}
-                          onChange={(e) => setHintSettings({ ...hintSettings, xEnabled: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
+                    <div className="form-group">
+                      <label htmlFor="x-username">X (Twitter) Username</label>
+                      <input
+                        type="text"
+                        id="x-username"
+                        value={hintSettings.xUsername}
+                        onChange={(e) => setHintSettings({ ...hintSettings, xUsername: e.target.value })}
+                        placeholder="username (without @)"
+                      />
+                      <small className="form-hint">Will link to: https://x.com/{hintSettings.xUsername || 'username'}</small>
                     </div>
 
                     {/* Instagram */}
-                    <div className="toggle-field">
-                      <div className="toggle-label">
-                        <div className="form-group">
-                          <label htmlFor="instagram-username">Instagram Username</label>
-                          <input
-                            type="text"
-                            id="instagram-username"
-                            value={hintSettings.instagramUsername}
-                            onChange={(e) => setHintSettings({ ...hintSettings, instagramUsername: e.target.value })}
-                            placeholder="username (without @)"
-                          />
-                          <small className="form-hint">Will link to: https://instagram.com/{hintSettings.instagramUsername || 'username'}</small>
-                        </div>
-                      </div>
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={hintSettings.instagramEnabled}
-                          onChange={(e) => setHintSettings({ ...hintSettings, instagramEnabled: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
+                    <div className="form-group">
+                      <label htmlFor="instagram-username">Instagram Username</label>
+                      <input
+                        type="text"
+                        id="instagram-username"
+                        value={hintSettings.instagramUsername}
+                        onChange={(e) => setHintSettings({ ...hintSettings, instagramUsername: e.target.value })}
+                        placeholder="username (without @)"
+                      />
+                      <small className="form-hint">Will link to: https://instagram.com/{hintSettings.instagramUsername || 'username'}</small>
                     </div>
 
                     {/* TikTok */}
-                    <div className="toggle-field">
-                      <div className="toggle-label">
-                        <div className="form-group">
-                          <label htmlFor="tiktok-username">TikTok Username</label>
-                          <input
-                            type="text"
-                            id="tiktok-username"
-                            value={hintSettings.tiktokUsername}
-                            onChange={(e) => setHintSettings({ ...hintSettings, tiktokUsername: e.target.value })}
-                            placeholder="username (without @)"
-                          />
-                          <small className="form-hint">Will link to: https://tiktok.com/@{hintSettings.tiktokUsername || 'username'}</small>
-                        </div>
-                      </div>
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={hintSettings.tiktokEnabled}
-                          onChange={(e) => setHintSettings({ ...hintSettings, tiktokEnabled: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
+                    <div className="form-group">
+                      <label htmlFor="tiktok-username">TikTok Username</label>
+                      <input
+                        type="text"
+                        id="tiktok-username"
+                        value={hintSettings.tiktokUsername}
+                        onChange={(e) => setHintSettings({ ...hintSettings, tiktokUsername: e.target.value })}
+                        placeholder="username (without @)"
+                      />
+                      <small className="form-hint">Will link to: https://tiktok.com/@{hintSettings.tiktokUsername || 'username'}</small>
                     </div>
                   </div>
 
