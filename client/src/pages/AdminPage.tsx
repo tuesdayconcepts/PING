@@ -456,6 +456,41 @@ function AdminPage() {
     setLogs([]);
   };
 
+  // Format log for display
+  const formatLogDisplay = (log: AdminLog) => {
+    // Extract title from details (only for Hotspot entity)
+    const extractTitle = () => {
+      if (log.entity === 'Hotspot' && log.details) {
+        // Pattern: "Updated hotspot: Title" or "Created hotspot: Title (queue position: 1)" etc
+        const match = log.details.match(/hotspot:\s*(.+?)(?:\s*\(|$)/i);
+        if (match) return match[1];
+      }
+      return null;
+    };
+
+    // Format action based on entity and action
+    const formatAction = () => {
+      const username = (log.username || 'UNKNOWN').toUpperCase();
+      
+      if (log.entity === 'Hotspot') {
+        if (log.action === 'CREATE') return `${username} CREATED`;
+        if (log.action === 'UPDATE') return `${username} UPDATED`;
+        if (log.action === 'DELETE') return `${username} DELETED`;
+      }
+      
+      // Generic fallback
+      return `${username} ${log.action}`;
+    };
+
+    const title = extractTitle();
+    
+    return {
+      actionLine: formatAction(),
+      titleLine: title ? `Ping ${title}` : null,
+      timeLine: formatDate(log.timestamp)
+    };
+  };
+
   // Toggle notification subscription
   const toggleNotifications = async () => {
     if (!isNotificationSupported()) {
@@ -2333,14 +2368,18 @@ function AdminPage() {
           {/* Recent Activity Tab */}
           {activeTab === 'activity' && (
             <div className="activity-content">
-              {logs.map((log) => (
-                <div key={log.id} className="log-item">
-                  <span className="log-username">{log.username || 'Unknown'}</span>
-                  <span className="log-action">{log.action}</span>
-                  <span className="log-details">{log.details || `${log.entity} ${log.entityId}`}</span>
-                  <span className="log-time">{formatDate(log.timestamp)}</span>
-                </div>
-              ))}
+              {logs.map((log) => {
+                const formatted = formatLogDisplay(log);
+                return (
+                  <div key={log.id} className="log-item">
+                    <div className="log-action-line">{formatted.actionLine}</div>
+                    {formatted.titleLine && (
+                      <div className="log-title-line">{formatted.titleLine}</div>
+                    )}
+                    <div className="log-time-line">{formatted.timeLine}</div>
+                  </div>
+                );
+              })}
               
               {/* Load More Button */}
               {logsHasMore && (
