@@ -1045,14 +1045,60 @@ app.get("/api/admin/claims", authenticateAdmin, async (req, res) => {
 // GET /api/admin/logs - Get recent admin actions (admin only)
 app.get("/api/admin/logs", authenticateAdmin, async (req, res) => {
   try {
-    const logs = await prisma.adminLog.findMany({
-      take: 20,
-      orderBy: { timestamp: "desc" },
-    });
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = parseInt(req.query.offset as string) || 0;
+    
+    const [logs, total] = await Promise.all([
+      prisma.adminLog.findMany({
+        take: limit,
+        skip: offset,
+        orderBy: { timestamp: "desc" },
+      }),
+      prisma.adminLog.count(),
+    ]);
 
-    res.json(logs);
+    res.json({ 
+      logs, 
+      total, 
+      hasMore: offset + limit < total,
+      limit,
+      offset 
+    });
   } catch (error) {
     console.error("Get logs error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/hotspots/claimed - Get claimed hotspots with pagination (admin only)
+app.get("/api/admin/hotspots/claimed", authenticateAdmin, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = parseInt(req.query.offset as string) || 0;
+    
+    const [hotspots, total] = await Promise.all([
+      prisma.hotspot.findMany({
+        where: { claimStatus: 'claimed' },
+        orderBy: { claimedAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.hotspot.count({
+        where: { claimStatus: 'claimed' },
+      }),
+    ]);
+    
+    // Convert BigInt fields to strings
+    const safe = hotspots.map(h => serializeBigInts(h));
+    res.json({ 
+      hotspots: safe, 
+      total, 
+      hasMore: offset + limit < total,
+      limit,
+      offset 
+    });
+  } catch (error) {
+    console.error("Get claimed hotspots error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

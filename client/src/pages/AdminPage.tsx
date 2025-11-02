@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
@@ -42,6 +42,17 @@ function AdminPage() {
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [hotspotsLoading, setHotspotsLoading] = useState(true);
   const [walletBalances, setWalletBalances] = useState<Record<string, number>>({});
+  
+  // Pagination state for claimed hotspots (lazy-loaded)
+  const [claimedHotspots, setClaimedHotspots] = useState<Hotspot[]>([]);
+  const [claimedLoading, setClaimedLoading] = useState(false);
+  const [claimedOffset, setClaimedOffset] = useState(0);
+  const [claimedHasMore, setClaimedHasMore] = useState(true);
+  
+  // Pagination state for logs
+  const [logsOffset, setLogsOffset] = useState(0);
+  const [logsHasMore, setLogsHasMore] = useState(true);
+  const [logsLoading, setLogsLoading] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -138,18 +149,20 @@ function AdminPage() {
       
       // Load data sequentially with priority to avoid overwhelming server
       const loadData = async () => {
-        // 1. Load critical data first (main content)
+        // 1. Load critical data first (main content - only active hotspots)
         await fetchHotspots();
         
-        // 2. Load secondary data in parallel
+        // 2. Load secondary data in parallel (initial logs batch, not claimed hotspots)
         await Promise.all([
-          fetchLogs(),
+          fetchLogs(0, false), // Fetch initial 10 logs
           fetchAdminUsers(),
           fetchHintSettings()
         ]);
         
         // 3. Load polling data last (will refresh via interval anyway)
         fetchPendingClaims();
+        
+        // Note: Claimed hotspots are lazy-loaded when History tab is opened
       };
       
       loadData();
@@ -197,6 +210,13 @@ function AdminPage() {
       return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
+
+  // Lazy-load claimed hotspots when History tab is opened
+  useEffect(() => {
+    if (activeTab === 'history' && claimedHotspots.length === 0 && !claimedLoading && isAuthenticated) {
+      fetchClaimedHotspots(0, false);
+    }
+  }, [activeTab, isAuthenticated, claimedHotspots.length, claimedLoading, fetchClaimedHotspots]);
 
   // Handle hash-based navigation (e.g., from push notifications: /admin#hotspot-{id})
   useEffect(() => {
@@ -430,13 +450,14 @@ function AdminPage() {
     }
   };
 
-  // Fetch admin logs
-  const fetchLogs = async () => {
+  // Fetch admin logs with pagination support
+  const fetchLogs = async (offset: number = 0, append: boolean = false) => {
+    setLogsLoading(true);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
       
-      const response = await fetch(`${API_URL}/api/admin/logs`, {
+      const response = await fetch(`${API_URL}/api/admin/logs?limit=10&offset=${offset}`, {
         headers: getAuthHeaders(),
         signal: controller.signal,
       });
@@ -445,7 +466,17 @@ function AdminPage() {
       
       if (response.ok) {
         const data = await response.json();
-        setLogs(data);
+        // Handle both old format (array) and new format (object with logs array)
+        const logsData = Array.isArray(data) ? data : data.logs;
+        const hasMore = Array.isArray(data) ? false : data.hasMore;
+        
+        if (append) {
+          setLogs(prev => [...prev, ...logsData]);
+        } else {
+          setLogs(logsData);
+        }
+        setLogsHasMore(hasMore);
+        setLogsOffset(offset + logsData.length);
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
@@ -453,8 +484,62 @@ function AdminPage() {
       } else {
         console.error('Failed to fetch logs:', err);
       }
+    } finally {
+      setLogsLoading(false);
     }
   };
+
+  // Fetch claimed hotspots with pagination (lazy-loaded)
+  const fetchClaimedHotspots = useCallback(async (offset: number = 0, append: boolean = false) => {
+    setClaimedLoading(true);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch(
+        `${API_URL}/api/admin/hotspots/claimed?limit=10&offset=${offset}`,
+        {
+          headers: getAuthHeaders(),
+          signal: controller.signal,
+        }
+      );
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (append) {
+          setClaimedHotspots(prev => [...prev, ...data.hotspots]);
+        } else {
+          setClaimedHotspots(data.hotspots);
+        }
+        setClaimedHasMore(data.hasMore);
+        setClaimedOffset(offset + data.hotspots.length);
+        
+        // Preload wallet balances for new hotspots
+        data.hotspots.forEach((h: Hotspot) => {
+          if (h.prizePublicKey) {
+            // Check current balances state before fetching
+            setWalletBalances(prev => {
+              if (prev[h.prizePublicKey!] === undefined) {
+                // Fetch balance asynchronously (don't await)
+                fetchWalletBalance(h.prizePublicKey!).catch(console.error);
+              }
+              return prev;
+            });
+          }
+        });
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Claimed hotspots fetch timed out');
+      } else {
+        console.error('Failed to fetch claimed hotspots:', err);
+      }
+    } finally {
+      setClaimedLoading(false);
+    }
+  }, []);
 
   // Fetch pending claims
   const fetchPendingClaims = async () => {
@@ -1921,18 +2006,11 @@ function AdminPage() {
           {/* Claimed History Tab */}
           {activeTab === 'history' && (
             <div className="history-content">
-              {hotspotsLoading ? (
-                <HotspotSkeletonList count={1} />
+              {claimedLoading && claimedHotspots.length === 0 ? (
+                <HotspotSkeletonList count={3} />
               ) : (
-                hotspots
-                  .filter(h => h.claimStatus === 'claimed')
-                  .sort((a, b) => {
-                    // Sort by claimedAt date, most recent first
-                    const dateA = a.claimedAt ? new Date(a.claimedAt).getTime() : 0;
-                    const dateB = b.claimedAt ? new Date(b.claimedAt).getTime() : 0;
-                    return dateB - dateA;
-                  })
-                  .map((hotspot, index) => (
+                <>
+                  {claimedHotspots.map((hotspot, index) => (
                   <div key={hotspot.id} data-hotspot-id={hotspot.id} className="hotspot-item claimed-hotspot" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="hotspot-header">
                       <div className="header-title-section">
@@ -2160,10 +2238,23 @@ function AdminPage() {
                       )}
                     </div>
                   </div>
-                ))
-              )}
-              {!hotspotsLoading && hotspots.filter(h => h.claimStatus === 'claimed').length === 0 && (
-                <p className="empty-message">No claimed PINGs yet.</p>
+                ))}
+                
+                {/* Load More Button */}
+                {claimedHasMore && (
+                  <button
+                    onClick={() => fetchClaimedHotspots(claimedOffset, true)}
+                    className="load-more-btn"
+                    disabled={claimedLoading}
+                  >
+                    {claimedLoading ? 'Loading...' : 'Load More'}
+                  </button>
+                )}
+                
+                {!claimedLoading && claimedHotspots.length === 0 && (
+                  <p className="empty-message">No claimed PINGs yet.</p>
+                )}
+                </>
               )}
             </div>
           )}
@@ -2178,7 +2269,19 @@ function AdminPage() {
                   <span className="log-time">{formatDate(log.timestamp)}</span>
                 </div>
               ))}
-              {logs.length === 0 && (
+              
+              {/* Load More Button */}
+              {logsHasMore && (
+                <button
+                  onClick={() => fetchLogs(logsOffset, true)}
+                  className="load-more-btn"
+                  disabled={logsLoading}
+                >
+                  {logsLoading ? 'Loading...' : 'Load More'}
+                </button>
+              )}
+              
+              {logs.length === 0 && !logsLoading && (
                 <p className="empty-message">No activity yet.</p>
               )}
             </div>

@@ -1022,6 +1022,36 @@ input:checked + .toggle-slider:before {
   margin-bottom: 12px;
 }
 
+/* Load More Button */
+.load-more-btn {
+  width: 100%;
+  padding: 12px 20px;
+  margin-top: 20px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  color: #ffd700;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.load-more-btn:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+.load-more-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .empty-message {
   color: #808080;
   font-style: italic;
