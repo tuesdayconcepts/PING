@@ -97,29 +97,27 @@ export const NotificationPrompt: React.FC<NotificationPromptProps> = ({ userType
         <div className="notification-prompt-sections">
           {/* Combined Header and Body section */}
           <div className="notification-prompt-header-section">
-            <h3>Enable Notifications</h3>
+            <h3>ENABLE ALERTS</h3>
             <p>
-              {userType === 'user' 
-                ? 'Get notified when new PINGs are available!'
-                : 'Get notified when claims need approval and other admin events.'}
+              Get push notifications when pings are claimed, treasury wallet runs low on funds, and other time sensitive events.
             </p>
           </div>
           
           {/* Actions section */}
           <div className="notification-prompt-actions">
             <button 
+              className="notification-prompt-enable" 
+              onClick={handleEnable}
+              disabled={isRequesting}
+            >
+              {isRequesting ? 'Enabling...' : 'ENABLE ALERTS'}
+            </button>
+            <button 
               className="notification-prompt-later" 
               onClick={handleLater}
               disabled={isRequesting}
             >
               LATER
-            </button>
-            <button 
-              className="notification-prompt-enable" 
-              onClick={handleEnable}
-              disabled={isRequesting}
-            >
-              {isRequesting ? 'Enabling...' : 'ENABLE'}
             </button>
           </div>
         </div>
