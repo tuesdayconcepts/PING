@@ -97,6 +97,7 @@ model TreasuryTransferLog {
 model AdminLog {
   id        String   @id @default(uuid())
   adminId   String
+  username  String?  // Username of admin who performed action (added for new logs)
   action    String   // CREATE, UPDATE, DELETE
   entity    String   // Hotspot
   entityId  String

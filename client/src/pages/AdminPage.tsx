@@ -2335,6 +2335,7 @@ function AdminPage() {
             <div className="activity-content">
               {logs.map((log) => (
                 <div key={log.id} className="log-item">
+                  <span className="log-username">{log.username || 'Unknown'}</span>
                   <span className="log-action">{log.action}</span>
                   <span className="log-details">{log.details || `${log.entity} ${log.entityId}`}</span>
                   <span className="log-time">{formatDate(log.timestamp)}</span>

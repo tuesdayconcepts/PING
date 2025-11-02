@@ -225,9 +225,16 @@ const logAdminAction = async (
   entityId: string,
   details?: string
 ) => {
+  // Fetch username to include in log
+  const admin = await prisma.admin.findUnique({
+    where: { id: adminId },
+    select: { username: true },
+  });
+
   await prisma.adminLog.create({
     data: {
       adminId,
+      username: admin?.username || null, // Include username from Admin table
       action,
       entity,
       entityId,
@@ -1232,15 +1239,13 @@ app.post("/api/admin/users", authenticateAdmin, requireAdmin, async (req, res) =
     });
 
     // Log the action
-    await prisma.adminLog.create({
-      data: {
-        adminId: req.adminId!, // Non-null assertion: authenticateAdmin middleware guarantees this is set
-        action: "CREATE",
-        entity: "Admin",
-        entityId: newUser.id,
-        details: `Created ${role} user: ${username}`,
-      },
-    });
+    await logAdminAction(
+      req.adminId!,
+      "CREATE",
+      "Admin",
+      newUser.id,
+      `Created ${role} user: ${username}`
+    );
 
     res.json(newUser);
   } catch (error) {
@@ -1276,15 +1281,13 @@ app.put("/api/admin/users/:id/role", authenticateAdmin, requireAdmin, async (req
     });
 
     // Log the action
-    await prisma.adminLog.create({
-      data: {
-        adminId: req.adminId!, // Non-null assertion: authenticateAdmin middleware guarantees this is set
-        action: "UPDATE",
-        entity: "Admin",
-        entityId: id,
-        details: `Changed role to ${role} for user: ${user.username}`,
-      },
-    });
+    await logAdminAction(
+      req.adminId!,
+      "UPDATE",
+      "Admin",
+      id,
+      `Changed role to ${role} for user: ${user.username}`
+    );
 
     res.json(user);
   } catch (error) {
@@ -1317,15 +1320,13 @@ app.delete("/api/admin/users/:id", authenticateAdmin, requireAdmin, async (req, 
     });
 
     // Log the action
-    await prisma.adminLog.create({
-      data: {
-        adminId: req.adminId!, // Non-null assertion: authenticateAdmin middleware guarantees this is set
-        action: "DELETE",
-        entity: "Admin",
-        entityId: id,
-        details: `Deleted user: ${user.username}`,
-      },
-    });
+    await logAdminAction(
+      req.adminId!,
+      "DELETE",
+      "Admin",
+      id,
+      `Deleted user: ${user.username}`
+    );
 
     res.json({ message: "User deleted successfully" });
   } catch (error) {
@@ -1705,15 +1706,13 @@ app.put("/api/admin/hints/settings", authenticateAdmin, async (req, res) => {
     });
 
     // Log admin action
-    await prisma.adminLog.create({
-      data: {
-        adminId: req.adminId!,
-        action: "UPDATE",
-        entity: "HintSettings",
-        entityId: "singleton",
-        details: "Updated hint system configuration",
-      },
-    });
+    await logAdminAction(
+      req.adminId!,
+      "UPDATE",
+      "HintSettings",
+      "singleton",
+      "Updated hint system configuration"
+    );
 
     res.json(settings);
   } catch (error) {

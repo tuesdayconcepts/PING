@@ -386,6 +386,13 @@
   border-bottom: none;
 }
 
+.log-username {
+  font-weight: bold;
+  color: #ffffff;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
 .log-action {
   font-weight: bold;
   color: #ffd700;
