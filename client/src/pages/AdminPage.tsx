@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -87,6 +87,7 @@ function AdminPage() {
   const [copiedPrivateKeyId, setCopiedPrivateKeyId] = useState<string | null>(null);
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNotificationSubscribed, setIsNotificationSubscribed] = useState(false);
   
   // State for sliding tab indicator
   const [indicatorReady, setIndicatorReady] = useState(false);
@@ -202,6 +203,25 @@ function AdminPage() {
       });
     }
   }, []);
+
+  // Check notification subscription status
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const subscription = await registration.pushManager.getSubscription();
+          setIsNotificationSubscribed(!!subscription);
+        } catch (err) {
+          console.error('[Push] Error checking subscription:', err);
+        }
+      }
+    };
+    
+    if (isAuthenticated) {
+      checkSubscriptionStatus();
+    }
+  }, [isAuthenticated]);
 
   // Poll for pending claims every 30 seconds (reduced from 10s)
   useEffect(() => {
@@ -434,6 +454,49 @@ function AdminPage() {
     setCurrentUserRole('editor'); // Reset role to default on logout
     setHotspots([]);
     setLogs([]);
+  };
+
+  // Toggle notification subscription
+  const toggleNotifications = async () => {
+    if (!isNotificationSupported()) {
+      showToast('Push notifications not supported on this device', 'error');
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      
+      if (isNotificationSubscribed) {
+        // Unsubscribe
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+          setIsNotificationSubscribed(false);
+          showToast('Push notifications disabled', 'success');
+        }
+      } else {
+        // Subscribe
+        const permission = getNotificationPermission();
+        if (permission !== 'granted') {
+          showToast('Please enable notifications in your browser settings', 'error');
+          return;
+        }
+
+        const token = getToken();
+        if (token) {
+          const tokenPayload = token.split('.')[1];
+          const decoded = JSON.parse(atob(tokenPayload));
+          const adminId = decoded.adminId;
+          
+          await subscribeToPush(registration, 'admin', adminId);
+          setIsNotificationSubscribed(true);
+          showToast('Push notifications enabled', 'success');
+        }
+      }
+    } catch (err) {
+      console.error('[Push] Error toggling notifications:', err);
+      showToast('Failed to toggle notifications', 'error');
+    }
   };
 
   // Fetch hotspots (all, including inactive)
@@ -1249,6 +1312,9 @@ function AdminPage() {
           <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
             <LocateFixed size={24} />
           </button>
+          <button onClick={toggleNotifications} className="center-btn" aria-label="Toggle notifications">
+            {isNotificationSubscribed ? <BellOff size={24} /> : <Bell size={24} />}
+          </button>
           <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
             <LogOut size={24} />
           </button>
@@ -1320,6 +1386,9 @@ function AdminPage() {
           <div className="header-actions">
             <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
               <LocateFixed size={24} />
+            </button>
+            <button onClick={toggleNotifications} className="center-btn" aria-label="Toggle notifications">
+              {isNotificationSubscribed ? <BellOff size={24} /> : <Bell size={24} />}
             </button>
             <button onClick={handleLogout} className="logout-btn" aria-label="Logout">
               <LogOut size={24} />
