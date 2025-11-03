@@ -105,8 +105,29 @@ self.addEventListener('notificationclick', (event) => {
 
 // Fetch event - handle network requests (optional caching)
 self.addEventListener('fetch', (event) => {
-  // Optional: Add caching logic here for offline support
-  // For now, we'll just pass through to network
-  event.respondWith(fetch(event.request));
+  const url = new URL(event.request.url);
+  
+  // Skip API requests - let browser handle them directly to avoid CORS issues in SW context
+  // This prevents CORS errors from appearing in service worker console
+  if (url.origin.includes('ping-production-0deb.up.railway.app') || 
+      url.origin.includes('localhost:8080') ||
+      url.pathname.startsWith('/api/')) {
+    // Don't intercept API requests - let them pass through to browser
+    return;
+  }
+  
+  // Only intercept navigation requests (for offline support) and app resources
+  // Navigation requests are typically HTML pages
+  if (event.request.mode === 'navigate') {
+    // Try network first, fallback to cache for navigation
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match('/index.html');
+      })
+    );
+  } else {
+    // For other resources (JS, CSS, images), try network first
+    event.respondWith(fetch(event.request));
+  }
 });
 

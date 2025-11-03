@@ -14,6 +14,7 @@ import { MenuContent } from '../components/MenuContent';
 import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import { NotificationPrompt } from '../components/NotificationPrompt';
+import { useToast } from '../components/Toast';
 import './MapPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -95,6 +96,11 @@ function MapPage() {
   const [claimedAt, setClaimedAt] = useState<string>('');
   const [locationName, setLocationName] = useState<string>('');
   const [showHintModal, setShowHintModal] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
+  
+  // Toast functionality
+  const { showToast } = useToast();
 
   // Extract Twitter handle from tweet URL
   const extractTwitterHandle = (tweetUrl: string): string => {
@@ -317,7 +323,8 @@ function MapPage() {
     }
   };
 
-  const fetchHotspots = async () => {
+  // Fetch hotspots with automatic retry logic
+  const fetchHotspots = async (isRetry: boolean = false, retryAttempt: number = 0) => {
     try {
       const response = await fetch(`${API_URL}/api/hotspots`);
       if (!response.ok) {
@@ -342,11 +349,47 @@ function MapPage() {
         // Geolocation will only be requested when user clicks "Get My Location" button
       }
 
+      // Reset error state and retry count on success
+      setError(null);
+      setRetryCount(0);
+      setIsRetrying(false);
       setLoading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      setLoading(false);
-      setMarkersLoaded(true);
+      // Check if it's a network/CORS error
+      const isNetworkError = err instanceof TypeError && 
+        (err.message.includes('Failed to fetch') || 
+         err.message.includes('NetworkError') ||
+         err.message.includes('CORS'));
+      
+      // For network errors, implement auto-retry with exponential backoff
+      if (isNetworkError && retryAttempt < 4) {
+        const delays = [1000, 2000, 4000, 8000]; // 1s, 2s, 4s, 8s
+        const delay = delays[retryAttempt];
+        
+        setIsRetrying(true);
+        setRetryCount(retryAttempt + 1);
+        
+        // Show subtle toast notification
+        if (retryAttempt === 0) {
+          showToast('Connection issue. Retrying...', 'info', 2000);
+        }
+        
+        // Retry after delay
+        setTimeout(() => {
+          fetchHotspots(true, retryAttempt + 1);
+        }, delay);
+      } else {
+        // Max retries reached or non-network error - show empty state gracefully
+        setError(null); // Don't show error modal
+        setLoading(false);
+        setMarkersLoaded(true);
+        setIsRetrying(false);
+        
+        // Only show toast if we exhausted retries (not on first failure)
+        if (retryAttempt > 0) {
+          showToast('Unable to connect. Showing cached data if available.', 'error', 4000);
+        }
+      }
     }
   };
 
@@ -579,10 +622,12 @@ function MapPage() {
         </div>
       )}
 
+      {/* Only show error modal for critical non-network errors (network errors use toast + auto-retry) */}
+      {/* Network errors are handled via toast notifications and don't set error state */}
       {error && (
         <div className="map-overlay error">
           <p>Error: {error}</p>
-          <button onClick={fetchHotspots}>Retry</button>
+          <button onClick={() => fetchHotspots(false, 0)}>Retry</button>
         </div>
       )}
 

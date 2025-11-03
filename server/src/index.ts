@@ -26,9 +26,25 @@ const prisma = new PrismaClient();
 // Trust Railway proxy
 app.set('trust proxy', 1);
 
+// CORS configuration - explicitly allow production domain
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['https://solping.netlify.app', 'http://localhost:5173', 'http://localhost:3000', '*'];
+
 // Middleware
 app.use(cors({
-  origin: '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, etc.) in development
+    if (!origin && (process.env.NODE_ENV === 'development' || allowedOrigins.includes('*'))) {
+      return callback(null, true);
+    }
+    // Check if origin is in allowed list or wildcard is present
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin || '')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
