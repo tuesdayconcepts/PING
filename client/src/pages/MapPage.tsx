@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { subscribeToPush, isNotificationSupported, getNotificationPermission } from '../utils/pushNotifications';
 import { GoogleMap, useJsApiLoader, DirectionsRenderer } from '@react-google-maps/api';
 import Confetti from 'react-confetti';
@@ -588,7 +588,9 @@ function MapPage() {
       
       {/* Navigation Bar */}
       <nav className="map-nav">
-        <img src="/logo/ping-logo.svg" alt="PING Logo" className="nav-logo" />
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <img src="/logo/ping-logo.svg" alt="PING Logo" className="nav-logo" />
+        </Link>
         <button 
           className={`hamburger-menu ${mobileMenuOpen ? 'open' : ''}`}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
