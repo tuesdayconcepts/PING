@@ -1528,7 +1528,7 @@ function AdminPage() {
                       <div className="hotspot-footer">
                         <p className="hotspot-prize">
                           <Gift size={20} />
-                          {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}
+                          {hotspot.prize ? `${hotspot.prize} SOL` : '0 SOL'}
                         </p>
                         {/* Funding summary removed from footer per request */}
                         <div className="hotspot-actions">
@@ -2164,7 +2164,7 @@ function AdminPage() {
                       <div className="hotspot-footer">
                         <p className="hotspot-prize">
                           <Gift size={20} />
-                          {hotspot.prize ? `${hotspot.prize} SOL` : 'N/A'}
+                          {hotspot.prize ? `${hotspot.prize} SOL` : '0 SOL'}
                         </p>
                         <div className="hotspot-actions">
                           {/* Copy Share Link */}
