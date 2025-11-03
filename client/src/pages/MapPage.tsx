@@ -96,8 +96,6 @@ function MapPage() {
   const [claimedAt, setClaimedAt] = useState<string>('');
   const [locationName, setLocationName] = useState<string>('');
   const [showHintModal, setShowHintModal] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-  const [isRetrying, setIsRetrying] = useState(false);
   
   // Toast functionality
   const { showToast } = useToast();
@@ -324,7 +322,7 @@ function MapPage() {
   };
 
   // Fetch hotspots with automatic retry logic
-  const fetchHotspots = async (isRetry: boolean = false, retryAttempt: number = 0) => {
+  const fetchHotspots = async (retryAttempt: number = 0) => {
     try {
       const response = await fetch(`${API_URL}/api/hotspots`);
       if (!response.ok) {
@@ -349,10 +347,8 @@ function MapPage() {
         // Geolocation will only be requested when user clicks "Get My Location" button
       }
 
-      // Reset error state and retry count on success
+      // Reset error state on success
       setError(null);
-      setRetryCount(0);
-      setIsRetrying(false);
       setLoading(false);
     } catch (err) {
       // Check if it's a network/CORS error
@@ -366,9 +362,6 @@ function MapPage() {
         const delays = [1000, 2000, 4000, 8000]; // 1s, 2s, 4s, 8s
         const delay = delays[retryAttempt];
         
-        setIsRetrying(true);
-        setRetryCount(retryAttempt + 1);
-        
         // Show subtle toast notification
         if (retryAttempt === 0) {
           showToast('Connection issue. Retrying...', 'info', 2000);
@@ -376,14 +369,13 @@ function MapPage() {
         
         // Retry after delay
         setTimeout(() => {
-          fetchHotspots(true, retryAttempt + 1);
+          fetchHotspots(retryAttempt + 1);
         }, delay);
       } else {
         // Max retries reached or non-network error - show empty state gracefully
         setError(null); // Don't show error modal
         setLoading(false);
         setMarkersLoaded(true);
-        setIsRetrying(false);
         
         // Only show toast if we exhausted retries (not on first failure)
         if (retryAttempt > 0) {
@@ -627,7 +619,7 @@ function MapPage() {
       {error && (
         <div className="map-overlay error">
           <p>Error: {error}</p>
-          <button onClick={() => fetchHotspots(false, 0)}>Retry</button>
+          <button onClick={() => fetchHotspots(0)}>Retry</button>
         </div>
       )}
 
