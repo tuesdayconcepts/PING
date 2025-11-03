@@ -778,17 +778,21 @@ function MapPage() {
               {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not queued, and not share routes */}
               {/* Show when unclaimed OR when there's a claim error (someone else claimed it) */}
               {id && !isShareRoute && selectedHotspot.queuePosition === 1 && (claimStatus === 'unclaimed' || claimError) && (
-                <div className="modal-section modal-actions">
+                <>
                   {claimError && (
-                    <p className="claim-error">{claimError}</p>
+                    <div className="modal-section">
+                      <p className="claim-error">{claimError}</p>
+                    </div>
                   )}
-                  <button 
-                    className={claimError ? "view-active-btn" : "claim-btn"} 
-                    onClick={claimError ? () => window.location.href = '/' : handleClaim}
-                  >
-                    {claimError ? 'View Active PING' : 'Claim Prize'}
-                  </button>
-                </div>
+                  <div className="modal-section modal-actions">
+                    <button 
+                      className={claimError ? "view-active-btn" : "claim-btn"} 
+                      onClick={claimError ? () => window.location.href = '/' : handleClaim}
+                    >
+                      {claimError ? 'View Active PING' : 'Claim Prize'}
+                    </button>
+                  </div>
+                </>
               )}
 
               {claimStatus === 'pending' && (
