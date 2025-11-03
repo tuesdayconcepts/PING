@@ -2136,18 +2136,6 @@ function AdminPage() {
                       <div className="claim-info-grid">
                         <p><strong>Claimed by:</strong> {hotspot.claimedBy || 'Unknown'}</p>
                         <p><strong>Claimed at:</strong> {hotspot.claimedAt ? formatDate(hotspot.claimedAt) : 'N/A'}</p>
-                        {hotspot.prizePublicKey && (
-                          <p>
-                            <strong>Balance:</strong> <span>{walletBalances[hotspot.prizePublicKey] !== undefined ? `${walletBalances[hotspot.prizePublicKey].toFixed(1)} SOL` : '—'}</span>
-                            <button 
-                              className="action-icon-btn" 
-                              onClick={() => hotspot.prizePublicKey && fetchWalletBalance(hotspot.prizePublicKey)}
-                              aria-label="Refresh balance"
-                            >
-                              ↻
-                            </button>
-                          </p>
-                        )}
                         <p>
                           <strong>Funding:</strong> {(hotspot.fundStatus || 'pending').toUpperCase()}
                           {hotspot.fundedAt && (
@@ -2157,6 +2145,18 @@ function AdminPage() {
                             <> · <a href={`https://solscan.io/tx/${hotspot.fundTxSig}`} target="_blank" rel="noopener noreferrer">tx</a></>
                           )}
                         </p>
+                        {hotspot.prizePublicKey && (
+                          <p>
+                            <strong>Wallet balance:</strong> <span>{walletBalances[hotspot.prizePublicKey] !== undefined ? `${walletBalances[hotspot.prizePublicKey].toFixed(1)} SOL` : '—'}</span>
+                            <button 
+                              className="action-icon-btn" 
+                              onClick={() => hotspot.prizePublicKey && fetchWalletBalance(hotspot.prizePublicKey)}
+                              aria-label="Refresh balance"
+                            >
+                              ↻
+                            </button>
+                          </p>
+                        )}
                         {/* admin-only actions moved to footer as icon */}
                       </div>
 
