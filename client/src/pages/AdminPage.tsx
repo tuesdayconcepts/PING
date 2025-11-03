@@ -487,7 +487,7 @@ function AdminPage() {
     return {
       username,
       actionText,
-      titleLine: title ? `Ping ${title}` : null,
+      titleLine: title ? `${title} Ping` : null,
       timeLine: formatDate(log.timestamp)
     };
   };
