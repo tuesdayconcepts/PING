@@ -397,6 +397,7 @@ function MapPage() {
         }
       } else if (hotspot.claimStatus === 'claimed') {
         // Different user or no session - show error
+        setClaimStatus('claimed'); // Set status to claimed so modal-claim-intro doesn't show
         setClaimError('This PING has already been claimed by someone else.');
       } else if (hotspot.claimStatus === 'pending') {
         setClaimStatus('pending');
@@ -680,7 +681,7 @@ function MapPage() {
               ) : (
                 <>
                   {/* Show congratulations for claim flow (unique URLs), otherwise show all sections */}
-                  {claimStatus === 'unclaimed' && id && !isShareRoute && selectedHotspot.queuePosition === 1 ? (
+                  {claimStatus === 'unclaimed' && selectedHotspot.claimStatus === 'unclaimed' && id && !isShareRoute && selectedHotspot.queuePosition === 1 ? (
                     <div className="modal-section modal-claim-intro">
                       <h3>GREAT JOB!</h3>
                       <p>You found the PING! That means you are almost <span className="prize-amount">{selectedHotspot.prize} SOL</span> richer!</p>
@@ -775,7 +776,8 @@ function MapPage() {
 
               {/* Action section - Different states */}
               {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not queued, and not share routes */}
-              {claimStatus === 'unclaimed' && id && !isShareRoute && selectedHotspot.queuePosition === 1 && (
+              {/* Show when unclaimed OR when there's a claim error (someone else claimed it) */}
+              {id && !isShareRoute && selectedHotspot.queuePosition === 1 && (claimStatus === 'unclaimed' || claimError) && (
                 <div className="modal-section modal-actions">
                   {claimError && (
                     <p className="claim-error">{claimError}</p>
