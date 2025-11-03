@@ -878,8 +878,8 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
 /* Claim Error */
 .claim-error-section {
   text-align: center;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
-  border: 2px solid rgba(255, 215, 0, 0.3);
+  background: #ffffff40;
+  border: 2px solid rgb(255 255 255 / 11%);
   border-radius: 20px;
   padding: 28px 24px;
 }
