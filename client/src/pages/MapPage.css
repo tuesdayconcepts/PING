@@ -876,15 +876,27 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
 }
 
 /* Claim Error */
-.claim-error {
-  background: rgba(231, 76, 60, 0.2);
-  border: 1px solid rgba(231, 76, 60, 0.5);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 15px;
-  color: #e74c3c;
-  font-size: 0.95rem;
+.claim-error-section {
   text-align: center;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 20px;
+  padding: 28px 24px;
+}
+
+.claim-error-section h2 {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.claim-error-text {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 /* Claim Intro State */

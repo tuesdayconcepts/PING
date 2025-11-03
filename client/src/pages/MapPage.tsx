@@ -780,8 +780,9 @@ function MapPage() {
               {id && !isShareRoute && selectedHotspot.queuePosition === 1 && (claimStatus === 'unclaimed' || claimError) && (
                 <>
                   {claimError && (
-                    <div className="modal-section">
-                      <p className="claim-error">{claimError}</p>
+                    <div className="modal-section claim-error-section">
+                      <h2>PING Already Claimed</h2>
+                      <p className="claim-error-text">{claimError}</p>
                     </div>
                   )}
                   <div className="modal-section modal-actions">
