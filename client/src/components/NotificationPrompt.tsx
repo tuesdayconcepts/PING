@@ -60,20 +60,48 @@ export const NotificationPrompt: React.FC<NotificationPromptProps> = ({ userType
     setIsRequesting(true);
     try {
       const permission = await requestNotificationPermission();
-      if (permission === 'granted') {
+      console.log('[Push] Permission result:', permission);
+      
+      // Re-check permission status after request (some browsers may have async issues)
+      const currentPermission = getNotificationPermission();
+      console.log('[Push] Current permission status:', currentPermission);
+      
+      if (permission === 'granted' || currentPermission === 'granted') {
         const registration = await registerServiceWorker();
-        if (registration) {
-          await subscribeToPush(registration, userType, userId);
-          showToast('Notifications enabled!', 'success');
+        if (!registration) {
+          console.error('[Push] Service worker registration failed');
+          showToast('Failed to register service worker. Please try again.', 'error');
+          setIsRequesting(false);
+          return;
         }
-      } else {
+        
+        const subscription = await subscribeToPush(registration, userType, userId);
+        if (!subscription) {
+          console.error('[Push] Failed to subscribe to push notifications');
+          showToast('Failed to subscribe to notifications. Please try again.', 'error');
+          setIsRequesting(false);
+          return;
+        }
+        
+        showToast('Notifications enabled!', 'success');
+        setShowPrompt(false);
+        if (onDismiss) onDismiss();
+      } else if (permission === 'denied' || currentPermission === 'denied') {
+        // Only show error if explicitly denied
         showToast('Notification permission denied', 'error');
+        setShowPrompt(false);
+        if (onDismiss) onDismiss();
+      } else {
+        // Permission is 'default' - user dismissed dialog, don't show error
+        // Just close the prompt silently
+        setShowPrompt(false);
+        if (onDismiss) onDismiss();
       }
-      setShowPrompt(false);
-      if (onDismiss) onDismiss();
     } catch (error) {
       console.error('[Push] Error enabling notifications:', error);
       showToast('Failed to enable notifications', 'error');
+      setShowPrompt(false);
+      if (onDismiss) onDismiss();
     } finally {
       setIsRequesting(false);
     }
