@@ -15,6 +15,132 @@ import './AdminPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+// Preview Marker Component (cursor-style: circle with crosshair)
+interface PreviewMarkerProps {
+  position: { lat: number; lng: number };
+  map: google.maps.Map;
+}
+
+const PreviewMarker: React.FC<PreviewMarkerProps> = ({ position, map }) => {
+  const overlayRef = useRef<google.maps.OverlayView | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    class PreviewOverlay extends google.maps.OverlayView {
+      position: google.maps.LatLng;
+      containerDiv: HTMLDivElement | null = null;
+
+      constructor(position: google.maps.LatLng) {
+        super();
+        this.position = position;
+      }
+
+      onAdd() {
+        const div = document.createElement('div');
+        div.style.cssText = `
+          width: 32px;
+          height: 32px;
+          position: absolute;
+          cursor: pointer;
+        `;
+        
+        // Create SVG matching the cursor style
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '32');
+        svg.setAttribute('height', '32');
+        svg.setAttribute('viewBox', '0 0 32 32');
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        
+        // Defs for blur filter
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+        filter.setAttribute('id', 'preview-blur');
+        const blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+        blur.setAttribute('in', 'SourceGraphic');
+        blur.setAttribute('stdDeviation', '2');
+        filter.appendChild(blur);
+        defs.appendChild(filter);
+        svg.appendChild(defs);
+        
+        // Blurred white circle background
+        const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        bgCircle.setAttribute('cx', '16');
+        bgCircle.setAttribute('cy', '16');
+        bgCircle.setAttribute('r', '15');
+        bgCircle.setAttribute('fill', 'rgba(255,255,255,0.19)');
+        bgCircle.setAttribute('filter', 'url(#preview-blur)');
+        svg.appendChild(bgCircle);
+        
+        // Yellow circle stroke
+        const strokeCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        strokeCircle.setAttribute('cx', '16');
+        strokeCircle.setAttribute('cy', '16');
+        strokeCircle.setAttribute('r', '14');
+        strokeCircle.setAttribute('fill', 'none');
+        strokeCircle.setAttribute('stroke', 'rgba(255,215,0,0.9)');
+        strokeCircle.setAttribute('stroke-width', '2');
+        svg.appendChild(strokeCircle);
+        
+        // Vertical line (crosshair)
+        const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        vLine.setAttribute('x1', '16');
+        vLine.setAttribute('y1', '10');
+        vLine.setAttribute('x2', '16');
+        vLine.setAttribute('y2', '22');
+        vLine.setAttribute('stroke', 'rgba(255,215,0,0.9)');
+        vLine.setAttribute('stroke-width', '2.5');
+        vLine.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(vLine);
+        
+        // Horizontal line (crosshair)
+        const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        hLine.setAttribute('x1', '10');
+        hLine.setAttribute('y1', '16');
+        hLine.setAttribute('x2', '22');
+        hLine.setAttribute('y2', '16');
+        hLine.setAttribute('stroke', 'rgba(255,215,0,0.9)');
+        hLine.setAttribute('stroke-width', '2.5');
+        hLine.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(hLine);
+        
+        div.appendChild(svg);
+        this.containerDiv = div;
+        const panes = this.getPanes();
+        panes?.overlayMouseTarget.appendChild(div);
+      }
+
+      draw() {
+        if (!this.containerDiv) return;
+        const overlayProjection = this.getProjection();
+        const pos = overlayProjection.fromLatLngToDivPixel(this.position);
+        if (pos) {
+          const offset = 16; // Half of 32px
+          this.containerDiv.style.left = (pos.x - offset) + 'px';
+          this.containerDiv.style.top = (pos.y - offset) + 'px';
+        }
+      }
+
+      onRemove() {
+        if (this.containerDiv) {
+          this.containerDiv.parentNode?.removeChild(this.containerDiv);
+          this.containerDiv = null;
+        }
+      }
+    }
+
+    const overlay = new PreviewOverlay(new google.maps.LatLng(position.lat, position.lng));
+    overlay.setMap(map);
+    overlayRef.current = overlay;
+
+    return () => {
+      overlay.setMap(null);
+    };
+  }, [map, position.lat, position.lng]);
+
+  return null;
+};
+
 // User Location Marker Component (white circle with yellow stroke)
 interface UserLocationMarkerProps {
   position: { lat: number; lng: number };
@@ -1542,14 +1668,11 @@ function AdminPage() {
                 />
               ))}
             
-            {/* Preview marker for create mode only (not for edit mode) */}
-            {previewMarker && formMode === 'create' && (
-              <CustomMarker
+            {/* Preview marker for create mode only (not for edit mode) - shows cursor style */}
+            {previewMarker && formMode === 'create' && adminMapInstance && (
+              <PreviewMarker
                 position={previewMarker}
-                isActive={false}
-                onClick={() => {}} // No action on preview marker
-                map={adminMapInstance || undefined}
-                claimType={formData.claimType || 'nfc'}
+                map={adminMapInstance}
               />
             )}
 
