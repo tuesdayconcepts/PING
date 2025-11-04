@@ -2359,7 +2359,7 @@ function AdminPage() {
                           <SmartphoneNfc size={50} />
                         </div>
                         <div className="claim-type-content">
-                          <strong>NFC Card</strong>
+                          <strong>NFC PING</strong>
                           <p>Physical NFC card that users tap to discover</p>
                         </div>
                       </div>
@@ -2371,7 +2371,7 @@ function AdminPage() {
                           <Radio size={50} />
                         </div>
                         <div className="claim-type-content">
-                          <strong>Proximity Based</strong>
+                          <strong>PROXIMITY PING</strong>
                           <p>Location-based discovery using GPS</p>
                         </div>
                       </div>
