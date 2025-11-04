@@ -1886,9 +1886,8 @@ function AdminPage() {
                   {hotspots
                     .filter(h => h.claimStatus !== 'claimed')
                     .sort((a, b) => {
-                      // Sort: active first, then by creation date (newest first)
-                      if (a.active !== b.active) return a.active ? -1 : 1;
-                      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+                      // Sort by creation date (oldest first) - maintain chronological order regardless of status
+                      return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
                     })
                     .map((hotspot, index) => {
                   const nfcUrl = `${window.location.origin}/ping/${hotspot.id}`;
