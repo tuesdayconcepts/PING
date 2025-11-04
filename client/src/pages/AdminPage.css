@@ -538,7 +538,7 @@
   z-index: 2;
 }
 
-/* Add subtle background layer for depth effect */
+/* Add subtle background layer for depth effect (green circle behind white thumb when active) */
 .active-toggle.active::before {
   content: '';
   position: absolute;
@@ -548,13 +548,14 @@
   height: 20px;
   background: #4ade80;
   border-radius: 50%;
-  opacity: 0.3;
+  opacity: 0.4;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
 }
 
 .active-toggle.active .toggle-slider {
   transform: translateX(20px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .active-toggle.active::before {
