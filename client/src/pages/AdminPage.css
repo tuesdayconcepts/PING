@@ -2141,7 +2141,7 @@ input:checked + .toggle-slider:before {
   display: flex;
   justify-content: center;
   margin-bottom: 16px;
-  color: #8e9bff;
+  color: #ffd700;
 }
 
 .claim-type-card h4 {
@@ -2171,7 +2171,7 @@ input:checked + .toggle-slider:before {
 }
 
 .claim-type-badge svg {
-  color: #8e9bff;
+  color: #ffd700;
 }
 
 @media (max-width: 768px) {

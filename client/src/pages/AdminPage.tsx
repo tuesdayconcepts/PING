@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, Radio, Waves, Navigation } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, SmartphoneNfc, Radar, Navigation } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -1739,12 +1739,12 @@ function AdminPage() {
                               <div className="claim-type-badge">
                                 {selectedHotspot?.claimType === 'proximity' ? (
                                   <>
-                                    <Waves size={16} />
+                                    <Radar size={16} />
                                     <span>Proximity Based</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Radio size={16} />
+                                    <SmartphoneNfc size={16} />
                                     <span>NFC Card</span>
                                   </>
                                 )}
@@ -2033,7 +2033,7 @@ function AdminPage() {
                         onClick={() => handleClaimTypeSelect('nfc')}
                       >
                         <div className="claim-type-icon">
-                          <Radio size={48} />
+                          <SmartphoneNfc size={48} />
                         </div>
                         <h4>NFC Card</h4>
                         <p>Physical NFC card that users tap to discover</p>
@@ -2043,7 +2043,7 @@ function AdminPage() {
                         onClick={() => handleClaimTypeSelect('proximity')}
                       >
                         <div className="claim-type-icon">
-                          <Waves size={48} />
+                          <Radar size={48} />
                         </div>
                         <h4>Proximity Based</h4>
                         <p>Location-based discovery using GPS</p>
@@ -2110,12 +2110,12 @@ function AdminPage() {
                       <div className="claim-type-badge">
                         {formData.claimType === 'nfc' ? (
                           <>
-                            <Radio size={16} />
+                            <SmartphoneNfc size={16} />
                             <span>NFC Card</span>
                           </>
                         ) : (
                           <>
-                            <Waves size={16} />
+                            <Radar size={16} />
                             <span>Proximity Based</span>
                           </>
                         )}
