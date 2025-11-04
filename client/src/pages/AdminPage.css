@@ -2119,16 +2119,16 @@ input:checked + .toggle-slider:before {
 .claim-type-options {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .claim-type-card {
   background: #ffffff1a;
-  border: 2px solid rgb(255 255 255 / 11%);
+  border: 2px solid rgb(255 255 255 / 4%);
   border-radius: 20px;
   padding: 16px 20px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all .3s ease;
   display: flex;
   align-items: center;
   gap: 20px;
@@ -2160,16 +2160,16 @@ input:checked + .toggle-slider:before {
 }
 
 .claim-type-content strong {
-  color: #ffffff;
-  font-size: 1rem;
+  color: #fff;
+  font-size: 0.9rem;
   font-weight: 600;
   margin: 0;
 }
 
 .claim-type-card p {
   margin: 0;
-  color: #b0b0b0;
-  font-size: 0.85rem;
+  color: #ffffff9e;
+  font-size: .85rem;
   line-height: 1.4;
 }
 
