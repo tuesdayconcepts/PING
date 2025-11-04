@@ -982,8 +982,7 @@ function MapPage() {
                       )}
                     </>
                   )}
-                </>
-              )}
+              </>
 
               {/* Action section - Different states */}
               {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not share routes */}

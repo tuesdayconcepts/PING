@@ -245,19 +245,8 @@ const serializeBigInts = (input: any): any => {
 
 // Reorder queue positions after a claim is approved
 const promoteNextHotspot = async () => {
-  // Get all unclaimed hotspots ordered by current queue position
-  const unclaimedHotspots = await prisma.hotspot.findMany({
-    where: { claimStatus: 'unclaimed' },
-    orderBy: { queuePosition: 'asc' },
-  });
-
-  // Update queue positions to be sequential: 1, 2, 3...
-  for (let i = 0; i < unclaimedHotspots.length; i++) {
-    await prisma.hotspot.update({
-      where: { id: unclaimedHotspots[i].id },
-      data: { queuePosition: i + 1 },
-    });
-  }
+  // Queue system removed - no longer needed
+  // This function is kept for compatibility but does nothing
 };
 
 // Log admin action helper
@@ -666,7 +655,7 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
       "CREATE",
       "Hotspot",
       hotspot.id,
-      `Created hotspot: ${hotspot.title} (queue position: ${queuePosition})`
+      `Created hotspot: ${hotspot.title}`
     );
 
     // Send push notification to all users about new ping
@@ -822,19 +811,7 @@ app.delete("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
     // Delete hotspot
     await prisma.hotspot.delete({ where: { id } });
 
-    // Reorder queue positions for remaining unclaimed hotspots
-    const unclaimedHotspots = await prisma.hotspot.findMany({
-      where: { claimStatus: 'unclaimed' },
-      orderBy: { queuePosition: 'asc' },
-    });
-
-    // Update queue positions to be sequential: 1, 2, 3...
-    for (let i = 0; i < unclaimedHotspots.length; i++) {
-      await prisma.hotspot.update({
-        where: { id: unclaimedHotspots[i].id },
-        data: { queuePosition: i + 1 },
-      });
-    }
+    // Queue system removed - no longer needed
 
     // Log action
     await logAdminAction(

@@ -31,16 +31,9 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
     const color = 'gold';
     const starPath = "M344.13,6.42l80.5,217.54c3.64,9.83,11.39,17.58,21.22,21.22l217.54,80.5c8.56,3.17,8.56,15.28,0,18.45l-217.54,80.5c-9.83,3.64-17.58,11.39-21.22,21.22l-80.5,217.54c-3.17,8.56-15.28,8.56-18.45,0l-80.5-217.54c-3.64-9.83-11.39-17.58-21.22-21.22L6.42,344.13c-8.56-3.17-8.56-15.28,0-18.45l217.54-80.5c9.83-3.64,17.58-11.39,21.22-21.22L325.68,6.42c3.17-8.56,15.28,8.56,18.45,0Z";
     
-    // Calculate pulse size for proximity pings (larger than NFC for wider search area)
-    // Proximity pings: 10x claim radius (default 50m for 5m radius)
-    // NFC pings: standard 80px
-    const pulseRadius = claimType === 'proximity' 
-      ? (proximityRadius || 5) * 10 
-      : 80;
-    
-    // For proximity pings within claim radius, keep larger pulse but show center marker
-    const isWithinClaimRadius = userDistance !== null && proximityRadius !== null && userDistance <= proximityRadius;
-    const finalPulseSize = pulseRadius; // Keep consistent size, don't shrink
+    // Marker visuals:
+    // NFC pings: solid gold star when active, transparent with stroke when inactive
+    // Proximity pings: always transparent with solid stroke (larger pulse via CSS)
 
     // Create custom overlay
     class CustomOverlay extends google.maps.OverlayView {
@@ -119,7 +112,6 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
           starPathEl.setAttribute('d', starPath);
           star.appendChild(starPathEl);
           div.appendChild(star);
-        }
 
         div.addEventListener('click', (e) => {
           e.stopPropagation();
