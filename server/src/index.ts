@@ -430,10 +430,12 @@ app.get("/api/hotspots", async (req, res) => {
         ? {} 
         : { 
             active: true, 
-            queuePosition: 1, // Active ping is position 1
             claimStatus: { not: "claimed" }
           },
-      orderBy: { queuePosition: "asc" }, // Always order by queue position
+      orderBy: [
+        { active: "desc" }, // Active first
+        { createdAt: "desc" } // Then newest first
+      ],
     });
 
     // Convert BigInt fields (e.g., prizeAmountLamports) to strings
