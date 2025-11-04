@@ -1602,7 +1602,11 @@ function AdminPage() {
                           <strong>{hotspot.title}</strong>
                           {hotspot.locationName && (
                             <div className="hotspot-location">
-                              <MapPin size={12} />
+                              {hotspot.claimType === 'proximity' ? (
+                                <Radio size={12} />
+                              ) : (
+                                <SmartphoneNfc size={12} />
+                              )}
                               <span>{hotspot.locationName}</span>
                             </div>
                           )}
@@ -1733,25 +1737,6 @@ function AdminPage() {
                       {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id && (
                         <div className={`inline-form-container inline-edit-form ${formClosing ? 'closing' : ''}`} style={{ marginTop: '15px' }}>
                           <form onSubmit={handleSave}>
-                            {/* Claim Type Badge (read-only in edit mode) */}
-                            <div className="form-group">
-                              <label>Claim Type</label>
-                              <div className="claim-type-badge">
-                                {selectedHotspot?.claimType === 'proximity' ? (
-                                  <>
-                                    <Radio size={16} />
-                                    <span>Proximity Based</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <SmartphoneNfc size={16} />
-                                    <span>NFC Card</span>
-                                  </>
-                                )}
-                              </div>
-                              <small className="form-hint">Claim type cannot be changed</small>
-                            </div>
-
                             {/* Proximity Radius Input (only for proximity pings in edit mode) */}
                             {selectedHotspot?.claimType === 'proximity' && (
                               <div className="form-group">
@@ -2102,25 +2087,6 @@ function AdminPage() {
                     
                     <div className="form-hint-map">
                       Tip: Click on the map to select location
-                    </div>
-
-                    {/* Claim Type Badge (read-only in create, shows selected type) */}
-                    <div className="form-group">
-                      <label>Claim Type</label>
-                      <div className="claim-type-badge">
-                        {formData.claimType === 'nfc' ? (
-                          <>
-                            <SmartphoneNfc size={16} />
-                            <span>NFC Card</span>
-                          </>
-                        ) : (
-                          <>
-                            <Radio size={16} />
-                            <span>Proximity Based</span>
-                          </>
-                        )}
-                      </div>
-                      <small className="form-hint">Claim type cannot be changed after creation</small>
                     </div>
 
                     {/* Proximity Radius Input (only for proximity pings) */}
