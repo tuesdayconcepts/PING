@@ -9,6 +9,7 @@ interface CustomMarkerProps {
   claimType?: 'nfc' | 'proximity'; // Claim type for visual distinction
   proximityRadius?: number | null; // Proximity radius for pulse size calculation
   userDistance?: number | null; // Current user distance in meters (for proximity pings)
+  isFocused?: boolean; // Whether this ping is focused (centered or being edited) - shows pulse animation
 }
 
 export const CustomMarker: React.FC<CustomMarkerProps> = ({ 
@@ -20,6 +21,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
   claimType = 'nfc',
   proximityRadius = null,
   userDistance = null,
+  isFocused = false,
 }) => {
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const hasAnimated = useRef(false); // Track if animation has played
@@ -61,11 +63,11 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
         }
         
         // Marker pulse logic:
-        // NFC pings: show pulse rings ONLY when active
-        // Proximity pings: NO pulse rings (just hollow star)
-        // Inactive pings: no pulse rings
-        if (claimType !== 'proximity' && isActive) {
-          // NFC pings: add pulse rings only when active
+        // Pulse rings ONLY show when ping is focused (centered or being edited)
+        // NFC pings: filled gold marker, no pulse by default
+        // Proximity pings: hollow marker, no pulse by default
+        if (isFocused) {
+          // Add pulse rings when focused (both NFC and proximity can pulse)
           for (let i = 0; i < 3; i++) {
             const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             ring.setAttribute('class', 'pulse-marker-ring');
@@ -92,23 +94,18 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
           const starPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           
           // Visual distinction:
-          // NFC pings: solid gold fill when active, transparent with stroke when inactive
-          // Proximity pings: always transparent with solid stroke (regardless of active/inactive)
+          // Active NFC pings: solid gold fill, no pulse (unless focused)
+          // Active proximity pings: hollow marker (transparent with stroke), no pulse (unless focused)
+          // Inactive pings: don't show on map (filtered out)
           if (claimType === 'proximity') {
-            // Proximity: always transparent with stroke
+            // Proximity: always transparent with stroke (hollow marker)
             starPathEl.setAttribute('fill', 'none');
             starPathEl.setAttribute('stroke', color);
             starPathEl.setAttribute('stroke-width', '40');
           } else {
-            // NFC: solid fill when active, transparent with stroke when inactive
-            if (isActive) {
-              starPathEl.setAttribute('fill', color);
-              starPathEl.setAttribute('stroke', 'none');
-            } else {
-              starPathEl.setAttribute('fill', 'none');
-              starPathEl.setAttribute('stroke', color);
-              starPathEl.setAttribute('stroke-width', '40');
-            }
+            // NFC: solid gold fill when active
+            starPathEl.setAttribute('fill', color);
+            starPathEl.setAttribute('stroke', 'none');
           }
           
           starPathEl.setAttribute('fill-rule', 'evenodd');
@@ -152,7 +149,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
     return () => {
       overlay.setMap(null);
     };
-  }, [map, position.lat, position.lng, isActive, onClick, claimType, proximityRadius, userDistance]);
+  }, [map, position.lat, position.lng, isActive, onClick, claimType, proximityRadius, userDistance, isFocused, animate]);
 
   return null;
 };

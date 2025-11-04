@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, Radio, Waves } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, Radio, Waves, Navigation } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -93,6 +93,7 @@ function AdminPage() {
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNotificationSubscribed, setIsNotificationSubscribed] = useState(false);
+  const [focusedHotspotId, setFocusedHotspotId] = useState<string | null>(null); // Track which ping is focused (centered or being edited)
   
   // State for sliding tab indicator
   const [indicatorReady, setIndicatorReady] = useState(false);
@@ -883,6 +884,7 @@ function AdminPage() {
   // Edit hotspot
   const handleEdit = (hotspot: Hotspot) => {
     setSelectedHotspot(hotspot);
+    setFocusedHotspotId(hotspot.id); // Set as focused when editing (shows pulse)
     setFormMode('edit');
     setFormOpen(true);
     setActiveTab('active'); // Switch to active tab to show form
@@ -1067,6 +1069,9 @@ function AdminPage() {
     // Clear preview marker immediately
     setPreviewMarker(null);
     
+    // Clear focused hotspot when canceling edit
+    setFocusedHotspotId(null);
+    
     // Wait for animation to complete before clearing state
     setTimeout(() => {
       setSelectedHotspot(null);
@@ -1123,6 +1128,16 @@ function AdminPage() {
       // Use smooth pan animation
       adminMapInstance.panTo({ lat: activePing.lat, lng: activePing.lng });
       adminMapInstance.setZoom(15); // Zoom in for better view
+      setFocusedHotspotId(activePing.id); // Set as focused to show pulse
+    }
+  };
+
+  // Center map on a specific hotspot
+  const centerOnHotspot = (hotspot: Hotspot) => {
+    if (adminMapInstance) {
+      adminMapInstance.panTo({ lat: hotspot.lat, lng: hotspot.lng });
+      adminMapInstance.setZoom(15);
+      setFocusedHotspotId(hotspot.id); // Set as focused to show pulse
     }
   };
 
@@ -1416,23 +1431,23 @@ function AdminPage() {
               }
             }}
           >
-            {/* Show markers for all unclaimed hotspots (including inactive) */}
+            {/* Show markers for ACTIVE unclaimed hotspots only */}
             {hotspots
-              .filter(hotspot => hotspot.claimStatus !== 'claimed')
+              .filter(hotspot => hotspot.claimStatus !== 'claimed' && hotspot.active)
               .sort((a, b) => {
-                // Sort: active first, then by creation date (newest first)
-                if (a.active !== b.active) return a.active ? -1 : 1;
+                // Sort by creation date (newest first)
                 return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
               })
               .map((hotspot) => (
                 <CustomMarker
                   key={hotspot.id}
                   position={{ lat: hotspot.lat, lng: hotspot.lng }}
-                  isActive={hotspot.active} // Use actual active status
+                  isActive={hotspot.active}
                   onClick={() => handleEdit(hotspot)} // Open edit form on click
                   map={adminMapInstance || undefined}
                   claimType={hotspot.claimType || 'nfc'}
                   proximityRadius={hotspot.proximityRadius || null}
+                  isFocused={focusedHotspotId === hotspot.id} // Pulse when focused (centered or being edited)
                 />
               ))}
             
@@ -1604,6 +1619,14 @@ function AdminPage() {
                         </p>
                         {/* Funding summary removed from footer per request */}
                         <div className="hotspot-actions">
+                          <button
+                            onClick={() => centerOnHotspot(hotspot)}
+                            className="action-icon-btn"
+                            aria-label="Center map on this ping"
+                            title="Center map on this ping"
+                          >
+                            <Navigation size={18} />
+                          </button>
                           {hotspot.shareToken && (
                             <button
                               onClick={() => handleCopyShareLink(hotspot.id, hotspot.shareToken || null)}
