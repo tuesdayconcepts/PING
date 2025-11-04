@@ -1747,9 +1747,19 @@ function AdminPage() {
                 return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
               })
               .filter(hotspot => {
-                // Hide the hotspot marker if it's being edited and preview marker is showing
+                // Hide the hotspot marker if it's being edited AND preview marker position differs from original
+                // This way the original shows when editing starts, but hides when coordinates change
                 if (formMode === 'edit' && selectedHotspot?.id === hotspot.id && previewMarker) {
-                  return false;
+                  // Only hide if preview marker position is different from original position
+                  const previewLat = previewMarker.lat;
+                  const previewLng = previewMarker.lng;
+                  const originalLat = hotspot.lat;
+                  const originalLng = hotspot.lng;
+                  // Use small epsilon for floating point comparison
+                  const epsilon = 0.000001;
+                  if (Math.abs(previewLat - originalLat) > epsilon || Math.abs(previewLng - originalLng) > epsilon) {
+                    return false; // Hide original marker when position has changed
+                  }
                 }
                 return true;
               })
