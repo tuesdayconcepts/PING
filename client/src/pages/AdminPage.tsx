@@ -1775,8 +1775,8 @@ function AdminPage() {
               />
             )}
 
-            {/* User location marker */}
-            {userLocation && adminMapInstance && (
+            {/* User location marker - hide during edit mode when preview marker is showing */}
+            {userLocation && adminMapInstance && !(formMode === 'edit' && previewMarker) && (
               <UserLocationMarker
                 position={userLocation}
                 map={adminMapInstance}
