@@ -2020,8 +2020,10 @@ function AdminPage() {
                         <div className="claim-type-icon">
                           <SmartphoneNfc size={48} />
                         </div>
-                        <h4>NFC Card</h4>
-                        <p>Physical NFC card that users tap to discover</p>
+                        <div className="claim-type-content">
+                          <strong>NFC Card</strong>
+                          <p>Physical NFC card that users tap to discover</p>
+                        </div>
                       </div>
                       <div 
                         className="claim-type-card" 
@@ -2030,8 +2032,10 @@ function AdminPage() {
                         <div className="claim-type-icon">
                           <Radio size={48} />
                         </div>
-                        <h4>Proximity Based</h4>
-                        <p>Location-based discovery using GPS</p>
+                        <div className="claim-type-content">
+                          <strong>Proximity Based</strong>
+                          <p>Location-based discovery using GPS</p>
+                        </div>
                       </div>
                     </div>
                   </div>
