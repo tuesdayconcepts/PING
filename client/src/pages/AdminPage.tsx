@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, SmartphoneNfc, Radio, Navigation } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, SmartphoneNfc, Radio } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -1632,14 +1632,14 @@ function AdminPage() {
                         </p>
                         {/* Funding summary removed from footer per request */}
                         <div className="hotspot-actions">
-                          <button
-                            onClick={() => centerOnHotspot(hotspot)}
-                            className="action-icon-btn"
-                            aria-label="Center map on this ping"
-                            title="Center map on this ping"
-                          >
-                            <Navigation size={18} />
-                          </button>
+                         <button
+                           onClick={() => centerOnHotspot(hotspot)}
+                           className="action-icon-btn"
+                           aria-label="Center map on this ping"
+                           title="Center map on this ping"
+                         >
+                           <LocateFixed size={18} />
+                         </button>
                           {hotspot.shareToken && (
                             <button
                               onClick={() => handleCopyShareLink(hotspot.id, hotspot.shareToken || null)}
