@@ -15,6 +15,8 @@ import { customMapStyles } from '../utils/mapStyles';
 import { CustomMarker } from '../components/CustomMarker';
 import { NotificationPrompt } from '../components/NotificationPrompt';
 import { useToast } from '../components/Toast';
+import { useProximityDetector } from '../components/ProximityDetector';
+import { Radio, Waves } from 'lucide-react';
 import './MapPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -96,6 +98,33 @@ function MapPage() {
   const [claimedAt, setClaimedAt] = useState<string>('');
   const [locationName, setLocationName] = useState<string>('');
   const [showHintModal, setShowHintModal] = useState(false);
+  
+  // Proximity detection state
+  const [proximityDistance, setProximityDistance] = useState<number | null>(null);
+  const [isWithinProximityRadius, setIsWithinProximityRadius] = useState(false);
+  const [proximityUserLocation, setProximityUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [proximityEnabled, setProximityEnabled] = useState(false);
+  
+  // Proximity detector hook for selected hotspot
+  const proximityDetector = useProximityDetector({
+    hotspotLat: selectedHotspot?.lat || 0,
+    hotspotLng: selectedHotspot?.lng || 0,
+    proximityRadius: selectedHotspot?.proximityRadius || 5,
+    enabled: proximityEnabled && selectedHotspot?.claimType === 'proximity' && !!selectedHotspot,
+  });
+  
+  // Update proximity state from detector
+  useEffect(() => {
+    if (selectedHotspot?.claimType === 'proximity') {
+      setProximityDistance(proximityDetector.distance);
+      setIsWithinProximityRadius(proximityDetector.isWithinRadius);
+      setProximityUserLocation(proximityDetector.userLocation);
+    } else {
+      setProximityDistance(null);
+      setIsWithinProximityRadius(false);
+      setProximityUserLocation(null);
+    }
+  }, [proximityDetector, selectedHotspot]);
   
   // Toast functionality
   const { showToast } = useToast();
@@ -494,6 +523,19 @@ function MapPage() {
 
     setClaimError(null);
 
+    // For proximity claims, verify user is within radius and get location
+    if (selectedHotspot.claimType === 'proximity') {
+      if (!proximityUserLocation) {
+        setClaimError('Location is required for proximity claims. Please enable GPS.');
+        return;
+      }
+      
+      if (!isWithinProximityRadius) {
+        setClaimError(`You must be within ${selectedHotspot.proximityRadius || 5} meters to claim this ping. You are ${proximityDetector.formattedDistance} away.`);
+        return;
+      }
+    }
+
     // Open Twitter Web Intent
     const tweetText = `Just found a PING! @YourPingAccount #PINGGame`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
@@ -501,10 +543,18 @@ function MapPage() {
 
     // Submit claim to backend
     try {
+      const claimBody: any = { tweetUrl: 'user-tweeted' };
+      
+      // Include user location for proximity claims
+      if (selectedHotspot.claimType === 'proximity' && proximityUserLocation) {
+        claimBody.userLat = proximityUserLocation.lat;
+        claimBody.userLng = proximityUserLocation.lng;
+      }
+      
       const response = await fetch(`${API_URL}/api/hotspots/${selectedHotspot.id}/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tweetUrl: 'user-tweeted' }),
+        body: JSON.stringify(claimBody),
       });
 
       if (!response.ok) {
@@ -657,14 +707,30 @@ function MapPage() {
             const endDate = new Date(hotspot.endDate);
             const isActive = now <= endDate && hotspot.active;
             
+            // Get user distance for this hotspot (only if it's the selected proximity ping)
+            const userDistance = (selectedHotspot?.id === hotspot.id && hotspot.claimType === 'proximity')
+              ? proximityDistance
+              : null;
+            
             return (
               <CustomMarker
                 key={hotspot.id}
                 position={{ lat: hotspot.lat, lng: hotspot.lng }}
                 isActive={isActive}
-                onClick={() => setSelectedHotspot(hotspot)}
+                onClick={() => {
+                  setSelectedHotspot(hotspot);
+                  // Enable proximity detection if this is a proximity ping
+                  if (hotspot.claimType === 'proximity') {
+                    setProximityEnabled(true);
+                  } else {
+                    setProximityEnabled(false);
+                  }
+                }}
                 map={mapInstance || undefined}
                 animate={true}
+                claimType={hotspot.claimType || 'nfc'}
+                proximityRadius={hotspot.proximityRadius || null}
+                userDistance={userDistance}
               />
             );
           })}
@@ -740,7 +806,23 @@ function MapPage() {
 
                           {/* Title + Time Info combined section - Second */}
                           <div className="modal-section modal-header">
-                            <h2>{selectedHotspot.title}</h2>
+                            <div className="modal-title-row">
+                              <h2>{selectedHotspot.title}</h2>
+                              {/* Claim Type Badge */}
+                              <div className="claim-type-badge-small">
+                                {selectedHotspot.claimType === 'proximity' ? (
+                                  <>
+                                    <Waves size={14} />
+                                    <span>Proximity</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Radio size={14} />
+                                    <span>NFC</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                             {locationName && (
                               <div className="location-info">
                                 <MapPin size={14} />
@@ -801,8 +883,110 @@ function MapPage() {
                                 <Gift className="prize-icon" />
                                 <span className="prize-text">{selectedHotspot.prize ?? 0} SOL</span>
                               </div>
-                              <button className="hint-cta" onClick={() => setShowHintModal(true)}>
-                                GET A HINT!
+                              {/* For proximity pings: Show GPS intro if location not enabled, otherwise show hint button */}
+                              {selectedHotspot.claimType === 'proximity' && proximityDetector.locationPermission !== 'granted' ? (
+                                <div className="proximity-gps-intro">
+                                  <p>This is a proximity-based ping. Enable location to find it!</p>
+                                  <div className="proximity-gps-buttons">
+                                    <button 
+                                      className="enable-gps-btn" 
+                                      onClick={async () => {
+                                        try {
+                                          await navigator.geolocation.getCurrentPosition(
+                                            () => {
+                                              setProximityEnabled(true);
+                                              showToast('Location enabled!', 'success');
+                                            },
+                                            () => {
+                                              showToast('Location permission denied', 'error');
+                                            }
+                                          );
+                                        } catch (err) {
+                                          showToast('Failed to enable location', 'error');
+                                        }
+                                      }}
+                                    >
+                                      Enable GPS
+                                    </button>
+                                    <button 
+                                      className="later-btn" 
+                                      onClick={() => {
+                                        // Hide the intro, hint button will show "ENABLE GPS" text
+                                        // State is managed by proximityDetector.locationPermission
+                                      }}
+                                    >
+                                      Later
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button 
+                                  className="hint-cta" 
+                                  onClick={() => {
+                                    // For proximity pings without GPS: show enable GPS message
+                                    if (selectedHotspot.claimType === 'proximity' && proximityDetector.locationPermission !== 'granted') {
+                                      showToast('Please enable GPS to hunt for proximity pings', 'info');
+                                      return;
+                                    }
+                                    setShowHintModal(true);
+                                  }}
+                                >
+                                  {selectedHotspot.claimType === 'proximity' && proximityDetector.locationPermission !== 'granted' 
+                                    ? 'ENABLE GPS' 
+                                    : 'GET A HINT!'}
+                                </button>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Proximity Distance Indicator (for proximity pings with GPS enabled) */}
+                          {selectedHotspot.claimType === 'proximity' && proximityDetector.locationPermission === 'granted' && proximityDistance !== null && (
+                            <div className="modal-section proximity-distance">
+                              <div className="distance-indicator" style={{ color: proximityDetector.distanceColor }}>
+                                <span className="distance-value">{proximityDetector.formattedDistance}</span>
+                                <span className="distance-label">away</span>
+                              </div>
+                              {proximityDetector.locationError && (
+                                <p className="location-error-text">{proximityDetector.locationError}</p>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Verify Proximity Button (shown when within claim radius) */}
+                          {selectedHotspot.claimType === 'proximity' && isWithinProximityRadius && !id && (
+                            <div className="modal-section modal-actions">
+                              <button 
+                                className="verify-proximity-btn" 
+                                onClick={async () => {
+                                  // Verify proximity on backend
+                                  if (!proximityUserLocation) return;
+                                  
+                                  try {
+                                    const response = await fetch(`${API_URL}/api/hotspots/${selectedHotspot.id}/claim`, {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({
+                                        userLat: proximityUserLocation.lat,
+                                        userLng: proximityUserLocation.lng,
+                                        tweetUrl: null, // Will be set after Twitter post
+                                      }),
+                                    });
+                                    
+                                    if (!response.ok) {
+                                      const errorData = await response.json();
+                                      setClaimError(errorData.error || 'Failed to verify proximity');
+                                      return;
+                                    }
+                                    
+                                    // Proximity verified, show claim button
+                                    setClaimStatus('unclaimed');
+                                    showToast('Proximity verified! You can now claim.', 'success');
+                                  } catch (err) {
+                                    setClaimError('Failed to verify proximity. Please try again.');
+                                  }
+                                }}
+                              >
+                                Verify Proximity
                               </button>
                             </div>
                           )}

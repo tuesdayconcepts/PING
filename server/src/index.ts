@@ -10,6 +10,7 @@ import rateLimit from "express-rate-limit";
 import { getLocationName } from "./utils/geocoding.js";
 import { verifyHintPurchaseTransaction, getPingPriceFromJupiter } from "./utils/solanaVerify.js";
 import { sendPushToUserType, sendPushToAdmin, getVapidPublicKey } from "./services/pushNotifications.js";
+import { validateProximityClaim } from "./utils/proximityVerify.js";
 
 // Extend Express Request type to include adminId
 declare global {
@@ -126,6 +127,32 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+// Rate limiter for claim endpoint (5 attempts per hour per IP)
+const claimLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 requests per window
+  message: { error: "Too many claim attempts, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    // Use IP address for rate limiting
+    return req.ip || req.socket.remoteAddress || 'unknown';
+  },
+});
+
+// In-memory store for claim attempts per hotspot (for additional rate limiting)
+const claimAttempts = new Map<string, { count: number; resetAt: number }>();
+
+// Clean up old entries every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of claimAttempts.entries()) {
+    if (value.resetAt < now) {
+      claimAttempts.delete(key);
+    }
+  }
+}, 10 * 60 * 1000);
 
 // Authentication middleware for admin routes
 const authenticateAdmin = async (req: any, res: any, next: any) => {
@@ -524,6 +551,8 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
       hint2PriceUsd,
       hint3PriceUsd,
       firstHintFree,
+      claimType,
+      proximityRadius,
     } = req.body;
 
     // Validation
@@ -612,6 +641,9 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
         hint2PriceUsd: hint2PriceUsd ? parseFloat(hint2PriceUsd) : null,
         hint3PriceUsd: hint3PriceUsd ? parseFloat(hint3PriceUsd) : null,
         firstHintFree: firstHintFree === true,
+        // Proximity claim system fields
+        claimType: validClaimType,
+        proximityRadius: finalProximityRadius,
       },
     });
 
@@ -663,6 +695,7 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
       hint2PriceUsd,
       hint3PriceUsd,
       firstHintFree,
+      proximityRadius,
     } = req.body;
 
     // Check if hotspot exists
@@ -734,6 +767,10 @@ app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
     if (hint2PriceUsd !== undefined) updateData.hint2PriceUsd = hint2PriceUsd ? parseFloat(hint2PriceUsd) : null;
     if (hint3PriceUsd !== undefined) updateData.hint3PriceUsd = hint3PriceUsd ? parseFloat(hint3PriceUsd) : null;
     if (firstHintFree !== undefined) updateData.firstHintFree = firstHintFree;
+    // Proximity radius can be updated (but claimType is immutable)
+    if (proximityRadius !== undefined && existing.claimType === 'proximity') {
+      updateData.proximityRadius = parseFloat(proximityRadius);
+    }
 
     const hotspot = await prisma.hotspot.update({ where: { id }, data: updateData });
 
@@ -803,10 +840,10 @@ app.delete("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
 });
 
 // POST /api/hotspots/:id/claim - Claim a hotspot (public)
-app.post("/api/hotspots/:id/claim", async (req, res) => {
+app.post("/api/hotspots/:id/claim", claimLimiter, async (req, res) => {
   try {
     const { id } = req.params;
-    const { tweetUrl } = req.body;
+    const { tweetUrl, userLat, userLng } = req.body;
 
     // Get hotspot
     const hotspot = await prisma.hotspot.findUnique({ where: { id } });
@@ -821,8 +858,97 @@ app.post("/api/hotspots/:id/claim", async (req, res) => {
       });
     }
 
+    // Additional rate limiting: max 1 claim per hotspot per IP per hour
+    const userIp = req.ip || req.socket.remoteAddress || 'unknown';
+    const rateLimitKey = `${userIp}:${id}`;
+    const now = Date.now();
+    const attempt = claimAttempts.get(rateLimitKey);
+    
+    if (attempt && attempt.resetAt > now) {
+      if (attempt.count >= 1) {
+        return res.status(429).json({
+          error: "You have already attempted to claim this ping. Please wait before trying again.",
+        });
+      }
+      attempt.count++;
+    } else {
+      claimAttempts.set(rateLimitKey, { count: 1, resetAt: now + 60 * 60 * 1000 }); // 1 hour
+    }
+
+    // Validate proximity claim if claimType is "proximity"
+    if (hotspot.claimType === "proximity") {
+      // Require user location for proximity claims
+      if (userLat === undefined || userLng === undefined) {
+        return res.status(400).json({
+          error: "Location coordinates are required for proximity claims. Please enable GPS and try again.",
+        });
+      }
+
+      // Get proximity check history
+      const history = hotspot.proximityCheckHistory 
+        ? (hotspot.proximityCheckHistory as Array<{ lat: number; lng: number; timestamp: number; ip?: string }>)
+        : [];
+
+      // Validate proximity claim
+      const validation = validateProximityClaim(
+        userLat,
+        userLng,
+        {
+          lat: hotspot.lat,
+          lng: hotspot.lng,
+          proximityRadius: hotspot.proximityRadius,
+          claimType: hotspot.claimType,
+        },
+        history
+      );
+
+      if (!validation.valid) {
+        // Update proximity check history
+        const updatedHistory = [
+          ...history.slice(-9), // Keep last 9 entries
+          {
+            lat: userLat,
+            lng: userLng,
+            timestamp: now,
+            ip: userIp,
+          },
+        ];
+
+        await prisma.hotspot.update({
+          where: { id },
+          data: {
+            proximityCheckHistory: updatedHistory,
+          },
+        });
+
+        return res.status(400).json({
+          error: validation.error || "You are too far from the ping location.",
+          distance: validation.distance,
+          suspicious: validation.suspicious,
+        });
+      }
+
+      // Update proximity check history with successful check
+      const updatedHistory = [
+        ...history.slice(-9), // Keep last 9 entries
+        {
+          lat: userLat,
+          lng: userLng,
+          timestamp: now,
+          ip: userIp,
+        },
+      ];
+
+      await prisma.hotspot.update({
+        where: { id },
+        data: {
+          proximityCheckHistory: updatedHistory,
+        },
+      });
+    }
+
     // Get user identifier (IP address as fallback)
-    const claimedBy = req.ip || 'unknown';
+    const claimedBy = userIp;
 
     // Update hotspot to pending status
     await prisma.hotspot.update({

@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, Radio, Waves } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -69,7 +69,13 @@ function AdminPage() {
     hint1PriceUsd: '' as string | number,
     hint2PriceUsd: '' as string | number,
     hint3PriceUsd: '' as string | number,
+    claimType: 'nfc' as 'nfc' | 'proximity',
+    proximityRadius: 5 as number,
   });
+
+  // Claim type selection modal state
+  const [showClaimTypeModal, setShowClaimTypeModal] = useState(false);
+  const [selectedClaimType, setSelectedClaimType] = useState<'nfc' | 'proximity' | null>(null);
 
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
   const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access' | 'hints'>('active');
@@ -801,6 +807,15 @@ function AdminPage() {
 
   // Handle opening the form (from + card)
   const handleOpenForm = () => {
+    // Show claim type selection modal first
+    setShowClaimTypeModal(true);
+    setSelectedClaimType(null);
+  };
+
+  // Handle claim type selection
+  const handleClaimTypeSelect = (type: 'nfc' | 'proximity') => {
+    setSelectedClaimType(type);
+    setShowClaimTypeModal(false);
     setFormMode('create');
     setFormOpen(true);
     setSelectedHotspot(null);
@@ -819,6 +834,8 @@ function AdminPage() {
       hint1PriceUsd: '',
       hint2PriceUsd: '',
       hint3PriceUsd: '',
+      claimType: type,
+      proximityRadius: type === 'proximity' ? 5 : 5, // Default 5m for proximity
     });
     setImagePreview(null);
     
@@ -904,6 +921,8 @@ function AdminPage() {
       hint1PriceUsd: hotspot.hint1PriceUsd || '',
       hint2PriceUsd: hotspot.hint2PriceUsd || '',
       hint3PriceUsd: hotspot.hint3PriceUsd || '',
+      claimType: hotspot.claimType || 'nfc',
+      proximityRadius: hotspot.proximityRadius || 5,
     });
     setImagePreview(hotspot.imageUrl || null);
     
@@ -947,6 +966,16 @@ function AdminPage() {
         hint1PriceUsd: formData.hint1PriceUsd === '' ? null : parseFloat(formData.hint1PriceUsd.toString()),
         hint2PriceUsd: formData.hint2PriceUsd === '' ? null : parseFloat(formData.hint2PriceUsd.toString()),
         hint3PriceUsd: formData.hint3PriceUsd === '' ? null : parseFloat(formData.hint3PriceUsd.toString()),
+        // Proximity claim system fields (only on create, immutable on edit)
+        ...(method === 'POST' ? {
+          claimType: formData.claimType,
+          proximityRadius: formData.claimType === 'proximity' ? parseFloat(formData.proximityRadius.toString()) : null,
+        } : {
+          // On edit, only allow proximityRadius update (claimType is immutable)
+          ...(selectedHotspot?.claimType === 'proximity' ? {
+            proximityRadius: parseFloat(formData.proximityRadius.toString()),
+          } : {}),
+        }),
       };
 
       // Only include endDate if expiration toggle is enabled
@@ -1629,6 +1658,45 @@ function AdminPage() {
                       {formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id && (
                         <div className={`inline-form-container inline-edit-form ${formClosing ? 'closing' : ''}`} style={{ marginTop: '15px' }}>
                           <form onSubmit={handleSave}>
+                            {/* Claim Type Badge (read-only in edit mode) */}
+                            <div className="form-group">
+                              <label>Claim Type</label>
+                              <div className="claim-type-badge">
+                                {selectedHotspot?.claimType === 'proximity' ? (
+                                  <>
+                                    <Waves size={16} />
+                                    <span>Proximity Based</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Radio size={16} />
+                                    <span>NFC Card</span>
+                                  </>
+                                )}
+                              </div>
+                              <small className="form-hint">Claim type cannot be changed</small>
+                            </div>
+
+                            {/* Proximity Radius Input (only for proximity pings in edit mode) */}
+                            {selectedHotspot?.claimType === 'proximity' && (
+                              <div className="form-group">
+                                <label htmlFor="edit-proximityRadius">Proximity Radius (meters) *</label>
+                                <input
+                                  type="number"
+                                  id="edit-proximityRadius"
+                                  name="proximityRadius"
+                                  value={formData.proximityRadius}
+                                  onChange={handleInputChange}
+                                  step="0.1"
+                                  min="1"
+                                  max="20"
+                                  required
+                                  disabled={selectedHotspot?.claimStatus === 'pending'}
+                                />
+                                <small className="form-hint">Users must be within this distance to claim (1-20 meters)</small>
+                              </div>
+                            )}
+
                             <div className="form-group">
                               <label htmlFor="edit-title">Title *</label>
                               <input
@@ -1922,6 +1990,45 @@ function AdminPage() {
                     <div className="form-hint-map">
                       Tip: Click on the map to select location
                     </div>
+
+                    {/* Claim Type Badge (read-only in create, shows selected type) */}
+                    <div className="form-group">
+                      <label>Claim Type</label>
+                      <div className="claim-type-badge">
+                        {formData.claimType === 'nfc' ? (
+                          <>
+                            <Radio size={16} />
+                            <span>NFC Card</span>
+                          </>
+                        ) : (
+                          <>
+                            <Waves size={16} />
+                            <span>Proximity Based</span>
+                          </>
+                        )}
+                      </div>
+                      <small className="form-hint">Claim type cannot be changed after creation</small>
+                    </div>
+
+                    {/* Proximity Radius Input (only for proximity pings) */}
+                    {formData.claimType === 'proximity' && (
+                      <div className="form-group">
+                        <label htmlFor="proximityRadius">Proximity Radius (meters) *</label>
+                        <input
+                          type="number"
+                          id="proximityRadius"
+                          name="proximityRadius"
+                          value={formData.proximityRadius}
+                          onChange={handleInputChange}
+                          step="0.1"
+                          min="1"
+                          max="20"
+                          required
+                          disabled={selectedHotspot?.claimStatus === 'pending'}
+                        />
+                        <small className="form-hint">Users must be within this distance to claim (1-20 meters)</small>
+                      </div>
+                    )}
 
                     <div className="form-group">
                       <label htmlFor="prize">Prize (SOL) *</label>
@@ -2675,6 +2782,46 @@ function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* Claim Type Selection Modal */}
+      {showClaimTypeModal && (
+        <div className="modal-overlay" onClick={() => setShowClaimTypeModal(false)}>
+          <div className="claim-type-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="claim-type-modal-header">
+              <h3>Choose Claim Type</h3>
+              <button 
+                className="modal-close-btn" 
+                onClick={() => setShowClaimTypeModal(false)}
+                aria-label="Close"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="claim-type-options">
+              <div 
+                className="claim-type-card" 
+                onClick={() => handleClaimTypeSelect('nfc')}
+              >
+                <div className="claim-type-icon">
+                  <Radio size={48} />
+                </div>
+                <h4>NFC Card</h4>
+                <p>Physical NFC card that users tap to discover</p>
+              </div>
+              <div 
+                className="claim-type-card" 
+                onClick={() => handleClaimTypeSelect('proximity')}
+              >
+                <div className="claim-type-icon">
+                  <Waves size={48} />
+                </div>
+                <h4>Proximity Based</h4>
+                <p>Location-based discovery using GPS</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </>
   );

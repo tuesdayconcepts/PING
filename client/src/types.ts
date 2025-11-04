@@ -34,6 +34,9 @@ export interface Hotspot {
   fundStatus?: 'pending' | 'success' | 'failed' | 'skipped';
   fundTxSig?: string | null;
   fundedAt?: string | null;
+  // Proximity claim system fields
+  claimType?: 'nfc' | 'proximity';
+  proximityRadius?: number | null;
 }
 
 export interface LoginResponse {

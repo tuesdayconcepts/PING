@@ -59,6 +59,11 @@ model Hotspot {
   hint3PriceUsd Float?
   firstHintFree Boolean   @default(false) // Is hint 1 free?
   
+  // Proximity claim system fields
+  claimType     String    @default("nfc") // "nfc" | "proximity"
+  proximityRadius Float?  // In meters, default 5m for proximity pings (admin configurable 1-20m)
+  proximityCheckHistory Json? // Store recent location checks for pattern analysis (optional, for anti-cheat)
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
