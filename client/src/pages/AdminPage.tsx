@@ -1921,12 +1921,21 @@ function AdminPage() {
                   };
                   
                   return (
-                    <div 
+                    <div
                       key={hotspot.id}
                       id={`hotspot-${hotspot.id}`}
                       data-hotspot-id={hotspot.id}
-                      className={`hotspot-item ${hotspot.active ? 'active-hotspot' : 'inactive-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''}`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
+                      className={`hotspot-item ${hotspot.active ? 'active-hotspot' : 'inactive-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''} ${focusedHotspotId === hotspot.id ? 'focused' : ''}`}
+                      onClick={(e) => {
+                        // Only center if clicking on the item itself, not on buttons/actions inside
+                        if (hotspot.active && !(e.target as HTMLElement).closest('button')) {
+                          centerOnHotspot(hotspot);
+                        }
+                      }}
+                      style={{ 
+                        animationDelay: `${index * 0.1}s`,
+                        cursor: hotspot.active ? 'pointer' : 'default'
+                      }}
                     >
                       <div className="hotspot-header">
                         <div className="header-title-section">
@@ -1963,14 +1972,6 @@ function AdminPage() {
                         </p>
                         {/* Funding summary removed from footer per request */}
                         <div className="hotspot-actions">
-                         <button
-                           onClick={() => centerOnHotspot(hotspot)}
-                           className="action-icon-btn"
-                           aria-label="Center map on this ping"
-                           title="Center map on this ping"
-                         >
-                           <LocateFixed size={18} />
-                         </button>
                           {hotspot.shareToken && (
                             <button
                               onClick={() => handleCopyShareLink(hotspot.id, hotspot.shareToken || null)}

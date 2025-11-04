@@ -825,6 +825,10 @@ input:checked + .toggle-slider:before {
   background: #37ae2782;
 }
 
+.hotspot-item.active-hotspot.focused {
+  box-shadow: inset 0 0em 40px 0px #4ade8069;
+}
+
 .hotspot-item.claimed-hotspot {
   background: #ffffff40;
 }
