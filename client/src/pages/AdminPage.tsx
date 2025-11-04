@@ -1129,14 +1129,25 @@ function AdminPage() {
     showToast('Share link copied', 'success');
   };
 
-  // Center map on active ping
-  const centerOnActivePing = () => {
-    const activePing = hotspots.find(h => h.active && h.claimStatus === 'unclaimed');
-    if (activePing && adminMapInstance) {
-      // Use smooth pan animation
-      adminMapInstance.panTo({ lat: activePing.lat, lng: activePing.lng });
-      adminMapInstance.setZoom(15); // Zoom in for better view
-      setFocusedHotspotId(activePing.id); // Set as focused to show pulse
+  // Center map on user's current location
+  const centerOnCurrentLocation = () => {
+    if (!adminMapInstance) return;
+    
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          adminMapInstance.panTo({ lat: latitude, lng: longitude });
+          adminMapInstance.setZoom(15);
+          setFocusedHotspotId(null); // Clear focused hotspot since we're centering on user location
+          showToast('Centered on your location', 'success');
+        },
+        () => {
+          showToast('Unable to get your location. Please enable location services.', 'error');
+        }
+      );
+    } else {
+      showToast('Geolocation is not supported by your browser', 'error');
     }
   };
 
@@ -1397,7 +1408,7 @@ function AdminPage() {
       <div className="mobile-top-bar">
         <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
         <div className="header-actions">
-          <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
+          <button onClick={centerOnCurrentLocation} className="center-btn" aria-label="Center on current location">
             <LocateFixed size={24} />
           </button>
           <button onClick={toggleNotifications} className="center-btn" aria-label="Toggle notifications">
@@ -1479,7 +1490,7 @@ function AdminPage() {
         <div className="sidebar-header">
           <img src="/logo/ping-logo.svg" alt="PING Logo" className="admin-logo" />
           <div className="header-actions">
-            <button onClick={centerOnActivePing} className="center-btn" aria-label="Center on Active PING">
+            <button onClick={centerOnCurrentLocation} className="center-btn" aria-label="Center on current location">
               <LocateFixed size={24} />
             </button>
             <button onClick={toggleNotifications} className="center-btn" aria-label="Toggle notifications">
