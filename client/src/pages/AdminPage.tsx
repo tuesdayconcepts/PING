@@ -890,8 +890,8 @@ function AdminPage() {
     setActiveTab('active'); // Switch to active tab to show form
     setDrawerExpanded(true); // Expand drawer on mobile
     
-    // Show preview marker at hotspot location
-    setPreviewMarker({ lat: hotspot.lat, lng: hotspot.lng });
+    // Don't show preview marker when editing - the actual marker will pulse
+    setPreviewMarker(null);
     
     // Center map on the ping being edited with smooth animation
     if (adminMapInstance) {
@@ -1451,13 +1451,14 @@ function AdminPage() {
                 />
               ))}
             
-            {/* Preview marker for create/edit mode */}
-            {previewMarker && (
+            {/* Preview marker for create mode only (not for edit mode) */}
+            {previewMarker && formMode === 'create' && (
               <CustomMarker
                 position={previewMarker}
                 isActive={false}
                 onClick={() => {}} // No action on preview marker
                 map={adminMapInstance || undefined}
+                claimType={formData.claimType || 'nfc'}
               />
             )}
           </GoogleMap>
