@@ -15,6 +15,75 @@ import './AdminPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+// User Location Marker Component (white circle with yellow stroke)
+interface UserLocationMarkerProps {
+  position: { lat: number; lng: number };
+  map: google.maps.Map;
+}
+
+const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ position, map }) => {
+  const overlayRef = useRef<google.maps.OverlayView | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    class UserLocationOverlay extends google.maps.OverlayView {
+      position: google.maps.LatLng;
+      containerDiv: HTMLDivElement | null = null;
+
+      constructor(position: google.maps.LatLng) {
+        super();
+        this.position = position;
+      }
+
+      onAdd() {
+        const div = document.createElement('div');
+        div.style.cssText = `
+          width: 20px;
+          height: 20px;
+          background: white;
+          border: 3px solid #ffd700;
+          border-radius: 50%;
+          position: absolute;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        `;
+        this.containerDiv = div;
+        const panes = this.getPanes();
+        panes?.overlayMouseTarget.appendChild(div);
+      }
+
+      draw() {
+        if (!this.containerDiv) return;
+        const overlayProjection = this.getProjection();
+        const pos = overlayProjection.fromLatLngToDivPixel(this.position);
+        if (pos) {
+          const offset = 10; // Half of 20px
+          this.containerDiv.style.left = (pos.x - offset) + 'px';
+          this.containerDiv.style.top = (pos.y - offset) + 'px';
+        }
+      }
+
+      onRemove() {
+        if (this.containerDiv) {
+          this.containerDiv.parentNode?.removeChild(this.containerDiv);
+          this.containerDiv = null;
+        }
+      }
+    }
+
+    const overlay = new UserLocationOverlay(new google.maps.LatLng(position.lat, position.lng));
+    overlay.setMap(map);
+    overlayRef.current = overlay;
+
+    return () => {
+      overlay.setMap(null);
+    };
+  }, [map, position.lat, position.lng]);
+
+  return null;
+};
+
 function AdminPage() {
   // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
@@ -127,6 +196,7 @@ function AdminPage() {
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 });
   const [adminMapInstance, setAdminMapInstance] = useState<google.maps.Map | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null); // User's current location for marker
 
   // Set theme color for mobile Safari chrome
   useEffect(() => {
@@ -1137,7 +1207,9 @@ function AdminPage() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          adminMapInstance.panTo({ lat: latitude, lng: longitude });
+          const location = { lat: latitude, lng: longitude };
+          setUserLocation(location); // Save location for marker
+          adminMapInstance.panTo(location);
           adminMapInstance.setZoom(15);
           setFocusedHotspotId(null); // Clear focused hotspot since we're centering on user location
           showToast('Centered on your location', 'success');
@@ -1478,6 +1550,14 @@ function AdminPage() {
                 onClick={() => {}} // No action on preview marker
                 map={adminMapInstance || undefined}
                 claimType={formData.claimType || 'nfc'}
+              />
+            )}
+
+            {/* User location marker */}
+            {userLocation && adminMapInstance && (
+              <UserLocationMarker
+                position={userLocation}
+                map={adminMapInstance}
               />
             )}
           </GoogleMap>
