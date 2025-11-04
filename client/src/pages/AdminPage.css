@@ -506,13 +506,14 @@
   border: 1px solid rgb(255 255 255 / 11%);
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0;
   outline: none;
-  overflow: hidden;
+  overflow: visible;
+  flex-shrink: 0;
 }
 
-.active-toggle:hover {
+.active-toggle:hover:not(.active) {
   background: #ffffff26;
 }
 
@@ -523,9 +524,11 @@
 
 .active-toggle.active:hover {
   background: #22c55e;
+  border-color: #22c55e;
 }
 
-.toggle-slider {
+/* Toggle thumb (white circle) */
+.active-toggle .toggle-slider {
   position: absolute;
   top: 2px;
   left: 2px;
@@ -534,12 +537,12 @@
   background: #ffffff;
   border-radius: 50%;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
-  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 3;
 }
 
-/* Add subtle background layer for depth effect (green circle behind white thumb when active) */
-.active-toggle.active::before {
+/* Green background circle (depth effect when active) */
+.active-toggle.active::after {
   content: '';
   position: absolute;
   top: 2px;
@@ -548,17 +551,18 @@
   height: 20px;
   background: #4ade80;
   border-radius: 50%;
-  opacity: 0.4;
+  opacity: 0.5;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
 }
 
+/* Move thumb and background circle when active */
 .active-toggle.active .toggle-slider {
   transform: translateX(20px);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-.active-toggle.active::before {
+.active-toggle.active::after {
   transform: translateX(20px);
 }
 
