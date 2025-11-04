@@ -586,6 +586,30 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
     const roundedLat = roundCoordinate(parseFloat(lat));
     const roundedLng = roundCoordinate(parseFloat(lng));
 
+    // Validate and process claimType
+    const validClaimType = (claimType === 'proximity' || claimType === 'nfc') 
+      ? claimType 
+      : 'nfc'; // Default to NFC if invalid or not provided
+
+    // Validate and process proximityRadius
+    let finalProximityRadius: number | null = null;
+    if (validClaimType === 'proximity') {
+      // For proximity pings, require proximityRadius (default 5m)
+      if (proximityRadius !== undefined && proximityRadius !== null) {
+        const radius = parseFloat(proximityRadius);
+        if (Number.isFinite(radius) && radius > 0 && radius <= 100) {
+          finalProximityRadius = radius;
+        } else {
+          return res.status(400).json({
+            error: "Proximity radius must be between 0 and 100 meters",
+          });
+        }
+      } else {
+        finalProximityRadius = 5; // Default 5 meters for proximity pings
+      }
+    }
+    // For NFC pings, proximityRadius remains null
+
     // New flow: auto-generate prize wallet always; ignore manual privateKey
     const { publicKeyBase58, secretKeyBase64 } = generatePrizeWallet();
     const now = new Date();
