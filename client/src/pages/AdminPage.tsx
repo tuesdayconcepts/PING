@@ -2018,7 +2018,7 @@ function AdminPage() {
                         onClick={() => handleClaimTypeSelect('nfc')}
                       >
                         <div className="claim-type-icon">
-                          <SmartphoneNfc size={48} />
+                          <SmartphoneNfc size={50} />
                         </div>
                         <div className="claim-type-content">
                           <strong>NFC Card</strong>
@@ -2030,7 +2030,7 @@ function AdminPage() {
                         onClick={() => handleClaimTypeSelect('proximity')}
                       >
                         <div className="claim-type-icon">
-                          <Radio size={48} />
+                          <Radio size={50} />
                         </div>
                         <div className="claim-type-content">
                           <strong>Proximity Based</strong>
