@@ -75,6 +75,7 @@ function AdminPage() {
 
   // Claim type selection modal state
   const [showClaimTypeModal, setShowClaimTypeModal] = useState(false);
+  const [pendingMapClickCoords, setPendingMapClickCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
   const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access' | 'hints'>('active');
@@ -818,11 +819,15 @@ function AdminPage() {
     setFormMode('create');
     setFormOpen(true);
     setSelectedHotspot(null);
+    
+    // Use pending map click coordinates if available, otherwise use map center
+    const coords = pendingMapClickCoords || { lat: mapCenter.lat, lng: mapCenter.lng };
+    
     // Reset form when opening new create form
     setFormData({
       title: '',
-      lat: mapCenter.lat,
-      lng: mapCenter.lng,
+      lat: coords.lat,
+      lng: coords.lng,
       prize: '',
       endDate: '',
       imageUrl: '',
@@ -838,6 +843,9 @@ function AdminPage() {
     });
     setImagePreview(null);
     
+    // Clear pending coordinates after using them
+    setPendingMapClickCoords(null);
+    
     // Scroll to create form after state updates - use requestAnimationFrame
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -848,6 +856,9 @@ function AdminPage() {
 
   // Handle map click to set location and open form
   const handleMapClickOpen = (lat: number, lng: number) => {
+    // Store the clicked coordinates
+    setPendingMapClickCoords({ lat, lng });
+    
     // Show preview marker immediately
     setPreviewMarker({ lat, lng });
     
@@ -859,25 +870,16 @@ function AdminPage() {
       setMapCenter({ lat, lng });
     }
     
-    // Only update form data, don't move the map center
-    setFormData({ ...formData, lat, lng });
-    
     // Always switch to active tab and expand drawer (map click works from any tab)
     setActiveTab('active');
     setDrawerExpanded(true);
     
-    // If form is not open, open it in create mode
+    // If form is not open, show claim type selection modal first
     if (!formOpen) {
-      setFormMode('create');
-      setFormOpen(true);
-      setSelectedHotspot(null);
-      
-      // Scroll to create form after state updates - use requestAnimationFrame
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-      });
+      setShowClaimTypeModal(true);
+    } else {
+      // If form is already open, just update coordinates
+      setFormData({ ...formData, lat, lng });
     }
   };
 
@@ -1068,6 +1070,9 @@ function AdminPage() {
     
     // Clear preview marker immediately
     setPreviewMarker(null);
+    
+    // Clear pending map click coordinates
+    setPendingMapClickCoords(null);
     
     // Clear focused hotspot when canceling edit
     setFocusedHotspotId(null);
