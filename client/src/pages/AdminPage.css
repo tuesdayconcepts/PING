@@ -2175,10 +2175,6 @@ input:checked + .toggle-slider:before {
 }
 
 @media (max-width: 768px) {
-  .claim-type-options {
-    grid-template-columns: 1fr;
-  }
-  
   .claim-type-modal {
     padding: 24px;
   }
