@@ -75,7 +75,6 @@ function AdminPage() {
 
   // Claim type selection modal state
   const [showClaimTypeModal, setShowClaimTypeModal] = useState(false);
-  const [selectedClaimType, setSelectedClaimType] = useState<'nfc' | 'proximity' | null>(null);
 
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
   const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access' | 'hints'>('active');
@@ -809,12 +808,10 @@ function AdminPage() {
   const handleOpenForm = () => {
     // Show claim type selection modal first
     setShowClaimTypeModal(true);
-    setSelectedClaimType(null);
   };
 
   // Handle claim type selection
   const handleClaimTypeSelect = (type: 'nfc' | 'proximity') => {
-    setSelectedClaimType(type);
     setShowClaimTypeModal(false);
     setFormMode('create');
     setFormOpen(true);
@@ -1089,6 +1086,8 @@ function AdminPage() {
         hint1PriceUsd: '',
         hint2PriceUsd: '',
         hint3PriceUsd: '',
+        claimType: 'nfc',
+        proximityRadius: 5,
       });
       // Don't reset map center - let user keep their current view
       setFormClosing(false);

@@ -168,7 +168,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
     return () => {
       overlay.setMap(null);
     };
-  }, [map, position.lat, position.lng, isActive, onClick, claimType, proximityRadius, userDistance, finalPulseSize, isWithinClaimRadius]);
+  }, [map, position.lat, position.lng, isActive, onClick, claimType, proximityRadius, userDistance]);
 
   return null;
 };
