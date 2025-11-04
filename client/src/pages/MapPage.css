@@ -1483,30 +1483,7 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
   cursor: not-allowed;
 }
 
-/* Proximity marker pulse animation - same smooth effect as NFC but larger scale */
-.proximity-marker .proximity-pulse {
-  animation: proximityPulse 2s ease-in-out infinite;
-  transform-origin: center;
-}
-
-@keyframes proximityPulse {
-  0%, 100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.05);
-  }
-}
-
-/* Proximity markers have larger pulse radius - scale the rings smoothly */
+/* Proximity markers: NO pulse animation - just static hollow star */
 .proximity-marker .pulse-marker-ring {
-  width: 80px !important;
-  height: 80px !important;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(1.5);
-  transform-origin: center;
+  display: none; /* Hide pulse rings for proximity markers */
 }

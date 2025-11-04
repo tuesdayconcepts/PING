@@ -60,26 +60,29 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
           hasAnimated.current = true;
         }
         
-        // All markers show pulse rings + center star
-        // Proximity pings: larger pulse radius (via CSS scale), transparent center star with stroke
-        // NFC pings: regular pulse radius, solid center star when active
-        // Add pulse rings (same animation style, proximity gets larger scale via CSS)
-        for (let i = 0; i < 3; i++) {
-          const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-          ring.setAttribute('class', claimType === 'proximity' ? 'pulse-marker-ring proximity-pulse' : 'pulse-marker-ring');
-          ring.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-          ring.setAttribute('viewBox', '0 0 669.82 669.82');
-          ring.setAttribute('width', '80px');
-          ring.setAttribute('height', '80px');
-          const ringPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          ringPath.setAttribute('fill', 'none');
-          ringPath.setAttribute('stroke', color);
-          ringPath.setAttribute('stroke-width', '8');
-          ringPath.setAttribute('stroke-opacity', '0.6');
-          ringPath.setAttribute('fill-rule', 'evenodd');
-          ringPath.setAttribute('d', starPath);
-          ring.appendChild(ringPath);
-          div.appendChild(ring);
+        // Marker pulse logic:
+        // NFC pings: show pulse rings ONLY when active
+        // Proximity pings: NO pulse rings (just hollow star)
+        // Inactive pings: no pulse rings
+        if (claimType !== 'proximity' && isActive) {
+          // NFC pings: add pulse rings only when active
+          for (let i = 0; i < 3; i++) {
+            const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            ring.setAttribute('class', 'pulse-marker-ring');
+            ring.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            ring.setAttribute('viewBox', '0 0 669.82 669.82');
+            ring.setAttribute('width', '80px');
+            ring.setAttribute('height', '80px');
+            const ringPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            ringPath.setAttribute('fill', 'none');
+            ringPath.setAttribute('stroke', color);
+            ringPath.setAttribute('stroke-width', '8');
+            ringPath.setAttribute('stroke-opacity', '0.6');
+            ringPath.setAttribute('fill-rule', 'evenodd');
+            ringPath.setAttribute('d', starPath);
+            ring.appendChild(ringPath);
+            div.appendChild(ring);
+          }
         }
 
           const star = document.createElementNS('http://www.w3.org/2000/svg', 'svg');

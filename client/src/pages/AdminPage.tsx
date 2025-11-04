@@ -1416,17 +1416,23 @@ function AdminPage() {
               }
             }}
           >
-            {/* Show markers only for active and queued (unclaimed) hotspots */}
+            {/* Show markers for all unclaimed hotspots (including inactive) */}
             {hotspots
               .filter(hotspot => hotspot.claimStatus !== 'claimed')
-              .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0)) // Sort by queue position
-              .map((hotspot, index) => (
+              .sort((a, b) => {
+                // Sort: active first, then by creation date (newest first)
+                if (a.active !== b.active) return a.active ? -1 : 1;
+                return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+              })
+              .map((hotspot) => (
                 <CustomMarker
                   key={hotspot.id}
                   position={{ lat: hotspot.lat, lng: hotspot.lng }}
-                  isActive={index === 0} // First in queue is active
+                  isActive={hotspot.active} // Use actual active status
                   onClick={() => handleEdit(hotspot)} // Open edit form on click
                   map={adminMapInstance || undefined}
+                  claimType={hotspot.claimType || 'nfc'}
+                  proximityRadius={hotspot.proximityRadius || null}
                 />
               ))}
             
