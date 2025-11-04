@@ -2337,7 +2337,14 @@ function AdminPage() {
                       <h4>Choose PING Type</h4>
                       <button 
                         className="modal-close-btn" 
-                        onClick={() => setShowClaimTypeSelection(false)}
+                        onClick={() => {
+                          setShowClaimTypeSelection(false);
+                          // Clear preview marker when closing claim type selection (only in create mode)
+                          if (formMode === 'create') {
+                            setPreviewMarker(null);
+                            setPendingMapClickCoords(null);
+                          }
+                        }}
                         aria-label="Close"
                       >
                         <X size={20} />
