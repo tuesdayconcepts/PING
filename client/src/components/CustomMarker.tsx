@@ -10,6 +10,7 @@ interface CustomMarkerProps {
   proximityRadius?: number | null; // Proximity radius for pulse size calculation
   userDistance?: number | null; // Current user distance in meters (for proximity pings)
   isFocused?: boolean; // Whether this ping is focused (centered or being edited) - shows pulse animation
+  isEditing?: boolean; // Whether this ping is being edited - fills proximity markers
 }
 
 export const CustomMarker: React.FC<CustomMarkerProps> = ({ 
@@ -22,6 +23,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
   proximityRadius = null,
   userDistance = null,
   isFocused = false,
+  isEditing = false,
 }) => {
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const hasAnimated = useRef(false); // Track if animation has played
@@ -63,9 +65,8 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
         }
         
         // Marker pulse logic:
-        // Pulse rings ONLY show when ping is focused (centered or being edited)
-        // NFC pings: filled gold marker, no pulse by default
-        // Proximity pings: hollow marker, no pulse by default
+        // Pulse rings show when ping is focused (centered or being edited)
+        // Both NFC and proximity pings pulse when focused
         if (isFocused) {
           // Add pulse rings when focused (both NFC and proximity can pulse)
           for (let i = 0; i < 3; i++) {
@@ -96,12 +97,18 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
           // Visual distinction:
           // Active NFC pings: solid gold fill, no pulse (unless focused)
           // Active proximity pings: hollow marker (transparent with stroke), no pulse (unless focused)
+          // Proximity pings when editing: filled (solid gold) instead of hollow
           // Inactive pings: don't show on map (filtered out)
           if (claimType === 'proximity') {
-            // Proximity: always transparent with stroke (hollow marker)
-            starPathEl.setAttribute('fill', 'none');
-            starPathEl.setAttribute('stroke', color);
-            starPathEl.setAttribute('stroke-width', '40');
+            // Proximity: filled when editing, hollow otherwise
+            if (isEditing) {
+              starPathEl.setAttribute('fill', color);
+              starPathEl.setAttribute('stroke', 'none');
+            } else {
+              starPathEl.setAttribute('fill', 'none');
+              starPathEl.setAttribute('stroke', color);
+              starPathEl.setAttribute('stroke-width', '40');
+            }
           } else {
             // NFC: solid gold fill when active
             starPathEl.setAttribute('fill', color);
@@ -149,7 +156,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
     return () => {
       overlay.setMap(null);
     };
-  }, [map, position.lat, position.lng, isActive, onClick, claimType, proximityRadius, userDistance, isFocused, animate]);
+  }, [map, position.lat, position.lng, isActive, onClick, claimType, proximityRadius, userDistance, isFocused, isEditing, animate]);
 
   return null;
 };

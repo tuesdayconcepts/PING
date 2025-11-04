@@ -1448,6 +1448,7 @@ function AdminPage() {
                   claimType={hotspot.claimType || 'nfc'}
                   proximityRadius={hotspot.proximityRadius || null}
                   isFocused={focusedHotspotId === hotspot.id} // Pulse when focused (centered or being edited)
+                  isEditing={formOpen && formMode === 'edit' && selectedHotspot?.id === hotspot.id} // Fill proximity marker when editing
                 />
               ))}
             
