@@ -68,6 +68,7 @@ function MapPage() {
   const [center, setCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 }); // Default: NYC
   const [zoom, setZoom] = useState(13);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [hasInitiallyCentered, setHasInitiallyCentered] = useState(false); // Track if we've done initial centering
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null);
   const [showRoute, setShowRoute] = useState(false);
@@ -360,21 +361,27 @@ function MapPage() {
       const data = await response.json();
       setHotspots(data);
 
-      // If hotspots exist, center on the first active one
-      if (data.length > 0) {
+      // Only center on first active ping on initial load, not on polling updates
+      // This prevents the map from jumping around every 30 seconds when there are multiple active pings
+      if (!hasInitiallyCentered && data.length > 0) {
         const activeHotspot = data.find((h: Hotspot) => h.active);
         if (activeHotspot) {
           setCenter({ lat: activeHotspot.lat, lng: activeHotspot.lng });
           setZoom(14);
+          setHasInitiallyCentered(true); // Mark as done so we don't center again on polling updates
+          
+          // Small delay to show loading pill before marker appears with slide-up animation
+          setTimeout(() => setMarkersLoaded(true), 500);
+        } else {
+          setMarkersLoaded(true);
         }
-        
-        // Small delay to show loading pill before marker appears with slide-up animation
-        setTimeout(() => setMarkersLoaded(true), 500);
       } else {
+        // On subsequent polling updates, just refresh the data without recentering
         setMarkersLoaded(true);
-        // Keep default NYC location when no hotspots
-        // Geolocation will only be requested when user clicks "Get My Location" button
       }
+      
+      // If no hotspots exist, keep default NYC location
+      // Geolocation will only be requested when user clicks "Get My Location" button
 
       // Reset error state on success
       setError(null);
