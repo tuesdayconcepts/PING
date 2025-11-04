@@ -1739,11 +1739,19 @@ function AdminPage() {
             }}
           >
             {/* Show markers for ACTIVE unclaimed hotspots only */}
+            {/* Hide the marker being edited when preview marker is showing */}
             {hotspots
               .filter(hotspot => hotspot.claimStatus !== 'claimed' && hotspot.active)
               .sort((a, b) => {
                 // Sort by creation date (newest first)
                 return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+              })
+              .filter(hotspot => {
+                // Hide the hotspot marker if it's being edited and preview marker is showing
+                if (formMode === 'edit' && selectedHotspot?.id === hotspot.id && previewMarker) {
+                  return false;
+                }
+                return true;
               })
               .map((hotspot) => (
                 <CustomMarker
@@ -1775,8 +1783,8 @@ function AdminPage() {
               />
             )}
 
-            {/* User location marker - hide during edit mode when preview marker is showing */}
-            {userLocation && adminMapInstance && !(formMode === 'edit' && previewMarker) && (
+            {/* User location marker */}
+            {userLocation && adminMapInstance && (
               <UserLocationMarker
                 position={userLocation}
                 map={adminMapInstance}
