@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, SmartphoneNfc, Radar, Navigation } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, SmartphoneNfc, Radio, Navigation } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -1739,7 +1739,7 @@ function AdminPage() {
                               <div className="claim-type-badge">
                                 {selectedHotspot?.claimType === 'proximity' ? (
                                   <>
-                                    <Radar size={16} />
+                                    <Radio size={16} />
                                     <span>Proximity Based</span>
                                   </>
                                 ) : (
@@ -2043,7 +2043,7 @@ function AdminPage() {
                         onClick={() => handleClaimTypeSelect('proximity')}
                       >
                         <div className="claim-type-icon">
-                          <Radar size={48} />
+                          <Radio size={48} />
                         </div>
                         <h4>Proximity Based</h4>
                         <p>Location-based discovery using GPS</p>
@@ -2115,7 +2115,7 @@ function AdminPage() {
                           </>
                         ) : (
                           <>
-                            <Radar size={16} />
+                            <Radio size={16} />
                             <span>Proximity Based</span>
                           </>
                         )}
