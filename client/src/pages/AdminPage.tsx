@@ -364,6 +364,7 @@ function AdminPage() {
 
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
   const [activeTab, setActiveTab] = useState<'active' | 'history' | 'activity' | 'access' | 'hints'>('active');
+  const [pingSubTab, setPingSubTab] = useState<'all' | 'nfc' | 'proximity'>('all');
   const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'editor'>('editor'); // Default to editor, will be updated by API
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -670,6 +671,11 @@ function AdminPage() {
     
     setActiveTab(tab);
     setDrawerExpanded(true);
+    
+    // Reset ping sub-tab when switching away from active tab
+    if (tab !== 'active') {
+      setPingSubTab('all');
+    }
     
     // Scroll clicked tab into view - use 'auto' instead of 'smooth' for Safari touch compatibility
     const button = event.currentTarget;
@@ -1831,13 +1837,91 @@ function AdminPage() {
 
         {/* Tabs */}
         <div className="admin-tabs" ref={tabsRef}>
-          <button 
-            className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
-            onClick={(e) => handleTabClick('active', e)}
-            onTouchStart={(e) => handleTabClick('active', e)}
-          >
-            Active PINGs
-          </button>
+          {/* Pings Tab with nested navigation */}
+          <div className={`control ${activeTab === 'active' ? 'active' : ''}`}>
+            <div className="control__track">
+              <div className="indicator"></div>
+              <label 
+                htmlFor="pings-tab"
+                onClick={() => {
+                  if (activeTab !== 'active') {
+                    const dummyEvent = { currentTarget: tabsRef.current?.querySelector('.control') as HTMLElement } as React.MouseEvent<HTMLButtonElement>;
+                    handleTabClick('active', dummyEvent);
+                  }
+                }}
+              >
+                <span>Pings</span>
+                <span className="sr-only">Pings</span>
+              </label>
+              <input 
+                className="sr-only" 
+                type="radio" 
+                name="admin-tab" 
+                id="pings-tab" 
+                checked={activeTab === 'active'}
+                readOnly
+              />
+              {activeTab === 'active' && (
+                <div className="pings-sub">
+                  <div className="indicator"></div>
+                  <label 
+                    htmlFor="pings-all"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPingSubTab('all');
+                    }}
+                  >
+                    <span>All</span>
+                    <span className="sr-only">All Pings</span>
+                  </label>
+                  <input 
+                    className="sr-only" 
+                    type="radio" 
+                    name="ping-sub" 
+                    id="pings-all"
+                    checked={pingSubTab === 'all'}
+                    readOnly
+                  />
+                  <label 
+                    htmlFor="pings-nfc"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPingSubTab('nfc');
+                    }}
+                  >
+                    <span>NFC</span>
+                    <span className="sr-only">NFC Pings</span>
+                  </label>
+                  <input 
+                    className="sr-only" 
+                    type="radio" 
+                    name="ping-sub" 
+                    id="pings-nfc"
+                    checked={pingSubTab === 'nfc'}
+                    readOnly
+                  />
+                  <label 
+                    htmlFor="pings-proximity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPingSubTab('proximity');
+                    }}
+                  >
+                    <span>PROXIMITY</span>
+                    <span className="sr-only">Proximity Pings</span>
+                  </label>
+                  <input 
+                    className="sr-only" 
+                    type="radio" 
+                    name="ping-sub" 
+                    id="pings-proximity"
+                    checked={pingSubTab === 'proximity'}
+                    readOnly
+                  />
+                </div>
+              )}
+            </div>
+          </div>
           <button 
             className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('history', e)}
@@ -1885,6 +1969,12 @@ function AdminPage() {
                   {/* Active/Queued PINGs List */}
                   {hotspots
                     .filter(h => h.claimStatus !== 'claimed')
+                    .filter(h => {
+                      // Filter by sub-tab selection
+                      if (pingSubTab === 'nfc') return h.claimType !== 'proximity';
+                      if (pingSubTab === 'proximity') return h.claimType === 'proximity';
+                      return true; // 'all' shows everything
+                    })
                     .sort((a, b) => {
                       // Sort by creation date (oldest first) - maintain chronological order regardless of status
                       return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
@@ -3162,13 +3252,91 @@ function AdminPage() {
 
         {/* Mobile Tabs */}
         <div className="admin-tabs mobile-tabs" ref={mobileTabsRef}>
-          <button 
-            className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
-            onClick={(e) => handleTabClick('active', e)}
-            onTouchStart={(e) => handleTabClick('active', e)}
-          >
-            Active PINGs
-          </button>
+          {/* Pings Tab with nested navigation */}
+          <div className={`control ${activeTab === 'active' ? 'active' : ''}`}>
+            <div className="control__track">
+              <div className="indicator"></div>
+              <label 
+                htmlFor="pings-tab-mobile"
+                onClick={() => {
+                  if (activeTab !== 'active') {
+                    const dummyEvent = { currentTarget: mobileTabsRef.current?.querySelector('.control') as HTMLElement } as React.MouseEvent<HTMLButtonElement>;
+                    handleTabClick('active', dummyEvent);
+                  }
+                }}
+              >
+                <span>Pings</span>
+                <span className="sr-only">Pings</span>
+              </label>
+              <input 
+                className="sr-only" 
+                type="radio" 
+                name="admin-tab-mobile" 
+                id="pings-tab-mobile" 
+                checked={activeTab === 'active'}
+                readOnly
+              />
+              {activeTab === 'active' && (
+                <div className="pings-sub">
+                  <div className="indicator"></div>
+                  <label 
+                    htmlFor="pings-all-mobile"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPingSubTab('all');
+                    }}
+                  >
+                    <span>All</span>
+                    <span className="sr-only">All Pings</span>
+                  </label>
+                  <input 
+                    className="sr-only" 
+                    type="radio" 
+                    name="ping-sub-mobile" 
+                    id="pings-all-mobile"
+                    checked={pingSubTab === 'all'}
+                    readOnly
+                  />
+                  <label 
+                    htmlFor="pings-nfc-mobile"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPingSubTab('nfc');
+                    }}
+                  >
+                    <span>NFC</span>
+                    <span className="sr-only">NFC Pings</span>
+                  </label>
+                  <input 
+                    className="sr-only" 
+                    type="radio" 
+                    name="ping-sub-mobile" 
+                    id="pings-nfc-mobile"
+                    checked={pingSubTab === 'nfc'}
+                    readOnly
+                  />
+                  <label 
+                    htmlFor="pings-proximity-mobile"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPingSubTab('proximity');
+                    }}
+                  >
+                    <span>PROXIMITY</span>
+                    <span className="sr-only">Proximity Pings</span>
+                  </label>
+                  <input 
+                    className="sr-only" 
+                    type="radio" 
+                    name="ping-sub-mobile" 
+                    id="pings-proximity-mobile"
+                    checked={pingSubTab === 'proximity'}
+                    readOnly
+                  />
+                </div>
+              )}
+            </div>
+          </div>
           <button 
             className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
             onClick={(e) => handleTabClick('history', e)}
