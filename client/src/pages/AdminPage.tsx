@@ -73,8 +73,8 @@ function AdminPage() {
     proximityRadius: 5 as number,
   });
 
-  // Claim type selection modal state
-  const [showClaimTypeModal, setShowClaimTypeModal] = useState(false);
+  // Claim type selection state (inline, not modal)
+  const [showClaimTypeSelection, setShowClaimTypeSelection] = useState(false);
   const [pendingMapClickCoords, setPendingMapClickCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const [pendingClaims, setPendingClaims] = useState<Hotspot[]>([]);
@@ -809,13 +809,13 @@ function AdminPage() {
 
   // Handle opening the form (from + card)
   const handleOpenForm = () => {
-    // Show claim type selection modal first
-    setShowClaimTypeModal(true);
+    // Show inline claim type selection (transitions from card)
+    setShowClaimTypeSelection(true);
   };
 
   // Handle claim type selection
   const handleClaimTypeSelect = (type: 'nfc' | 'proximity') => {
-    setShowClaimTypeModal(false);
+    setShowClaimTypeSelection(false); // Hide selection UI
     setFormMode('create');
     setFormOpen(true);
     setSelectedHotspot(null);
@@ -874,9 +874,9 @@ function AdminPage() {
     setActiveTab('active');
     setDrawerExpanded(true);
     
-    // If form is not open, show claim type selection modal first
+    // If form is not open, show inline claim type selection first
     if (!formOpen) {
-      setShowClaimTypeModal(true);
+      setShowClaimTypeSelection(true);
     } else {
       // If form is already open, just update coordinates
       setFormData({ ...formData, lat, lng });
@@ -1073,6 +1073,9 @@ function AdminPage() {
     
     // Clear pending map click coordinates
     setPendingMapClickCoords(null);
+    
+    // Hide claim type selection if showing
+    setShowClaimTypeSelection(false);
     
     // Clear focused hotspot when canceling edit
     setFocusedHotspotId(null);
@@ -2004,12 +2007,50 @@ function AdminPage() {
                   );
                 })}
 
-              {/* Add New PING Card / Inline Form - Only show for create mode */}
+              {/* Add New PING Card / Claim Type Selection / Inline Form */}
               {!formOpen || formMode === 'edit' ? (
-                <div className="add-ping-card" onClick={handleOpenForm}>
-                  <div className="plus-icon">+</div>
-                  <span>Add New PING</span>
-                </div>
+                // Show card if no selection UI, show selection UI if active
+                !showClaimTypeSelection ? (
+                  <div className="add-ping-card" onClick={handleOpenForm}>
+                    <div className="plus-icon">+</div>
+                    <span>Add New PING</span>
+                  </div>
+                ) : (
+                  <div className={`inline-form-container claim-type-selection ${formClosing ? 'closing' : ''}`}>
+                    <div className="claim-type-selection-header">
+                      <h4>Choose PING Type</h4>
+                      <button 
+                        className="modal-close-btn" 
+                        onClick={() => setShowClaimTypeSelection(false)}
+                        aria-label="Close"
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+                    <div className="claim-type-options">
+                      <div 
+                        className="claim-type-card" 
+                        onClick={() => handleClaimTypeSelect('nfc')}
+                      >
+                        <div className="claim-type-icon">
+                          <Radio size={48} />
+                        </div>
+                        <h4>NFC Card</h4>
+                        <p>Physical NFC card that users tap to discover</p>
+                      </div>
+                      <div 
+                        className="claim-type-card" 
+                        onClick={() => handleClaimTypeSelect('proximity')}
+                      >
+                        <div className="claim-type-icon">
+                          <Waves size={48} />
+                        </div>
+                        <h4>Proximity Based</h4>
+                        <p>Location-based discovery using GPS</p>
+                      </div>
+                    </div>
+                  </div>
+                )
               ) : (
                 <div ref={createFormRef} className={`inline-form-container inline-create-form ${formClosing ? 'closing' : ''}`}>
                   <h4>Create New PING</h4>
@@ -2855,45 +2896,6 @@ function AdminPage() {
         </div>
       </div>
 
-      {/* Claim Type Selection Modal */}
-      {showClaimTypeModal && (
-        <div className="modal-overlay" onClick={() => setShowClaimTypeModal(false)}>
-          <div className="claim-type-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="claim-type-modal-header">
-              <h3>Choose Claim Type</h3>
-              <button 
-                className="modal-close-btn" 
-                onClick={() => setShowClaimTypeModal(false)}
-                aria-label="Close"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="claim-type-options">
-              <div 
-                className="claim-type-card" 
-                onClick={() => handleClaimTypeSelect('nfc')}
-              >
-                <div className="claim-type-icon">
-                  <Radio size={48} />
-                </div>
-                <h4>NFC Card</h4>
-                <p>Physical NFC card that users tap to discover</p>
-              </div>
-              <div 
-                className="claim-type-card" 
-                onClick={() => handleClaimTypeSelect('proximity')}
-              >
-                <div className="claim-type-icon">
-                  <Waves size={48} />
-                </div>
-                <h4>Proximity Based</h4>
-                <p>Location-based discovery using GPS</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
     </>
   );
