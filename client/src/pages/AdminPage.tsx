@@ -1603,9 +1603,9 @@ function AdminPage() {
                           {hotspot.locationName && (
                             <div className="hotspot-location">
                               {hotspot.claimType === 'proximity' ? (
-                                <Radio size={12} />
+                                <Radio size={24} />
                               ) : (
-                                <SmartphoneNfc size={12} />
+                                <SmartphoneNfc size={24} />
                               )}
                               <span>{hotspot.locationName}</span>
                             </div>

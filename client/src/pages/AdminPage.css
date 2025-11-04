@@ -886,6 +886,7 @@ input:checked + .toggle-slider:before {
 
 .hotspot-location svg {
   flex-shrink: 0;
+  color: #ffd700;
 }
 
 .hotspot-footer {
