@@ -141,6 +141,96 @@ const PreviewMarker: React.FC<PreviewMarkerProps> = ({ position, map }) => {
   return null;
 };
 
+// Edit Preview Marker Component (filled for NFC, hollow for proximity)
+interface EditPreviewMarkerProps {
+  position: { lat: number; lng: number };
+  map: google.maps.Map;
+  claimType: 'nfc' | 'proximity';
+}
+
+const EditPreviewMarker: React.FC<EditPreviewMarkerProps> = ({ position, map, claimType }) => {
+  const overlayRef = useRef<google.maps.OverlayView | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const color = 'gold';
+    const starPath = "M344.13,6.42l80.5,217.54c3.64,9.83,11.39,17.58,21.22,21.22l217.54,80.5c8.56,3.17,8.56,15.28,0,18.45l-217.54,80.5c-9.83,3.64-17.58,11.39-21.22,21.22l-80.5,217.54c-3.17,8.56-15.28,8.56-18.45,0l-80.5-217.54c-3.64-9.83-11.39-17.58-21.22-21.22L6.42,344.13c-8.56-3.17-8.56-15.28,0-18.45l217.54-80.5c9.83-3.64,17.58-11.39,21.22-21.22L325.68,6.42c3.17-8.56,15.28,8.56,18.45,0Z";
+
+    class EditPreviewOverlay extends google.maps.OverlayView {
+      position: google.maps.LatLng;
+      containerDiv: HTMLDivElement | null = null;
+
+      constructor(position: google.maps.LatLng) {
+        super();
+        this.position = position;
+      }
+
+      onAdd() {
+        const div = document.createElement('div');
+        div.className = 'pulse-marker';
+        div.style.cssText = `cursor: pointer; width: 80px; height: 80px; position: absolute;`;
+
+        const star = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        star.setAttribute('class', 'pulse-marker-star');
+        star.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        star.setAttribute('viewBox', '0 0 669.82 669.82');
+        const starPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        
+        // NFC: filled, Proximity: hollow
+        if (claimType === 'proximity') {
+          starPathEl.setAttribute('fill', 'none');
+          starPathEl.setAttribute('fill-opacity', '0');
+          starPathEl.setAttribute('stroke', color);
+          starPathEl.setAttribute('stroke-width', '40');
+          starPathEl.setAttribute('stroke-opacity', '1');
+        } else {
+          starPathEl.setAttribute('fill', color);
+          starPathEl.setAttribute('fill-opacity', '1');
+          starPathEl.setAttribute('stroke', 'none');
+        }
+        
+        starPathEl.setAttribute('fill-rule', 'evenodd');
+        starPathEl.setAttribute('d', starPath);
+        star.appendChild(starPathEl);
+        div.appendChild(star);
+
+        this.containerDiv = div;
+        const panes = this.getPanes();
+        panes?.overlayMouseTarget.appendChild(div);
+      }
+
+      draw() {
+        if (!this.containerDiv) return;
+        const overlayProjection = this.getProjection();
+        const pos = overlayProjection.fromLatLngToDivPixel(this.position);
+        if (pos) {
+          const offset = 40; // Half of 80px marker size
+          this.containerDiv.style.left = (pos.x - offset) + 'px';
+          this.containerDiv.style.top = (pos.y - offset) + 'px';
+        }
+      }
+
+      onRemove() {
+        if (this.containerDiv) {
+          this.containerDiv.parentNode?.removeChild(this.containerDiv);
+          this.containerDiv = null;
+        }
+      }
+    }
+
+    const overlay = new EditPreviewOverlay(new google.maps.LatLng(position.lat, position.lng));
+    overlay.setMap(map);
+    overlayRef.current = overlay;
+
+    return () => {
+      overlay.setMap(null);
+    };
+  }, [map, position.lat, position.lng, claimType]);
+
+  return null;
+};
+
 // User Location Marker Component (white circle with yellow stroke)
 interface UserLocationMarkerProps {
   position: { lat: number; lng: number };
@@ -1088,8 +1178,8 @@ function AdminPage() {
     setActiveTab('active'); // Switch to active tab to show form
     setDrawerExpanded(true); // Expand drawer on mobile
     
-    // Don't show preview marker when editing - the actual marker will pulse
-    setPreviewMarker(null);
+    // Set preview marker when editing to show placeholder
+    setPreviewMarker({ lat: hotspot.lat, lng: hotspot.lng });
     
     // Center map on the ping being edited with smooth animation
     if (adminMapInstance) {
@@ -1668,11 +1758,20 @@ function AdminPage() {
                 />
               ))}
             
-            {/* Preview marker for create mode only (not for edit mode) - shows cursor style */}
+            {/* Preview marker for create mode - shows cursor style */}
             {previewMarker && formMode === 'create' && adminMapInstance && (
               <PreviewMarker
                 position={previewMarker}
                 map={adminMapInstance}
+              />
+            )}
+
+            {/* Preview marker for edit mode - shows filled (NFC) or hollow (proximity) */}
+            {previewMarker && formMode === 'edit' && selectedHotspot && adminMapInstance && (
+              <EditPreviewMarker
+                position={previewMarker}
+                map={adminMapInstance}
+                claimType={selectedHotspot.claimType || 'nfc'}
               />
             )}
 
