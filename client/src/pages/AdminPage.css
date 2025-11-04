@@ -2124,7 +2124,7 @@ input:checked + .toggle-slider:before {
 
 .claim-type-card {
   background: #ffffff1a;
-  border: 1.5px solid rgb(255 255 255 / 11%);
+  border: 2px solid rgb(255 255 255 / 11%);
   border-radius: 20px;
   padding: 16px 20px;
   cursor: pointer;
@@ -2147,6 +2147,10 @@ input:checked + .toggle-slider:before {
   justify-content: center;
   flex-shrink: 0;
   color: #ffd700;
+}
+
+.claim-type-icon svg {
+  stroke-width: 1.5;
 }
 
 .claim-type-content {
