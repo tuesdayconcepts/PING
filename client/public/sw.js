@@ -121,13 +121,46 @@ self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     // Try network first, fallback to cache for navigation
     event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match('/index.html');
-      })
+      fetch(event.request)
+        .then((response) => {
+          // Return response if valid, otherwise fallback to cache
+          if (response && response.status === 200) {
+            return response;
+          }
+          return caches.match('/index.html');
+        })
+        .catch(() => {
+          // If fetch fails, try cache
+          return caches.match('/index.html');
+        })
+        .then((response) => {
+          // Ensure we always return a valid Response
+          if (response) {
+            return response;
+          }
+          // Last resort: return a minimal HTML response
+          return new Response('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PING</title><meta http-equiv="refresh" content="0;url=/"></head><body><script>window.location.href="/"</script></body></html>', {
+            headers: { 'Content-Type': 'text/html' }
+          });
+        })
     );
   } else {
     // For other resources (JS, CSS, images), try network first
-    event.respondWith(fetch(event.request));
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          // If fetch fails, try cache
+          return caches.match(event.request);
+        })
+        .then((response) => {
+          // Ensure we always return a valid Response
+          if (response) {
+            return response;
+          }
+          // Return a minimal error response if both network and cache fail
+          return new Response('', { status: 404, statusText: 'Not Found' });
+        })
+    );
   }
 });
 
