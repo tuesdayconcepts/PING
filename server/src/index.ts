@@ -617,17 +617,6 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
     const prizeAmountLamports = solToLamports(Number.isFinite(prizeSol) ? prizeSol : 0);
     const encryptedPrizeSecret = encrypt(secretKeyBase64);
 
-    // Determine queue position: find the highest queue position and add 1
-    const unclaimedHotspots = await prisma.hotspot.findMany({
-      where: { claimStatus: 'unclaimed' },
-      orderBy: { queuePosition: 'desc' },
-      take: 1,
-    });
-
-    const queuePosition = unclaimedHotspots.length > 0 
-      ? (unclaimedHotspots[0].queuePosition || 0) + 1 
-      : 1; // First hotspot gets position 1
-
     // Fetch location name for the coordinates
     const locationName = await getLocationName(roundedLat, roundedLng);
 
@@ -647,7 +636,7 @@ app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
         active: active !== undefined ? active : true,
         imageUrl: imageUrl ? sanitizeString(imageUrl) : null,
         privateKey: null, // legacy manual key removed in new flow
-        queuePosition,
+        queuePosition: 0, // Legacy field, kept for compatibility but not used
         claimStatus: 'unclaimed',
         locationName,
         shareToken, // UUID for share links

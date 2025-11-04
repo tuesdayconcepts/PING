@@ -700,8 +700,8 @@ function MapPage() {
             e.stop();
           }}
         >
-          {/* Render custom markers for each hotspot with slide-up animation */}
-          {markersLoaded && hotspots.map((hotspot) => {
+          {/* Render custom markers for each ACTIVE hotspot with slide-up animation */}
+          {markersLoaded && hotspots.filter(h => h.active && new Date(h.endDate) >= new Date()).map((hotspot) => {
             // Check if hotspot is active/expired
             const now = new Date();
             const endDate = new Date(hotspot.endDate);
@@ -771,22 +771,10 @@ function MapPage() {
               </button>
 
             <div className="modal-sections">
-              {/* Check if hotspot is queued (not active yet) */}
-              {selectedHotspot.queuePosition && selectedHotspot.queuePosition > 1 ? (
-                <div className="modal-section modal-queued">
-                  <h3>INACTIVE PING</h3>
-                  <p>This PING is currently in queue. It will become active in the future.</p>
-                  <button 
-                    className="view-active-btn"
-                    onClick={() => window.location.href = '/'}
-                  >
-                    View Active PING
-                  </button>
-                </div>
-              ) : (
-                <>
+              {/* Show ping content */}
+              <>
                   {/* Show congratulations for claim flow (unique URLs), otherwise show all sections */}
-                  {claimStatus === 'unclaimed' && selectedHotspot.claimStatus === 'unclaimed' && id && !isShareRoute && selectedHotspot.queuePosition === 1 ? (
+                  {claimStatus === 'unclaimed' && selectedHotspot.claimStatus === 'unclaimed' && id && !isShareRoute ? (
                     <div className="modal-section modal-claim-intro">
                       <h3>GREAT JOB!</h3>
                       <p>You found the PING! That means you are almost <span className="prize-amount">{selectedHotspot.prize} SOL</span> richer!</p>
@@ -998,9 +986,9 @@ function MapPage() {
               )}
 
               {/* Action section - Different states */}
-              {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not queued, and not share routes */}
+              {/* Only show claim button for NFC URLs (when accessed via /ping/:id) and not share routes */}
               {/* Show when unclaimed OR when there's a claim error (someone else claimed it) */}
-              {id && !isShareRoute && selectedHotspot.queuePosition === 1 && (claimStatus === 'unclaimed' || claimError) && (
+              {id && !isShareRoute && (claimStatus === 'unclaimed' || claimError) && (
                 <>
                   {claimError && (
                     <div className="modal-section claim-error-section">

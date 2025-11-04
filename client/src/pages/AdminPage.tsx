@@ -567,13 +567,14 @@ function AdminPage() {
         
         // Auto-center map on active ping only on initial load
         if (!hasInitiallyLoaded) {
-          const activePing = data.find((h: Hotspot) => h.claimStatus === 'unclaimed' && h.queuePosition === 1);
-          if (activePing && adminMapInstance) {
+          // Find first active ping to center map on
+          const firstActivePing = data.find((h: Hotspot) => h.active && h.claimStatus === 'unclaimed');
+          if (firstActivePing && adminMapInstance) {
             // Use smooth pan animation instead of instant center
-            adminMapInstance.panTo({ lat: activePing.lat, lng: activePing.lng });
-          } else if (activePing) {
+            adminMapInstance.panTo({ lat: firstActivePing.lat, lng: firstActivePing.lng });
+          } else if (firstActivePing) {
             // Fallback if map not loaded yet
-            setMapCenter({ lat: activePing.lat, lng: activePing.lng });
+            setMapCenter({ lat: firstActivePing.lat, lng: firstActivePing.lng });
           }
           setHasInitiallyLoaded(true);
         }
@@ -1117,7 +1118,7 @@ function AdminPage() {
 
   // Center map on active ping
   const centerOnActivePing = () => {
-    const activePing = hotspots.find(h => h.claimStatus === 'unclaimed' && h.queuePosition === 1);
+    const activePing = hotspots.find(h => h.active && h.claimStatus === 'unclaimed');
     if (activePing && adminMapInstance) {
       // Use smooth pan animation
       adminMapInstance.panTo({ lat: activePing.lat, lng: activePing.lng });
@@ -1523,20 +1524,47 @@ function AdminPage() {
                   {/* Active/Queued PINGs List */}
                   {hotspots
                     .filter(h => h.claimStatus !== 'claimed')
-                    .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0))
+                    .sort((a, b) => {
+                      // Sort: active first, then by creation date (newest first)
+                      if (a.active !== b.active) return a.active ? -1 : 1;
+                      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+                    })
                     .map((hotspot, index) => {
                   const nfcUrl = `${window.location.origin}/ping/${hotspot.id}`;
-                  const isActive = index === 0; // First item is active
-                  const displayPosition = index + 1; // Display position: 1, 2, 3, etc.
                   const pendingClaim = pendingClaims.find(claim => claim.id === hotspot.id);
                   const hasPendingClaim = !!pendingClaim;
+                  
+                  // Toggle active status handler
+                  const handleToggleActive = async (e: React.MouseEvent) => {
+                    e.stopPropagation(); // Prevent triggering edit
+                    const newActiveStatus = !hotspot.active;
+                    try {
+                      const response = await fetch(`${API_URL}/api/hotspots/${hotspot.id}`, {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          ...getAuthHeaders(),
+                        },
+                        body: JSON.stringify({ active: newActiveStatus }),
+                      });
+
+                      if (!response.ok) {
+                        throw new Error('Failed to update active status');
+                      }
+
+                      showToast(`Ping ${newActiveStatus ? 'activated' : 'deactivated'}`, 'success');
+                      fetchHotspots();
+                    } catch (err) {
+                      showToast(err instanceof Error ? err.message : 'Failed to update status', 'error');
+                    }
+                  };
                   
                   return (
                     <div 
                       key={hotspot.id}
                       id={`hotspot-${hotspot.id}`}
                       data-hotspot-id={hotspot.id}
-                      className={`hotspot-item ${isActive ? 'active-hotspot' : 'queued-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''}`}
+                      className={`hotspot-item ${hotspot.active ? 'active-hotspot' : 'inactive-hotspot'} ${hasPendingClaim ? 'pending-claim' : ''}`}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
                       <div className="hotspot-header">
@@ -1549,9 +1577,19 @@ function AdminPage() {
                             </div>
                           )}
                         </div>
-                        <span className={`status-badge ${hasPendingClaim ? 'badge-pending' : (isActive ? 'badge-active' : 'badge-queued')}`}>
-                          {hasPendingClaim ? 'Pending' : (isActive ? 'Active' : `Queue #${displayPosition}`)}
-                        </span>
+                        <div className="header-status-section">
+                          {hasPendingClaim && (
+                            <span className="status-badge badge-pending">Pending</span>
+                          )}
+                          <button
+                            onClick={handleToggleActive}
+                            className={`active-toggle ${hotspot.active ? 'active' : 'inactive'}`}
+                            aria-label={hotspot.active ? 'Deactivate ping' : 'Activate ping'}
+                            title={hotspot.active ? 'Click to deactivate' : 'Click to activate'}
+                          >
+                            <span className="toggle-slider"></span>
+                          </button>
+                        </div>
                       </div>
                       <div className="hotspot-footer">
                         <p className="hotspot-prize">
