@@ -1483,7 +1483,4 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
   cursor: not-allowed;
 }
 
-/* Proximity markers: NO pulse animation - just static hollow star */
-.proximity-marker .pulse-marker-ring {
-  display: none; /* Hide pulse rings for proximity markers */
-}
+/* Proximity markers: pulse rings only show when focused (controlled by isFocused prop in CustomMarker) */

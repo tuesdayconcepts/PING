@@ -94,16 +94,19 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
           
           // Visual distinction:
           // Active NFC pings: solid gold fill, no pulse (unless focused)
-          // Active proximity pings: always hollow marker (transparent with stroke), no pulse (unless focused)
+          // Active proximity pings: ALWAYS hollow marker (transparent with stroke), never fills
           // Inactive pings: don't show on map (filtered out)
           if (claimType === 'proximity') {
-            // Proximity: always hollow (never fills, even when editing)
+            // Proximity: ALWAYS hollow - never fill, regardless of isFocused or any other state
             starPathEl.setAttribute('fill', 'none');
+            starPathEl.setAttribute('fill-opacity', '0'); // Explicitly set fill opacity to 0
             starPathEl.setAttribute('stroke', color);
             starPathEl.setAttribute('stroke-width', '40');
+            starPathEl.setAttribute('stroke-opacity', '1');
           } else {
             // NFC: solid gold fill when active
             starPathEl.setAttribute('fill', color);
+            starPathEl.setAttribute('fill-opacity', '1');
             starPathEl.setAttribute('stroke', 'none');
           }
           
