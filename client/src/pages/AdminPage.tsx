@@ -630,19 +630,23 @@ function AdminPage() {
         // Check both desktop and mobile tabs
         const desktopTabs = tabsRef.current;
         const mobileTabs = mobileTabsRef.current;
-        const desktopButton = desktopTabs?.querySelector('.tab-btn.active');
-        const mobileButton = mobileTabs?.querySelector('.tab-btn.active');
+        
+        // Check for active tab button or active control (for Pings tab)
+        const desktopActiveElement = desktopTabs?.querySelector('.tab-btn.active') || 
+                                      desktopTabs?.querySelector('.control.active');
+        const mobileActiveElement = mobileTabs?.querySelector('.tab-btn.active') || 
+                                    mobileTabs?.querySelector('.control.active');
         
         // Update desktop tabs
-        if (desktopTabs && desktopButton) {
-          const { offsetLeft, offsetWidth } = desktopButton as HTMLElement;
+        if (desktopTabs && desktopActiveElement) {
+          const { offsetLeft, offsetWidth } = desktopActiveElement as HTMLElement;
           desktopTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
           desktopTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
         }
         
         // Update mobile tabs
-        if (mobileTabs && mobileButton) {
-          const { offsetLeft, offsetWidth } = mobileButton as HTMLElement;
+        if (mobileTabs && mobileActiveElement) {
+          const { offsetLeft, offsetWidth } = mobileActiveElement as HTMLElement;
           mobileTabs.style.setProperty('--indicator-left', `${offsetLeft}px`);
           mobileTabs.style.setProperty('--indicator-width', `${offsetWidth}px`);
         }
@@ -658,7 +662,7 @@ function AdminPage() {
 
     // Calculate on next frame
     calculateIndicator();
-  }, [activeTab, isAuthenticated, indicatorReady]);
+  }, [activeTab, pingSubTab, isAuthenticated, indicatorReady]);
 
   // Handle tab click with auto-scroll
   const handleTabClick = (tab: 'active' | 'history' | 'activity' | 'access' | 'hints', event: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {

@@ -289,14 +289,38 @@
   position: relative;
   height: 100%;
   background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
   border-radius: 20px;
+  z-index: 2;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   flex: 0 0 auto;
   min-width: 120px;
-  /* When active, expand to fit 3 sub-tabs */
+  /* Match tab-btn styling for consistent indicator positioning */
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.control:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.control.active {
+  color: #000;
+}
+
+/* When active with sub-tabs, expand to fit 3 sub-tabs */
 .control:has(.pings-sub) {
   min-width: 200px;
+  padding: 4px;
 }
 
 .control__track {
@@ -339,26 +363,9 @@
   opacity: 1;
 }
 
+/* Remove separate indicator - using main admin-tabs indicator instead */
 .control__track .indicator {
-  position: absolute;
-  width: 100%;
-  left: 0;
-  top: 4px;
-  bottom: 4px;
-  background: gold;
-  border-radius: 20px;
-  z-index: 1;
-  transition: translate 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-}
-
-.control__track:not(:has(> input:checked)) > .indicator {
-  translate: 100% 0;
-  opacity: 0;
-}
-
-.control__track:has(> input:checked) > .indicator {
-  translate: 0 0;
-  opacity: 1;
+  display: none;
 }
 
 .pings-sub {
@@ -396,17 +403,20 @@
 }
 
 .pings-sub .indicator {
-  background: rgba(255, 255, 255, 0.2);
+  /* Sub-indicator: shows which sub-tab is selected within the main indicator */
+  background: rgba(0, 0, 0, 0.15);
   top: 4px;
   bottom: 4px;
   width: 33.33%;
   border-radius: 20px;
   transition: left 0.3s ease, background 0.3s ease;
   position: absolute;
+  z-index: 2;
+  /* This sits on top of the main yellow indicator */
 }
 
 .pings-sub:has(input:checked) .indicator {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .pings-sub label {
