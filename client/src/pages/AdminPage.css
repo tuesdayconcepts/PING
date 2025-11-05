@@ -371,16 +371,16 @@
 
 .pings-sub {
   width: 100%;
-  display: grid;
+  display: flex;
   position: relative;
-  grid-template-columns: 1fr 1fr 1fr;
+  flex-direction: row;
   border: 1px solid transparent;
   container-type: size;
   grid-column: 1 / -1;
   gap: 0;
-  align-content: center;
   align-items: center;
-  /* Ensure proper vertical alignment in Safari */
+  justify-content: space-evenly;
+  /* Use flexbox for better Safari compatibility */
 }
 
 
@@ -394,8 +394,9 @@
 }
 
 .pings-sub label {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   font-size: 0.75rem;
   color: #000;
@@ -404,6 +405,7 @@
   padding: 7px 10px;
   white-space: nowrap;
   border-radius: 20px;
+  flex: 1;
   /* Unselected labels are black to contrast with yellow background */
 }
 
