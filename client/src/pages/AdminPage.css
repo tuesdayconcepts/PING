@@ -217,7 +217,7 @@
   display: flex;
   flex-direction: row;
   gap: 4px;
-  padding: 8px;
+  padding: 7px;
   background: #ffffff1a;
   border-radius: 50px;
   margin: 0 20px;
@@ -269,12 +269,12 @@
 .admin-tabs::before {
   content: '';
   position: absolute;
-  height: calc(100% - 16px);
+  height: calc(100% - 10px);
   background: gold;
-  border-radius: 20px;
+  border-radius: 50px;
   z-index: 1;
-  top: 8px;
-  left: var(--indicator-left, 0);
+  top: 5px;
+  left: var(--indicator-left, 0px);
   width: var(--indicator-width, 0);
   transition: none; /* No transition by default */
 }
@@ -289,24 +289,22 @@
   position: relative;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: #fff9;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   text-align: center;
   white-space: nowrap;
-  border-radius: 20px;
+  border-radius: 25px;
   z-index: 2;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   flex: 0 0 auto;
   min-width: 120px;
-  /* Match tab-btn styling for consistent height and indicator positioning */
-  padding: 12px 20px;
+  /* padding: 12px 20px; */
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Remove height constraint to match tab-btn natural sizing */
 }
 
 .control:hover {
