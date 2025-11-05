@@ -300,8 +300,8 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   flex: 0 0 auto;
-  min-width: 120px;
-  /* padding: 12px 20px; */
+  /* No min-width - let it size to content like tab-btn when inactive */
+  padding: 12px 20px;
   display: flex;
   align-items: center;
   justify-content: center;
