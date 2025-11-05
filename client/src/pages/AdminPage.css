@@ -269,7 +269,7 @@
 .admin-tabs::before {
   content: '';
   position: absolute;
-  height: calc(100% - 9px);
+  height: calc(100% - 10px);
   background: gold;
   border-radius: 50px;
   z-index: 1;
