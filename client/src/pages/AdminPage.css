@@ -404,11 +404,10 @@
   color: #000;
   z-index: 2;
   transition: background 0.3s ease, color 0.3s ease;
-  padding: 7px 10px;
+  padding: 10px 10px;
   white-space: nowrap;
   border-radius: 20px;
   flex: 1;
-  /* Unselected labels are black to contrast with yellow background */
 }
 
 .pings-sub:has(input:checked) label {
