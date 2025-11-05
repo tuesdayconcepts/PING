@@ -378,7 +378,7 @@
   container-type: size;
   grid-column: 1 / -1;
   gap: 0;
-  /* Remove height: 100% to allow natural sizing */
+  align-content: center;
 }
 
 
@@ -387,20 +387,8 @@
 }
 
 .pings-sub .indicator {
-  /* Sub-indicator: shows which sub-tab is selected within the main indicator */
-  background: rgba(0, 0, 0, 0.15);
-  top: 4px;
-  bottom: 4px;
-  width: 33.33%;
-  border-radius: 20px;
-  transition: left 0.3s ease, background 0.3s ease;
-  position: absolute;
-  z-index: 2;
-  /* This sits on top of the main yellow indicator */
-}
-
-.pings-sub:has(input:checked) .indicator {
-  background: rgba(0, 0, 0, 0.2);
+  /* Sub-indicator: removed - using label background instead */
+  display: none;
 }
 
 .pings-sub label {
@@ -408,37 +396,28 @@
   place-items: center;
   cursor: pointer;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-  opacity: 0.75;
+  color: #000;
   z-index: 2;
-  transition: color 0.3s ease, opacity 0.3s ease;
-  padding: 0 4px;
+  transition: background 0.3s ease, color 0.3s ease;
+  padding: 4px 8px;
   white-space: nowrap;
+  border-radius: 20px;
+  /* Unselected labels are black to contrast with yellow background */
 }
 
 .pings-sub:has(input:checked) label {
-  color: rgba(255, 255, 255, 0.6);
-  opacity: 0.75;
+  color: #000;
 }
 
+/* Selected sub-tab gets contrasting background */
 .pings-sub:has(input:nth-of-type(1):checked) label:nth-of-type(1),
 .pings-sub:has(input:nth-of-type(2):checked) label:nth-of-type(2),
 .pings-sub:has(input:nth-of-type(3):checked) label:nth-of-type(3) {
-  color: #ffd700;
-  opacity: 1;
+  color: #000;
+  background: rgba(255, 255, 255, 0.9);
+  /* White background with rounded edges for selected sub-tab */
 }
 
-.pings-sub:has(input:nth-of-type(1):checked) .indicator {
-  left: 0;
-}
-
-.pings-sub:has(input:nth-of-type(2):checked) .indicator {
-  left: 33.33%;
-}
-
-.pings-sub:has(input:nth-of-type(3):checked) .indicator {
-  left: 66.66%;
-}
 
 .pings-sub label span {
   display: grid;
