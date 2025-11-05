@@ -217,7 +217,7 @@
   display: flex;
   flex-direction: row;
   gap: 4px;
-  padding: 7px;
+  padding: 4px;
   background: #ffffff1a;
   border-radius: 50px;
   margin: 0 20px;
@@ -318,7 +318,7 @@
 /* When active with sub-tabs, expand to fit 3 sub-tabs */
 .control:has(.pings-sub) {
   min-width: 200px;
-  padding: 4px;
+  padding: 0px;
 }
 
 .control:has(.pings-sub) .control__track {
@@ -399,7 +399,7 @@
   color: #000;
   z-index: 2;
   transition: background 0.3s ease, color 0.3s ease;
-  padding: 4px 8px;
+  padding: 7px 10px;
   white-space: nowrap;
   border-radius: 20px;
   /* Unselected labels are black to contrast with yellow background */
@@ -413,9 +413,8 @@
 .pings-sub:has(input:nth-of-type(1):checked) label:nth-of-type(1),
 .pings-sub:has(input:nth-of-type(2):checked) label:nth-of-type(2),
 .pings-sub:has(input:nth-of-type(3):checked) label:nth-of-type(3) {
-  color: #000;
-  background: rgba(255, 255, 255, 0.9);
-  /* White background with rounded edges for selected sub-tab */
+  color: #ffffff;
+  background: #202eac;
 }
 
 
