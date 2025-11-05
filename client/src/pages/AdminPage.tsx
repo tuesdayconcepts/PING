@@ -1873,6 +1873,7 @@ function AdminPage() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setPingSubTab('all');
+                      setDrawerExpanded(true); // Expand drawer on mobile
                     }}
                   >
                     <span>All</span>
@@ -1891,6 +1892,7 @@ function AdminPage() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setPingSubTab('nfc');
+                      setDrawerExpanded(true); // Expand drawer on mobile
                     }}
                   >
                     <span>NFC</span>
@@ -1909,6 +1911,7 @@ function AdminPage() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setPingSubTab('proximity');
+                      setDrawerExpanded(true); // Expand drawer on mobile
                     }}
                   >
                     <span>PROXIMITY</span>
@@ -3288,6 +3291,7 @@ function AdminPage() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setPingSubTab('all');
+                      setDrawerExpanded(true); // Expand drawer on mobile
                     }}
                   >
                     <span>All</span>
@@ -3306,6 +3310,7 @@ function AdminPage() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setPingSubTab('nfc');
+                      setDrawerExpanded(true); // Expand drawer on mobile
                     }}
                   >
                     <span>NFC</span>
@@ -3324,6 +3329,7 @@ function AdminPage() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setPingSubTab('proximity');
+                      setDrawerExpanded(true); // Expand drawer on mobile
                     }}
                   >
                     <span>PROXIMITY</span>
