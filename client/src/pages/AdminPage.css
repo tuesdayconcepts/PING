@@ -2379,6 +2379,11 @@ input:checked + .toggle-slider:before {
   .claim-type-modal {
     padding: 24px;
   }
+
+  /* Mobile-specific padding for pings-sub labels */
+  .pings-sub label {
+    padding: 10px 10px;
+  }
 }
 
 
