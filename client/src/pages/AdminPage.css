@@ -2058,10 +2058,10 @@ input:checked + .toggle-slider:before {
     display: flex !important;
     flex-direction: row;
     gap: 4px;
-    padding: 11px 6px;
+    padding: 0px 6px;
     background: #ffffff1a;
     border-radius: 50px;
-    margin: 10px 16px 0px;
+    margin: 10px 16px 0;
     position: relative;
     overflow-x: auto;
     overflow-y: hidden;
