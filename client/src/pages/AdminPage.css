@@ -269,7 +269,7 @@
 .admin-tabs::before {
   content: '';
   position: absolute;
-  height: calc(100% - 10px);
+  height: calc(100% - 9px);
   background: gold;
   border-radius: 50px;
   z-index: 1;
@@ -318,11 +318,11 @@
 /* When active with sub-tabs, expand to fit 3 sub-tabs */
 .control:has(.pings-sub) {
   min-width: 200px;
-  padding: 0px;
+  padding: 20px 0;
 }
 
 .control:has(.pings-sub) .control__track {
-  padding: 4px;
+  padding: 2px;
 }
 
 .control__track {
@@ -2076,7 +2076,7 @@ input:checked + .toggle-slider:before {
 
   .mobile-tabs .tab-btn {
     flex: 1;
-    padding: 10px 12px;
+    padding: 18px 12px;
     font-size: 0.75rem;
     text-align: center;
     flex-shrink: 0;
@@ -2384,7 +2384,15 @@ input:checked + .toggle-slider:before {
 
   /* Mobile-specific padding for pings-sub labels */
   .pings-sub label {
-    padding: 10px 10px;
+    padding: 9px;
+  }
+
+  .mobile-tabs .tab-btn {
+    flex: 1;
+    padding: 18px 12px;
+    font-size: 0.75rem;
+    text-align: center;
+    flex-shrink: 0;
   }
 }
 
