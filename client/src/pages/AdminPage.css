@@ -341,7 +341,7 @@
 }
 
 .control__track > label {
-  color: rgba(255, 255, 255, 0.6);
+  color: #fff9;
   z-index: 2;
   cursor: pointer;
   display: grid;
@@ -349,19 +349,21 @@
   width: 100%;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.3s ease, opacity 0.3s ease;
+  transition: color 0.3s ease;
   grid-column: 1;
   /* Remove height: 100% to allow natural sizing */
+  /* Match tab-btn styling */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.control__track > label:hover {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Hide "Pings" label when sub-tabs are active */
 .control__track:has(> input:checked) > label {
   display: none;
-}
-
-.control__track:not(:has(> input:checked)) > label {
-  color: #ffd700;
-  opacity: 1;
 }
 
 /* Remove separate indicator - using main admin-tabs indicator instead */
