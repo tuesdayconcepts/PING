@@ -379,6 +379,8 @@
   grid-column: 1 / -1;
   gap: 0;
   align-content: center;
+  align-items: center;
+  /* Ensure proper vertical alignment in Safari */
 }
 
 
@@ -452,6 +454,13 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+/* Exclude sr-only inputs from grid layout in pings-sub */
+.pings-sub input.sr-only {
+  display: none !important;
+  /* Using display: none instead of position: absolute for inputs to prevent grid layout issues in Safari */
+  /* Inputs should not participate in grid layout */
 }
 
 /* Mobile Footer - Hidden on Desktop */
