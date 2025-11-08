@@ -680,55 +680,74 @@
   gap: 12px;
 }
 
-/* Active Toggle - Rebuilt from scratch */
-.active-toggle {
+/* iOS Style Toggle */
+.tgl {
+  display: none;
+}
+
+.tgl-btn {
+  display: inline-block;
+  outline: 0;
+  width: 4em;
+  height: 2em;
   position: relative;
-  width: 48px;
-  height: 26px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 13px;
   cursor: pointer;
-  padding: 0;
-  outline: none;
+  user-select: none;
   flex-shrink: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
 }
 
-.active-toggle:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.15);
+.tgl-ios + .tgl-btn {
+  background: #fbfbfb;
+  border-radius: 2em;
+  padding: 2px;
+  transition: all 0.4s ease;
+  border: 1px solid #e8eae9;
 }
 
-.active-toggle.active {
-  background: #4ade80;
-  border-color: #4ade80;
-}
-
-.active-toggle.active:hover {
-  background: #22c55e;
-  border-color: #22c55e;
-}
-
-/* Toggle slider (thumb) */
-.active-toggle .toggle-slider {
+.tgl-ios + .tgl-btn::after {
+  border-radius: 2em;
+  background: #fbfbfb;
+  transition:
+    left 0.3s cubic-bezier(0.175, 0.885, 0.320, 1.275),
+    padding 0.3s ease,
+    margin 0.3s ease;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.1),
+    0 4px 0 rgba(0, 0, 0, 0.08);
+  content: '';
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  background: #ffffff;
-  border-radius: 50%;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 2;
+  top: 2px;
+  left: 2px;
+  width: calc(2em - 4px);
+  height: calc(2em - 4px);
 }
 
-/* Move slider when active */
-.active-toggle.active .toggle-slider {
-  transform: translateX(22px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+.tgl-ios + .tgl-btn:hover::after {
+  will-change: padding;
+}
+
+.tgl-ios + .tgl-btn:active {
+  box-shadow: inset 0 0 0 2em #e8eae9;
+}
+
+.tgl-ios + .tgl-btn:active::after {
+  padding-right: 0.8em;
+}
+
+.tgl-ios:checked + .tgl-btn {
+  background: #86d993;
+}
+
+.tgl-ios:checked + .tgl-btn:active {
+  box-shadow: none;
+}
+
+.tgl-ios:checked + .tgl-btn:active::after {
+  margin-left: -0.8em;
+}
+
+.tgl-ios:checked + .tgl-btn::after {
+  left: calc(100% - 2em);
 }
 
 .toggle-switch {

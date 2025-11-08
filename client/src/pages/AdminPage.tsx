@@ -1992,9 +1992,9 @@ function AdminPage() {
                   const hasPendingClaim = !!pendingClaim;
                   
                   // Toggle active status handler
-                  const handleToggleActive = async (e: React.MouseEvent) => {
+                  const handleToggleActive = async (e: React.ChangeEvent<HTMLInputElement>) => {
                     e.stopPropagation(); // Prevent triggering edit
-                    const newActiveStatus = !hotspot.active;
+                    const newActiveStatus = e.target.checked;
                     try {
                       const response = await fetch(`${API_URL}/api/hotspots/${hotspot.id}`, {
                         method: 'PUT',
@@ -2051,14 +2051,22 @@ function AdminPage() {
                           {hasPendingClaim && (
                             <span className="status-badge badge-pending">Pending</span>
                           )}
-                          <button
-                            onClick={handleToggleActive}
-                            className={`active-toggle ${hotspot.active ? 'active' : ''}`}
-                            aria-label={hotspot.active ? 'Deactivate ping' : 'Activate ping'}
-                            title={hotspot.active ? 'Click to deactivate' : 'Click to activate'}
-                          >
-                            <span className="toggle-slider"></span>
-                          </button>
+                          <>
+                            <input
+                              type="checkbox"
+                              id={`toggle-${hotspot.id}`}
+                              className="tgl tgl-ios"
+                              checked={hotspot.active}
+                              onChange={handleToggleActive}
+                              aria-label={hotspot.active ? 'Deactivate ping' : 'Activate ping'}
+                            />
+                            <label
+                              htmlFor={`toggle-${hotspot.id}`}
+                              className="tgl-btn"
+                              onClick={(e) => e.stopPropagation()}
+                              title={hotspot.active ? 'Click to deactivate' : 'Click to activate'}
+                            />
+                          </>
                         </div>
                       </div>
                       <div className="hotspot-footer">
