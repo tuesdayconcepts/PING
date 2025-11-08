@@ -2246,7 +2246,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* Claim Type Selection Modal */
-.modal-overlay {
+.admin-page .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
