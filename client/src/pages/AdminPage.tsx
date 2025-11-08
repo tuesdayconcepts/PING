@@ -2014,13 +2014,10 @@ function AdminPage() {
 
                       showToast(`Ping ${newActiveStatus ? 'activated' : 'deactivated'}`, 'success');
                       
-                      // Wait for toggle animation to complete (400ms), then update local state
-                      // This uses server response (authoritative) instead of full refetch
-                      setTimeout(() => {
-                        setHotspots(prev => prev.map(h => 
-                          h.id === hotspot.id ? updatedHotspot : h
-                        ));
-                      }, 450);
+                      // Update local state with server response (authoritative) instead of full refetch
+                      setHotspots(prev => prev.map(h => 
+                        h.id === hotspot.id ? updatedHotspot : h
+                      ));
                     } catch (err) {
                       // On error, revert the checkbox state
                       e.target.checked = !newActiveStatus;
