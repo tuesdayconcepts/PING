@@ -2009,9 +2009,21 @@ function AdminPage() {
                         throw new Error('Failed to update active status');
                       }
 
+                      // Get the updated hotspot from server (includes updatedAt, etc.)
+                      const updatedHotspot = await response.json();
+
                       showToast(`Ping ${newActiveStatus ? 'activated' : 'deactivated'}`, 'success');
-                      fetchHotspots();
+                      
+                      // Wait for toggle animation to complete (400ms), then update local state
+                      // This uses server response (authoritative) instead of full refetch
+                      setTimeout(() => {
+                        setHotspots(prev => prev.map(h => 
+                          h.id === hotspot.id ? updatedHotspot : h
+                        ));
+                      }, 450);
                     } catch (err) {
+                      // On error, revert the checkbox state
+                      e.target.checked = !newActiveStatus;
                       showToast(err instanceof Error ? err.message : 'Failed to update status', 'error');
                     }
                   };
