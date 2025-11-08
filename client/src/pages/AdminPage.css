@@ -680,23 +680,25 @@
   gap: 12px;
 }
 
+/* Active Toggle - Rebuilt from scratch */
 .active-toggle {
   position: relative;
-  width: 44px;
-  height: 24px;
-  background: #ffffff1a;
-  border: 1px solid rgb(255 255 255 / 11%);
-  border-radius: 12px;
+  width: 48px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 13px;
   cursor: pointer;
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0;
   outline: none;
-  overflow: visible;
   flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
-.active-toggle:hover:not(.active) {
-  background: #ffffff26;
+.active-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .active-toggle.active {
@@ -709,43 +711,24 @@
   border-color: #22c55e;
 }
 
-/* Toggle thumb (white circle) */
+/* Toggle slider (thumb) */
 .active-toggle .toggle-slider {
   position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
   background: #ffffff;
   border-radius: 50%;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 3;
+  z-index: 2;
 }
 
-/* Green background circle (depth effect when active) */
-.active-toggle.active::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  background: #4ade80;
-  border-radius: 50%;
-  opacity: 0.5;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
-}
-
-/* Move thumb and background circle when active */
+/* Move slider when active */
 .active-toggle.active .toggle-slider {
-  transform: translateX(20px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
-.active-toggle.active::after {
-  transform: translateX(20px);
+  transform: translateX(22px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .toggle-switch {

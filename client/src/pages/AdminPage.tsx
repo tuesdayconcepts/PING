@@ -2053,7 +2053,7 @@ function AdminPage() {
                           )}
                           <button
                             onClick={handleToggleActive}
-                            className={`active-toggle ${hotspot.active ? 'active' : 'inactive'}`}
+                            className={`active-toggle ${hotspot.active ? 'active' : ''}`}
                             aria-label={hotspot.active ? 'Deactivate ping' : 'Activate ping'}
                             title={hotspot.active ? 'Click to deactivate' : 'Click to activate'}
                           >
