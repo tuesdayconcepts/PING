@@ -2060,22 +2060,24 @@ function AdminPage() {
                           {hasPendingClaim && (
                             <span className="status-badge badge-pending">Pending</span>
                           )}
-                          <>
-                            <input
-                              type="checkbox"
-                              id={`toggle-${hotspot.id}`}
-                              className="tgl tgl-ios"
-                              checked={hotspot.active}
-                              onChange={handleToggleActive}
-                              aria-label={hotspot.active ? 'Deactivate ping' : 'Activate ping'}
-                            />
-                            <label
-                              htmlFor={`toggle-${hotspot.id}`}
-                              className="tgl-btn"
-                              onClick={(e) => e.stopPropagation()}
-                              title={hotspot.active ? 'Click to deactivate' : 'Click to activate'}
-                            />
-                          </>
+                          {!hasPendingClaim && (
+                            <>
+                              <input
+                                type="checkbox"
+                                id={`toggle-${hotspot.id}`}
+                                className="tgl tgl-ios"
+                                checked={hotspot.active}
+                                onChange={handleToggleActive}
+                                aria-label={hotspot.active ? 'Deactivate ping' : 'Activate ping'}
+                              />
+                              <label
+                                htmlFor={`toggle-${hotspot.id}`}
+                                className="tgl-btn"
+                                onClick={(e) => e.stopPropagation()}
+                                title={hotspot.active ? 'Click to deactivate' : 'Click to activate'}
+                              />
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="hotspot-footer">
