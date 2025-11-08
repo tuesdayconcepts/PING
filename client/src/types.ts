@@ -31,6 +31,7 @@ export interface Hotspot {
   updatedAt?: string;
   // Automated prize wallet + funding (backend fields)
   prizePublicKey?: string | null;
+  prizeAmountLamports?: string | null;
   fundStatus?: 'pending' | 'success' | 'failed' | 'skipped';
   fundTxSig?: string | null;
   fundedAt?: string | null;

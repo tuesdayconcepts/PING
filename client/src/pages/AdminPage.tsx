@@ -1205,11 +1205,20 @@ function AdminPage() {
     const yearsDiff = (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
     const hasExpiry = yearsDiff < 50;
     
+    const fallbackPrizeFromLamports = hotspot.prizeAmountLamports != null
+      ? Number(hotspot.prizeAmountLamports) / 1_000_000_000
+      : null;
+    const prizeValue = hotspot.prize != null
+      ? hotspot.prize
+      : fallbackPrizeFromLamports != null && !Number.isNaN(fallbackPrizeFromLamports)
+        ? fallbackPrizeFromLamports
+        : '';
+    
     setFormData({
       title: hotspot.title,
       lat: hotspot.lat,
       lng: hotspot.lng,
-      prize: hotspot.prize || '',
+      prize: prizeValue === '' ? '' : Number(prizeValue).toString(),
       endDate: hasExpiry ? hotspot.endDate.slice(0, 16) : '',
       imageUrl: hotspot.imageUrl || '',
       privateKey: '',
