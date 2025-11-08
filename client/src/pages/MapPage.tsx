@@ -18,6 +18,7 @@ import { useToast } from '../components/Toast';
 import { useProximityDetector } from '../components/ProximityDetector';
 import { Radio, Waves } from 'lucide-react';
 import './MapPage.css';
+import { createPortal } from 'react-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
@@ -100,6 +101,7 @@ function MapPage() {
   const [claimedAt, setClaimedAt] = useState<string>('');
   const [locationName, setLocationName] = useState<string>('');
   const [showHintModal, setShowHintModal] = useState(false);
+  const [showProximityIntro, setShowProximityIntro] = useState(false);
   
   // Proximity detection state
   const [proximityDistance, setProximityDistance] = useState<number | null>(null);
@@ -127,6 +129,16 @@ function MapPage() {
       setProximityUserLocation(null);
     }
   }, [proximityDetector, selectedHotspot]);
+  
+  // Manage proximity intro visibility (mobile Safari fallback)
+  useEffect(() => {
+    if (selectedHotspot?.claimType === 'proximity') {
+      const hasLocation = !!proximityDetector.userLocation;
+      setShowProximityIntro(!hasLocation);
+    } else {
+      setShowProximityIntro(false);
+    }
+  }, [selectedHotspot, proximityDetector.userLocation]);
   
   // Toast functionality
   const { showToast } = useToast();
@@ -638,16 +650,66 @@ function MapPage() {
       <div className="vignette-overlay"></div>
       
       {/* Confetti - Gold confetti on discovery only */}
-      {showDiscoveryConfetti && (
-        <div className="confetti-wrapper">
-          <Confetti
-            width={window.innerWidth}
-            height={window.innerHeight}
-            numberOfPieces={75}
-            colors={['#FFD700', '#FFC700', '#FFE87C', '#FFAA00', '#FF8C00']}
-            recycle={false}
-            gravity={0.3}
-          />
+      {showDiscoveryConfetti && typeof document !== 'undefined' &&
+        createPortal(
+          <div className="confetti-wrapper">
+            <Confetti
+              width={window.innerWidth}
+              height={window.innerHeight}
+              numberOfPieces={75}
+              colors={['#FFD700', '#FFC700', '#FFE87C', '#FFAA00', '#FF8C00']}
+              recycle={false}
+              gravity={0.3}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                zIndex: 1600,
+                pointerEvents: 'none',
+              }}
+            />
+          </div>,
+          document.body
+        )}
+      
+      {/* Proximity Intro Modal */}
+      {showProximityIntro && selectedHotspot?.claimType === 'proximity' && !proximityUserLocation && (
+        <div className="modal-overlay proximity-intro-overlay" onClick={() => setShowProximityIntro(false)}>
+          <div className="modal-wrapper proximity-intro" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowProximityIntro(false)}>✕</button>
+            <div className="modal-sections">
+              <div className="modal-section proximity-intro-content">
+                <h2>Enable GPS</h2>
+                <p>This is a proximity-based ping. Turn on location sharing to track how close you are.</p>
+                <div className="proximity-gps-buttons">
+                  <button
+                    className="enable-gps-btn"
+                    onClick={async () => {
+                      if (!selectedHotspot) return;
+                      try {
+                        await navigator.geolocation.getCurrentPosition(
+                          () => {
+                            setProximityEnabled(true);
+                            requestUserLocation(selectedHotspot.lat, selectedHotspot.lng);
+                            showToast('Location enabled!', 'success');
+                            setShowProximityIntro(false);
+                          },
+                          () => {
+                            showToast('Location permission denied', 'error');
+                          }
+                        );
+                      } catch (err) {
+                        showToast('Failed to enable location', 'error');
+                      }
+                    }}
+                  >
+                    Enable GPS
+                  </button>
+                  <button className="later-btn" onClick={() => setShowProximityIntro(false)}>Later</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
       
@@ -887,58 +949,20 @@ function MapPage() {
                                 <span className="prize-text">{selectedHotspot.prize ?? 0} SOL</span>
                               </div>
                               {/* For proximity pings: Show GPS intro if location not enabled, otherwise show hint button */}
-                              {selectedHotspot.claimType === 'proximity' && proximityDetector.locationPermission !== 'granted' ? (
-                                <div className="proximity-gps-intro">
-                                  <p>This is a proximity-based ping. Enable location to find it!</p>
-                                  <div className="proximity-gps-buttons">
-                                    <button 
-                                      className="enable-gps-btn" 
-                                      onClick={async () => {
-                                        try {
-                                          await navigator.geolocation.getCurrentPosition(
-                                            () => {
-                                              setProximityEnabled(true);
-                                              showToast('Location enabled!', 'success');
-                                            },
-                                            () => {
-                                              showToast('Location permission denied', 'error');
-                                            }
-                                          );
-                                        } catch (err) {
-                                          showToast('Failed to enable location', 'error');
-                                        }
-                                      }}
-                                    >
-                                      Enable GPS
-                                    </button>
-                                    <button 
-                                      className="later-btn" 
-                                      onClick={() => {
-                                        // Hide the intro, hint button will show "ENABLE GPS" text
-                                        // State is managed by proximityDetector.locationPermission
-                                      }}
-                                    >
-                                      Later
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <button 
-                                  className="hint-cta" 
-                                  onClick={() => {
-                                    // For proximity pings without GPS: show enable GPS message
-                                    if (selectedHotspot.claimType === 'proximity' && proximityDetector.locationPermission !== 'granted') {
-                                      showToast('Please enable GPS to hunt for proximity pings', 'info');
-                                      return;
-                                    }
-                                    setShowHintModal(true);
-                                  }}
-                                >
-                                  {selectedHotspot.claimType === 'proximity' && proximityDetector.locationPermission !== 'granted' 
-                                    ? 'ENABLE GPS' 
-                                    : 'GET A HINT!'}
-                                </button>
-                              )}
+                              <button 
+                                className="hint-cta" 
+                                onClick={() => {
+                                  if (selectedHotspot.claimType === 'proximity' && !proximityUserLocation) {
+                                    setShowProximityIntro(true);
+                                    return;
+                                  }
+                                  setShowHintModal(true);
+                                }}
+                              >
+                                {selectedHotspot.claimType === 'proximity' && !proximityUserLocation
+                                  ? 'ENABLE GPS'
+                                  : 'GET A HINT!'}
+                              </button>
                             </div>
                           )}
                           

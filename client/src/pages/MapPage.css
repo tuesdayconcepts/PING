@@ -603,7 +603,7 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
   border-radius: 25px;
   transform: translateZ(0); /* GPU acceleration */
   -webkit-backdrop-filter: blur(8px);
-  /* backdrop-filter: blur(8px); */
+  backdrop-filter: blur(8px);
   contain: layout style paint; /* Rendering optimization */
   background: #ffffff40;
 }
@@ -1377,56 +1377,6 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
 
 .claim-type-badge-small svg {
   color: #8e9bff;
-}
-
-.proximity-gps-intro {
-  text-align: center;
-  padding: 20px 0;
-}
-
-.proximity-gps-intro p {
-  margin: 0 0 16px 0;
-  color: #ffffff;
-  font-size: 1rem;
-}
-
-.proximity-gps-buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-
-.enable-gps-btn {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #8e9bff 0%, #6366f1 100%);
-  border: none;
-  border-radius: 12px;
-  color: #ffffff;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.enable-gps-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(142, 155, 255, 0.4);
-}
-
-.later-btn {
-  padding: 12px 24px;
-  background: #ffffff1a;
-  border: 1px solid rgb(255 255 255 / 11%);
-  border-radius: 12px;
-  color: #ffffff;
-  font-weight: 500;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.later-btn:hover {
-  background: #ffffff26;
 }
 
 .proximity-distance {
