@@ -697,29 +697,27 @@
 }
 
 .tgl-ios + .tgl-btn {
-  background: #fbfbfb;
+  background: #fbfbfb29;
   border-radius: 2em;
   padding: 2px;
   transition: all 0.4s ease;
-  border: 1px solid #e8eae9;
+  border: 2px solid #e8eae90a;
 }
 
 .tgl-ios + .tgl-btn::after {
   border-radius: 2em;
   background: #fbfbfb;
   transition:
-    left 0.3s cubic-bezier(0.175, 0.885, 0.320, 1.275),
+    left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
     padding 0.3s ease,
     margin 0.3s ease;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.1),
-    0 4px 0 rgba(0, 0, 0, 0.08);
+  /* box-shadow: 0 0 0 1px #0000001a, 0 4px #00000014; */
   content: '';
   position: absolute;
-  top: 2px;
+  top: 1px;
   left: 2px;
-  width: calc(2em - 4px);
-  height: calc(2em - 4px);
+  width: calc(2em - 6px);
+  height: calc(2em - 6px);
 }
 
 .tgl-ios + .tgl-btn:hover::after {
@@ -747,7 +745,7 @@
 }
 
 .tgl-ios:checked + .tgl-btn::after {
-  left: calc(100% - 2em);
+  left: calc(100% - 1.75em);
 }
 
 .toggle-switch {
