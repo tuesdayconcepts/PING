@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { subscribeToPush, isNotificationSupported, getNotificationPermission } from '../utils/pushNotifications';
 import { GoogleMap, useJsApiLoader, DirectionsRenderer } from '@react-google-maps/api';
 import Confetti from 'react-confetti';
@@ -54,6 +54,7 @@ const getClaimSession = (hotspotId: string) => {
 function MapPage() {
   const { id, shareToken } = useParams<{ id?: string; shareToken?: string }>(); // Get hotspot ID or shareToken from URL params
   const isShareRoute = !!shareToken; // Determine if this is a share/view-only route
+  const navigate = useNavigate();
   
   // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
@@ -453,6 +454,13 @@ function MapPage() {
       setSelectedHotspot(hotspot);
       setCenter({ lat: hotspot.lat, lng: hotspot.lng });
       setZoom(16);
+      
+      // Enable proximity detection if this is a proximity ping
+      if (hotspot.claimType === 'proximity') {
+        setProximityEnabled(true);
+      } else {
+        setProximityEnabled(false);
+      }
       
       // Check if this user has a claim session for this hotspot
       const claimSession = getClaimSession(hotspotId);
@@ -952,33 +960,9 @@ function MapPage() {
                             <div className="modal-section modal-actions">
                               <button 
                                 className="verify-proximity-btn" 
-                                onClick={async () => {
-                                  // Verify proximity on backend
-                                  if (!proximityUserLocation) return;
-                                  
-                                  try {
-                                    const response = await fetch(`${API_URL}/api/hotspots/${selectedHotspot.id}/claim`, {
-                                      method: 'POST',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({
-                                        userLat: proximityUserLocation.lat,
-                                        userLng: proximityUserLocation.lng,
-                                        tweetUrl: null, // Will be set after Twitter post
-                                      }),
-                                    });
-                                    
-                                    if (!response.ok) {
-                                      const errorData = await response.json();
-                                      setClaimError(errorData.error || 'Failed to verify proximity');
-                                      return;
-                                    }
-                                    
-                                    // Proximity verified, show claim button
-                                    setClaimStatus('unclaimed');
-                                    showToast('Proximity verified! You can now claim.', 'success');
-                                  } catch (err) {
-                                    setClaimError('Failed to verify proximity. Please try again.');
-                                  }
+                                onClick={() => {
+                                  // Navigate to the ping's unique URL to start the claim flow
+                                  navigate(`/ping/${selectedHotspot.id}`);
                                 }}
                               >
                                 Verify Proximity
