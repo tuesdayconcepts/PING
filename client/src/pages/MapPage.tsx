@@ -1027,7 +1027,7 @@ function MapPage() {
                                   className="verify-proximity-btn"
                                   onClick={() => navigate(`/ping/${selectedHotspot.id}`)}
                                 >
-                                  Verify Proximity
+                                  CHECK PROXIMITY
                                 </button>
                               ) : (
                                 <button 
