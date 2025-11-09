@@ -66,7 +66,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
           const ringPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           ringPath.setAttribute('fill', 'none');
           ringPath.setAttribute('stroke', color);
-          ringPath.setAttribute('stroke-width', '6');
+          ringPath.setAttribute('stroke-width', '4');
           ringPath.setAttribute('stroke-opacity', '0.4');
           ringPath.setAttribute('fill-rule', 'evenodd');
           ringPath.setAttribute('d', starPath);
