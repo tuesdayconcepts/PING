@@ -116,6 +116,24 @@ function MapPage() {
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
   
+  useEffect(() => {
+    if ('permissions' in navigator && navigator.geolocation) {
+      navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((result) => {
+        if (result.state === 'granted') {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+            },
+            undefined,
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 10000 }
+          );
+        }
+      }).catch(() => {
+        // Ignore errors querying permissions API (not supported everywhere)
+      });
+    }
+  }, []);
+  
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
