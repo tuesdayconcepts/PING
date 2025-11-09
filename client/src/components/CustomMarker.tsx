@@ -73,9 +73,13 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
         const div = document.createElement('div');
         const animationClass = (animate && !hasAnimated.current) ? 'marker-slide-up' : '';
         const proximityClass = claimType === 'proximity' ? 'proximity-marker' : '';
-        const shouldPulse = pulseMode === 'always' || (pulseMode === 'focus' && isFocused);
-        const pulseClass = shouldPulse ? 'pulse-enabled' : '';
-        div.className = `pulse-marker ${isActive ? '' : 'inactive'} ${animationClass} ${proximityClass} ${pulseClass}`.trim();
+        const pulseClass = pulseMode === 'always'
+          ? 'pulse-mode-always'
+          : pulseMode === 'focus'
+            ? 'pulse-mode-focus'
+            : '';
+        const focusPulseClass = pulseMode === 'focus' && isFocused ? 'pulse-mode-focus-focused' : '';
+        div.className = `pulse-marker ${isActive ? '' : 'inactive'} ${animationClass} ${proximityClass} ${pulseClass} ${focusPulseClass}`.trim();
         
         div.style.cssText = `cursor: pointer; width: 80px; height: 80px; position: absolute; overflow: visible;`;
         
@@ -83,6 +87,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
           hasAnimated.current = true;
         }
         
+        const shouldPulse = pulseMode === 'always' || (pulseMode === 'focus' && isFocused);
         if (shouldPulse) {
           div.appendChild(this.createPulseRing('ring-1'));
           div.appendChild(this.createPulseRing('ring-2'));
