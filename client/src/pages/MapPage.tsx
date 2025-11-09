@@ -1053,19 +1053,31 @@ function MapPage() {
                             </div>
                           )}
                           
-                          {/* Verify Proximity Button (shown when within claim radius) */}
-                          {selectedHotspot.claimType === 'proximity' && isWithinProximityRadius && !id && (
+                          {/* Hint/Verify button */}
+                          {(selectedHotspot.claimType === 'proximity' && isWithinProximityRadius && !id) ? (
                             <div className="modal-section modal-actions">
-                              <button 
-                                className="verify-proximity-btn" 
-                                onClick={() => {
-                                  // Navigate to the ping's unique URL to start the claim flow
-                                  navigate(`/ping/${selectedHotspot.id}`);
-                                }}
+                              <button
+                                className="verify-proximity-btn"
+                                onClick={() => navigate(`/ping/${selectedHotspot.id}`)}
                               >
                                 Verify Proximity
                               </button>
                             </div>
+                          ) : (
+                            <button
+                              className="hint-cta"
+                              onClick={() => {
+                                if (selectedHotspot.claimType === 'proximity' && !proximityUserLocation) {
+                                  setShowProximityIntro(true);
+                                  return;
+                                }
+                                setShowHintModal(true);
+                              }}
+                            >
+                              {selectedHotspot.claimType === 'proximity' && !proximityUserLocation
+                                ? 'ENABLE GPS'
+                                : 'GET A HINT!'}
+                            </button>
                           )}
                         </>
                       )}
