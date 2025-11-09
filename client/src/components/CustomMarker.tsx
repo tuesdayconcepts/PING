@@ -33,6 +33,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
 
     const color = 'gold';
     const starPath = "M344.13,6.42l80.5,217.54c3.64,9.83,11.39,17.58,21.22,21.22l217.54,80.5c8.56,3.17,8.56,15.28,0,18.45l-217.54,80.5c-9.83,3.64-17.58,11.39-21.22,21.22l-80.5,217.54c-3.17,8.56-15.28,8.56-18.45,0l-80.5-217.54c-3.64-9.83-11.39-17.58-21.22-21.22L6.42,344.13c-8.56-3.17-8.56-15.28,0-18.45l217.54-80.5c9.83-3.64,17.58-11.39,21.22-21.22L325.68,6.42c3.17-8.56,15.28,8.56,18.45,0Z";
+    const isMapInstance = pulseMode === 'always';
 
     class CustomOverlay extends google.maps.OverlayView {
       position: google.maps.LatLng;
@@ -50,27 +51,26 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
         ring.setAttribute('width', '80px');
         ring.setAttribute('height', '80px');
 
-        if (claimType === 'proximity') {
+        if (claimType === 'proximity' || isMapInstance) {
           ring.setAttribute('viewBox', '0 0 669.82 669.82');
           const ringPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           ringPath.setAttribute('fill', 'none');
           ringPath.setAttribute('stroke', color);
-          ringPath.setAttribute('stroke-width', '8');
+          ringPath.setAttribute('stroke-width', isMapInstance ? '8' : '6');
           ringPath.setAttribute('stroke-opacity', '0.5');
           ringPath.setAttribute('fill-rule', 'evenodd');
           ringPath.setAttribute('d', starPath);
           ring.appendChild(ringPath);
         } else {
-          ring.setAttribute('viewBox', '0 0 80 80');
-          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-          circle.setAttribute('cx', '40');
-          circle.setAttribute('cy', '40');
-          circle.setAttribute('r', '28');
-          circle.setAttribute('fill', 'none');
-          circle.setAttribute('stroke', color);
-          circle.setAttribute('stroke-width', '4');
-          circle.setAttribute('stroke-opacity', '0.5');
-          ring.appendChild(circle);
+          ring.setAttribute('viewBox', '0 0 669.82 669.82');
+          const ringPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          ringPath.setAttribute('fill', 'none');
+          ringPath.setAttribute('stroke', color);
+          ringPath.setAttribute('stroke-width', '6');
+          ringPath.setAttribute('stroke-opacity', '0.4');
+          ringPath.setAttribute('fill-rule', 'evenodd');
+          ringPath.setAttribute('d', starPath);
+          ring.appendChild(ringPath);
         }
 
         return ring;
