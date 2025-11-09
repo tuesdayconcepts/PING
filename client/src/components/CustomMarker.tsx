@@ -10,6 +10,7 @@ interface CustomMarkerProps {
   proximityRadius?: number | null; // Proximity radius for pulse size calculation
   userDistance?: number | null; // Current user distance in meters (for proximity pings)
   isFocused?: boolean; // Whether this ping is focused (centered or being edited) - shows pulse animation
+  enablePulse?: boolean; // Enable star pulse effect (map page only)
 }
 
 export const CustomMarker: React.FC<CustomMarkerProps> = ({ 
@@ -22,6 +23,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
   proximityRadius = null,
   userDistance = null,
   isFocused = false,
+  enablePulse = false,
 }) => {
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const hasAnimated = useRef(false); // Track if animation has played
@@ -69,20 +71,18 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
 
       onAdd() {
         const div = document.createElement('div');
-        // Only add slide-up animation class if animate prop is true AND hasn't animated yet
         const animationClass = (animate && !hasAnimated.current) ? 'marker-slide-up' : '';
         const proximityClass = claimType === 'proximity' ? 'proximity-marker' : '';
-        div.className = `pulse-marker ${isActive ? '' : 'inactive'} ${animationClass} ${proximityClass}`;
+        const pulseClass = enablePulse ? 'pulse-enabled' : '';
+        div.className = `pulse-marker ${isActive ? '' : 'inactive'} ${animationClass} ${proximityClass} ${pulseClass}`.trim();
         
-        // Marker container size: 80px for all, pulse rings will be larger for proximity
-        div.style.cssText = `cursor: pointer; width: 80px; height: 80px; position: absolute;`;
+        div.style.cssText = `cursor: pointer; width: 80px; height: 80px; position: absolute; overflow: visible;`;
         
-        // Mark as animated after first render (if animation was requested)
         if (animate && !hasAnimated.current) {
           hasAnimated.current = true;
         }
-
-        if (claimType === 'proximity') {
+        
+        if (enablePulse && claimType === 'proximity') {
           div.appendChild(this.createPulseRing('ring-1'));
           div.appendChild(this.createPulseRing('ring-2'));
           div.appendChild(this.createPulseRing('ring-3'));
@@ -157,7 +157,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
     return () => {
       overlay.setMap(null);
     };
-  }, [map, position.lat, position.lng, isActive, onClick, claimType, proximityRadius, userDistance, isFocused, animate]);
+  }, [map, position.lat, position.lng, isActive, onClick, claimType, proximityRadius, userDistance, isFocused, animate, enablePulse]);
 
   return null;
 };

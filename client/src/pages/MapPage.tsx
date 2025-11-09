@@ -857,12 +857,10 @@ function MapPage() {
         >
           {/* Render custom markers for each ACTIVE hotspot with slide-up animation */}
           {markersLoaded && hotspots.filter(h => h.active && new Date(h.endDate) >= new Date()).map((hotspot) => {
-            // Check if hotspot is active/expired
             const now = new Date();
             const endDate = new Date(hotspot.endDate);
             const isActive = now <= endDate && hotspot.active;
             
-            // Get user distance for this hotspot (only if it's the selected proximity ping)
             const userDistance = (selectedHotspot?.id === hotspot.id && hotspot.claimType === 'proximity')
               ? proximityDistance
               : null;
@@ -874,7 +872,6 @@ function MapPage() {
                 isActive={isActive}
                 onClick={() => {
                   setSelectedHotspot(hotspot);
-                  // Enable proximity detection if this is a proximity ping
                   if (hotspot.claimType === 'proximity') {
                     setProximityEnabled(true);
                   } else {
@@ -886,6 +883,8 @@ function MapPage() {
                 claimType={hotspot.claimType || 'nfc'}
                 proximityRadius={hotspot.proximityRadius || null}
                 userDistance={userDistance}
+                isFocused={selectedHotspot?.id === hotspot.id}
+                enablePulse={hotspot.claimType === 'proximity'}
               />
             );
           })}
