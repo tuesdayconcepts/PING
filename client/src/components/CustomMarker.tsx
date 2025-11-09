@@ -51,26 +51,30 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
         ring.setAttribute('width', '80px');
         ring.setAttribute('height', '80px');
 
-        if (claimType === 'proximity' || isMapInstance) {
-          ring.setAttribute('viewBox', '0 0 669.82 669.82');
+        const useStar = claimType === 'proximity' || isMapInstance;
+
+        ring.setAttribute('viewBox', useStar ? '0 0 669.82 669.82' : '0 0 80 80');
+
+        if (useStar) {
           const ringPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          ringPath.setAttribute('fill', 'none');
-          ringPath.setAttribute('stroke', color);
+          const isMapProximity = isMapInstance && claimType === 'proximity';
+          ringPath.setAttribute('fill', isMapProximity ? '#ffd700' : 'none');
+          ringPath.setAttribute('stroke', isMapProximity ? '#ffffff00' : color);
           ringPath.setAttribute('stroke-width', isMapInstance ? '8' : '6');
-          ringPath.setAttribute('stroke-opacity', '0.5');
+          ringPath.setAttribute('stroke-opacity', isMapProximity ? '1' : '0.5');
           ringPath.setAttribute('fill-rule', 'evenodd');
           ringPath.setAttribute('d', starPath);
           ring.appendChild(ringPath);
         } else {
-          ring.setAttribute('viewBox', '0 0 669.82 669.82');
-          const ringPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          ringPath.setAttribute('fill', 'none');
-          ringPath.setAttribute('stroke', color);
-          ringPath.setAttribute('stroke-width', '4');
-          ringPath.setAttribute('stroke-opacity', '0.4');
-          ringPath.setAttribute('fill-rule', 'evenodd');
-          ringPath.setAttribute('d', starPath);
-          ring.appendChild(ringPath);
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', '40');
+          circle.setAttribute('cy', '40');
+          circle.setAttribute('r', '28');
+          circle.setAttribute('fill', 'none');
+          circle.setAttribute('stroke', color);
+          circle.setAttribute('stroke-width', '4');
+          circle.setAttribute('stroke-opacity', '0.4');
+          ring.appendChild(circle);
         }
 
         return ring;
