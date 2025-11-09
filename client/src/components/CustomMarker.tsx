@@ -47,6 +47,26 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
         this.position = position;
       }
 
+      private createPulseRing(extraClass: string) {
+        const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        ring.setAttribute('class', `pulse-marker-ring ${extraClass}`);
+        ring.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        ring.setAttribute('viewBox', '0 0 669.82 669.82');
+        ring.setAttribute('width', '80px');
+        ring.setAttribute('height', '80px');
+
+        const ringPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        ringPath.setAttribute('fill', 'none');
+        ringPath.setAttribute('stroke', color);
+        ringPath.setAttribute('stroke-width', '8');
+        ringPath.setAttribute('stroke-opacity', '0.5');
+        ringPath.setAttribute('fill-rule', 'evenodd');
+        ringPath.setAttribute('d', starPath);
+
+        ring.appendChild(ringPath);
+        return ring;
+      }
+
       onAdd() {
         const div = document.createElement('div');
         // Only add slide-up animation class if animate prop is true AND hasn't animated yet
@@ -61,29 +81,15 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
         if (animate && !hasAnimated.current) {
           hasAnimated.current = true;
         }
-        
-        // Marker pulse logic:
-        // Pulse rings show when ping is focused (centered or being edited)
-        // Both NFC and proximity pings pulse when focused
-        if (isFocused) {
-          // Add pulse rings when focused (both NFC and proximity can pulse)
-          for (let i = 0; i < 3; i++) {
-            const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            ring.setAttribute('class', 'pulse-marker-ring');
-            ring.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-            ring.setAttribute('viewBox', '0 0 669.82 669.82');
-            ring.setAttribute('width', '80px');
-            ring.setAttribute('height', '80px');
-            const ringPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            ringPath.setAttribute('fill', 'none');
-            ringPath.setAttribute('stroke', color);
-            ringPath.setAttribute('stroke-width', '8');
-            ringPath.setAttribute('stroke-opacity', '0.6');
-            ringPath.setAttribute('fill-rule', 'evenodd');
-            ringPath.setAttribute('d', starPath);
-            ring.appendChild(ringPath);
-            div.appendChild(ring);
-          }
+
+        if (claimType === 'proximity') {
+          div.appendChild(this.createPulseRing('ring-1'));
+          div.appendChild(this.createPulseRing('ring-2'));
+          div.appendChild(this.createPulseRing('ring-3'));
+        } else if (isFocused) {
+          div.appendChild(this.createPulseRing('ring-1'));
+          div.appendChild(this.createPulseRing('ring-2'));
+          div.appendChild(this.createPulseRing('ring-3'));
         }
 
           const star = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
