@@ -722,6 +722,12 @@ function MapPage() {
     }
   }, [claimStatus, selectedHotspot]);
 
+  useEffect(() => {
+    if (selectedHotspot && hasInitiallyCentered && !isModalClosing) {
+      setCenter({ lat: selectedHotspot.lat, lng: selectedHotspot.lng });
+    }
+  }, [selectedHotspot, hasInitiallyCentered, isModalClosing]);
+
   return (
     <div className="map-page">
       {/* Vignette Overlay */}
