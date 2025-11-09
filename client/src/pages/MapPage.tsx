@@ -885,6 +885,7 @@ function MapPage() {
                 userDistance={userDistance}
                 isFocused={selectedHotspot?.id === hotspot.id}
                 enablePulse={hotspot.claimType === 'proximity'}
+                pulseOnFocus={hotspot.claimType === 'nfc'}
               />
             );
           })}
