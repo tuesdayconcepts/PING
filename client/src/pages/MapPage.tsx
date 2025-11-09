@@ -1022,21 +1022,29 @@ function MapPage() {
                                 <Gift className="prize-icon" />
                                 <span className="prize-text">{selectedHotspot.prize ?? 0} SOL</span>
                               </div>
-                              {/* For proximity pings: Show GPS intro if location not enabled, otherwise show hint button */}
-                              <button 
-                                className="hint-cta" 
-                                onClick={() => {
-                                  if (selectedHotspot.claimType === 'proximity' && !proximityUserLocation) {
-                                    setShowProximityIntro(true);
-                                    return;
-                                  }
-                                  setShowHintModal(true);
-                                }}
-                              >
-                                {selectedHotspot.claimType === 'proximity' && !proximityUserLocation
-                                  ? 'ENABLE GPS'
-                                  : 'GET A HINT!'}
-                              </button>
+                              {selectedHotspot.claimType === 'proximity' && isWithinProximityRadius && !id ? (
+                                <button
+                                  className="verify-proximity-btn"
+                                  onClick={() => navigate(`/ping/${selectedHotspot.id}`)}
+                                >
+                                  Verify Proximity
+                                </button>
+                              ) : (
+                                <button 
+                                  className="hint-cta" 
+                                  onClick={() => {
+                                    if (selectedHotspot.claimType === 'proximity' && !proximityUserLocation) {
+                                      setShowProximityIntro(true);
+                                      return;
+                                    }
+                                    setShowHintModal(true);
+                                  }}
+                                >
+                                  {selectedHotspot.claimType === 'proximity' && !proximityUserLocation
+                                    ? 'ENABLE GPS'
+                                    : 'GET A HINT!'}
+                                </button>
+                              )}
                             </div>
                           )}
                           
@@ -1053,32 +1061,6 @@ function MapPage() {
                             </div>
                           )}
                           
-                          {/* Hint/Verify button */}
-                          {(selectedHotspot.claimType === 'proximity' && isWithinProximityRadius && !id) ? (
-                            <div className="modal-section modal-actions">
-                              <button
-                                className="verify-proximity-btn"
-                                onClick={() => navigate(`/ping/${selectedHotspot.id}`)}
-                              >
-                                Verify Proximity
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              className="hint-cta"
-                              onClick={() => {
-                                if (selectedHotspot.claimType === 'proximity' && !proximityUserLocation) {
-                                  setShowProximityIntro(true);
-                                  return;
-                                }
-                                setShowHintModal(true);
-                              }}
-                            >
-                              {selectedHotspot.claimType === 'proximity' && !proximityUserLocation
-                                ? 'ENABLE GPS'
-                                : 'GET A HINT!'}
-                            </button>
-                          )}
                         </>
                       )}
                     </>
