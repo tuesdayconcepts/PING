@@ -1786,12 +1786,15 @@ function AdminPage() {
                 <CustomMarker
                   key={hotspot.id}
                   position={{ lat: hotspot.lat, lng: hotspot.lng }}
-                  isActive={hotspot.active}
-                  onClick={() => handleEdit(hotspot)} // Open edit form on click
-                  map={adminMapInstance || undefined}
+                  isActive
+                  onClick={() => handleEdit(hotspot)}
+                  map={adminMapInstance ?? undefined}
+                  animate
                   claimType={hotspot.claimType || 'nfc'}
                   proximityRadius={hotspot.proximityRadius || null}
-                  isFocused={focusedHotspotId === hotspot.id} // Pulse when focused (centered or being edited)
+                  userDistance={null}
+                  isFocused={focusedHotspotId === hotspot.id}
+                  pulseMode="focus"
                 />
               ))}
             

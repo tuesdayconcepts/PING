@@ -10,8 +10,7 @@ interface CustomMarkerProps {
   proximityRadius?: number | null; // Proximity radius for pulse size calculation
   userDistance?: number | null; // Current user distance in meters (for proximity pings)
   isFocused?: boolean; // Whether this ping is focused (centered or being edited) - shows pulse animation
-  enablePulse?: boolean; // Enable star pulse effect (map page only)
-  pulseOnFocus?: boolean; // Allow NFC markers to pulse when focused (map page)
+  pulseMode?: 'none' | 'focus' | 'always';
 }
 
 export const CustomMarker: React.FC<CustomMarkerProps> = ({ 
@@ -24,8 +23,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
   proximityRadius = null,
   userDistance = null,
   isFocused = false,
-  enablePulse = false,
-  pulseOnFocus = false,
+  pulseMode = 'focus',
 }) => {
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const hasAnimated = useRef(false); // Track if animation has played
@@ -75,7 +73,8 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
         const div = document.createElement('div');
         const animationClass = (animate && !hasAnimated.current) ? 'marker-slide-up' : '';
         const proximityClass = claimType === 'proximity' ? 'proximity-marker' : '';
-        const pulseClass = (enablePulse || (pulseOnFocus && isFocused)) ? 'pulse-enabled' : '';
+        const shouldPulse = pulseMode === 'always' || (pulseMode === 'focus' && isFocused);
+        const pulseClass = shouldPulse ? 'pulse-enabled' : '';
         div.className = `pulse-marker ${isActive ? '' : 'inactive'} ${animationClass} ${proximityClass} ${pulseClass}`.trim();
         
         div.style.cssText = `cursor: pointer; width: 80px; height: 80px; position: absolute; overflow: visible;`;
@@ -84,11 +83,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
           hasAnimated.current = true;
         }
         
-        if (enablePulse && claimType === 'proximity') {
-          div.appendChild(this.createPulseRing('ring-1'));
-          div.appendChild(this.createPulseRing('ring-2'));
-          div.appendChild(this.createPulseRing('ring-3'));
-        } else if (pulseOnFocus && isFocused) {
+        if (shouldPulse) {
           div.appendChild(this.createPulseRing('ring-1'));
           div.appendChild(this.createPulseRing('ring-2'));
           div.appendChild(this.createPulseRing('ring-3'));
@@ -159,7 +154,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
     return () => {
       overlay.setMap(null);
     };
-  }, [map, position.lat, position.lng, isActive, onClick, claimType, proximityRadius, userDistance, isFocused, animate, enablePulse, pulseOnFocus]);
+  }, [map, position.lat, position.lng, isActive, onClick, claimType, proximityRadius, userDistance, isFocused, animate, pulseMode]);
 
   return null;
 };
