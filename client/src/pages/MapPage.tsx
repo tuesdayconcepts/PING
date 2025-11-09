@@ -142,6 +142,7 @@ function MapPage() {
   const [zoom, setZoom] = useState(13);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [hasInitiallyCentered, setHasInitiallyCentered] = useState(false); // Track if we've done initial centering
+  const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null);
   const [showRoute, setShowRoute] = useState(false);
@@ -471,6 +472,10 @@ function MapPage() {
         setMarkersLoaded(true);
       }
       
+      if (!userInteractedWithMap && selectedHotspot && hasInitiallyCentered) {
+        setCenter({ lat: selectedHotspot.lat, lng: selectedHotspot.lng });
+      }
+
       // If no hotspots exist, keep default NYC location
       // Geolocation will only be requested when user clicks "Get My Location" button
 
@@ -844,6 +849,8 @@ function MapPage() {
           mapContainerClassName="map-container"
           onLoad={(map) => {
             setMapInstance(map);
+            map.addListener('dragstart', () => setUserInteractedWithMap(true));
+            map.addListener('zoom_changed', () => setUserInteractedWithMap(true));
           }}
           options={{
             styles: customMapStyles,
