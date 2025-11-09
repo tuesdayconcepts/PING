@@ -183,6 +183,13 @@ function MapPage() {
     }
   }, [proximityDetector, selectedHotspot]);
   
+  // Sync global user location when proximity detector has a fix
+  useEffect(() => {
+    if (proximityDetector.userLocation) {
+      setUserLocation(proximityDetector.userLocation);
+    }
+  }, [proximityDetector.userLocation]);
+  
   // Manage proximity intro visibility (mobile Safari fallback)
   useEffect(() => {
     if (selectedHotspot?.claimType === 'proximity') {
