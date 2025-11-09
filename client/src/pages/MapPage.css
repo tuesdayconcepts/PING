@@ -1411,10 +1411,10 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
 .verify-proximity-btn {
   width: 100%;
   padding: 16px 24px;
-  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  background: linear-gradient(135deg, #4ade80, #22c55e);
   border: none;
-  border-radius: 12px;
-  color: #ffffff;
+  border-radius: 50px;
+  color: #fff;
   font-weight: 700;
   font-size: 1.1rem;
   cursor: pointer;
