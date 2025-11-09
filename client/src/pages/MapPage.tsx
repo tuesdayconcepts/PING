@@ -452,65 +452,50 @@ function MapPage() {
       const data = await response.json();
       setHotspots(data);
 
-      // Only center on first active ping on initial load, not on polling updates
-      // This prevents the map from jumping around every 30 seconds when there are multiple active pings
-      if (!hasInitiallyCentered && data.length > 0) {
-        const activeHotspot = data.find((h: Hotspot) => h.active);
-        if (activeHotspot) {
-          setCenter({ lat: activeHotspot.lat, lng: activeHotspot.lng });
-          setZoom(14);
-          setHasInitiallyCentered(true); // Mark as done so we don't center again on polling updates
-          
-          // Small delay to show loading pill before marker appears with slide-up animation
-          setTimeout(() => setMarkersLoaded(true), 500);
-        } else {
-          setMarkersLoaded(true);
-        }
+      // Just mark markers loaded; centering handled in effect
+      if (!hasInitiallyCentered) {
+        setMarkersLoaded(true);
       } else {
-        // On subsequent polling updates, just refresh the data without recentering
         setMarkersLoaded(true);
       }
-      
-      // If no hotspots exist, keep default NYC location
-      // Geolocation will only be requested when user clicks "Get My Location" button
 
-      // Reset error state on success
       setError(null);
       setLoading(false);
     } catch (err) {
-      // Check if it's a network/CORS error
       const isNetworkError = err instanceof TypeError && 
         (err.message.includes('Failed to fetch') || 
          err.message.includes('NetworkError') ||
          err.message.includes('CORS'));
-      
-      // For network errors, implement auto-retry with exponential backoff
       if (isNetworkError && retryAttempt < 4) {
-        const delays = [1000, 2000, 4000, 8000]; // 1s, 2s, 4s, 8s
+        const delays = [1000, 2000, 4000, 8000];
         const delay = delays[retryAttempt];
-        
-        // Show subtle toast notification
         if (retryAttempt === 0) {
           showToast('Connection issue. Retrying...', 'info', 2000);
         }
-        
-        // Retry after delay
         setTimeout(() => {
           fetchHotspots(retryAttempt + 1);
         }, delay);
       } else {
-        // Max retries reached or non-network error - show empty state gracefully
-        setError(null); // Don't show error modal
+        setError(null);
         setLoading(false);
         setMarkersLoaded(true);
-        
-        // Only show toast if we exhausted retries (not on first failure)
         if (retryAttempt > 0) {
           showToast('Unable to connect. Showing cached data if available.', 'error', 4000);
         }
       }
     }
   };
+
+  useEffect(() => {
+    if (!hasInitiallyCentered && hotspots.length > 0) {
+      const activeHotspot = hotspots.find((h: Hotspot) => h.active);
+      if (activeHotspot) {
+        setCenter({ lat: activeHotspot.lat, lng: activeHotspot.lng });
+        setZoom(14);
+        setHasInitiallyCentered(true);
+      }
+    }
+  }, [hotspots, hasInitiallyCentered]);
 
   // Fetch specific hotspot by share token (view-only mode)
   const fetchHotspotByShareToken = async (token: string) => {
