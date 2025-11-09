@@ -44,12 +44,12 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
         this.position = position;
       }
 
-      private createPulseRing(extraClass: string) {
+      private createPulseRing(extraClass: string, scale = 1) {
         const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         ring.setAttribute('class', `pulse-marker-ring ${extraClass}`);
         ring.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        ring.setAttribute('width', '80px');
-        ring.setAttribute('height', '80px');
+        ring.setAttribute('width', `${80 * scale}px`);
+        ring.setAttribute('height', `${80 * scale}px`);
 
         const useStar = claimType === 'proximity' || isMapInstance;
 
@@ -60,7 +60,7 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
           const isMapProximity = isMapInstance && claimType === 'proximity';
           ringPath.setAttribute('fill', isMapProximity ? '#ffd700' : 'none');
           ringPath.setAttribute('stroke', isMapProximity ? '#ffffff00' : color);
-          ringPath.setAttribute('stroke-width', isMapInstance ? '8' : '6');
+          ringPath.setAttribute('stroke-width', isMapProximity ? '8' : '6');
           ringPath.setAttribute('stroke-opacity', isMapProximity ? '1' : '0.5');
           ringPath.setAttribute('fill-rule', 'evenodd');
           ringPath.setAttribute('d', starPath);
@@ -94,9 +94,11 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
 
         const shouldPulse = pulseMode === 'always' || (pulseMode === 'focus' && isFocused);
         if (shouldPulse) {
-          div.appendChild(this.createPulseRing('ring-1'));
-          div.appendChild(this.createPulseRing('ring-2'));
-          div.appendChild(this.createPulseRing('ring-3'));
+          const ringCount = isMapInstance && claimType === 'proximity' ? 1 : 3;
+          for (let i = 0; i < ringCount; i++) {
+            const scale = isMapInstance && claimType === 'proximity' ? 1.6 : 1;
+            div.appendChild(this.createPulseRing(`ring-${i + 1}`, scale));
+          }
         }
 
         const star = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
