@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { subscribeToPush, isNotificationSupported, getNotificationPermission } from '../utils/pushNotifications';
 import { GoogleMap, useJsApiLoader, DirectionsRenderer } from '@react-google-maps/api';
@@ -48,6 +48,59 @@ const getClaimSession = (hotspotId: string) => {
   } catch (e) {
     console.error('Failed to parse claim session:', e);
   }
+  return null;
+};
+
+const UserLocationMarker: React.FC<{ position: { lat: number; lng: number }; map: google.maps.Map | null }> = ({ position, map }) => {
+  const overlayRef = useRef<google.maps.OverlayView | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    class UserLocationOverlay extends google.maps.OverlayView {
+      position: google.maps.LatLng;
+      containerDiv: HTMLDivElement | null = null;
+
+      constructor(position: google.maps.LatLng) {
+        super();
+        this.position = position;
+      }
+
+      onAdd() {
+        const div = document.createElement('div');
+        div.className = 'user-location-marker';
+        this.containerDiv = div;
+        this.getPanes()?.overlayMouseTarget.appendChild(div);
+      }
+
+      draw() {
+        if (!this.containerDiv) return;
+        const projection = this.getProjection();
+        const pos = projection.fromLatLngToDivPixel(this.position);
+        if (pos) {
+          const offset = 10;
+          this.containerDiv.style.left = `${pos.x - offset}px`;
+          this.containerDiv.style.top = `${pos.y - offset}px`;
+        }
+      }
+
+      onRemove() {
+        if (this.containerDiv) {
+          this.containerDiv.parentNode?.removeChild(this.containerDiv);
+          this.containerDiv = null;
+        }
+      }
+    }
+
+    const overlay = new UserLocationOverlay(new google.maps.LatLng(position.lat, position.lng));
+    overlay.setMap(map);
+    overlayRef.current = overlay;
+
+    return () => {
+      overlay.setMap(null);
+    };
+  }, [map, position.lat, position.lng]);
+
   return null;
 };
 
@@ -825,6 +878,10 @@ function MapPage() {
                 },
               }}
             />
+          )}
+
+          {userLocation && mapInstance && (
+            <UserLocationMarker position={userLocation} map={mapInstance} />
           )}
         </GoogleMap>
       )}
