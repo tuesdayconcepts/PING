@@ -436,6 +436,7 @@ function AdminPage() {
   // Delete confirmation state
   const [deletingHotspotId, setDeletingHotspotId] = useState<string | null>(null);
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
+  const firstHotspotsLoadRef = useRef(true);
 
 
   useEffect(() => {
@@ -839,39 +840,33 @@ function AdminPage() {
   };
 
   // Fetch hotspots (all, including inactive)
-  const fetchHotspots = async () => {
-    setHotspotsLoading(true);
+  const fetchHotspots = async ({ showSkeleton }: { showSkeleton?: boolean } = {}) => {
+    const shouldShowSkeleton = showSkeleton ?? firstHotspotsLoadRef.current;
+    if (shouldShowSkeleton) {
+      setHotspotsLoading(true);
+    }
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-      
       const response = await fetch(`${API_URL}/api/hotspots?admin=true`, {
         headers: getAuthHeaders(),
         signal: controller.signal,
       });
-      
       clearTimeout(timeoutId);
-      
       if (response.ok) {
         const data = await response.json();
         setHotspots(data);
-        // preload balances for claimed hotspots with prizePublicKey
         const claimedWithWallet = data.filter((h: Hotspot) => h.claimStatus === 'claimed' && h.prizePublicKey);
         for (const h of claimedWithWallet) {
           if (h.prizePublicKey && walletBalances[h.prizePublicKey] === undefined) {
             fetchWalletBalance(h.prizePublicKey);
           }
         }
-        
-        // Auto-center map on active ping only on initial load
         if (!hasInitiallyLoaded) {
-          // Find first active ping to center map on
           const firstActivePing = data.find((h: Hotspot) => h.active && h.claimStatus === 'unclaimed');
           if (firstActivePing && adminMapInstance) {
-            // Use smooth pan animation instead of instant center
             adminMapInstance.panTo({ lat: firstActivePing.lat, lng: firstActivePing.lng });
           } else if (firstActivePing) {
-            // Fallback if map not loaded yet
             setMapCenter({ lat: firstActivePing.lat, lng: firstActivePing.lng });
           }
           setHasInitiallyLoaded(true);
@@ -884,7 +879,10 @@ function AdminPage() {
         console.error('Failed to fetch hotspots:', err);
       }
     } finally {
-      setHotspotsLoading(false);
+      if (shouldShowSkeleton) {
+        setHotspotsLoading(false);
+        firstHotspotsLoadRef.current = false;
+      }
     }
   };
 
