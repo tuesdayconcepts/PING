@@ -24,6 +24,12 @@
   height: min(480px, 80vw);
 }
 
+.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) path,
+.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) circle,
+.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) polygon,
+.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) polyline,
+.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) rect,
+.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) ellipse,
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) path,
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) circle,
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) polygon,
