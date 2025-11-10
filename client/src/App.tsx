@@ -8,6 +8,7 @@ import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
 import MapPage from './pages/MapPage';
 import AdminPage from './pages/AdminPage';
+import LoadingPreview from './pages/LoadingPreview';
 import { ToastProvider } from './components/Toast';
 import './App.css';
 
@@ -70,6 +71,7 @@ function App() {
                 <Route path="/ping/:id" element={<MapPage />} />
                 <Route path="/share/:shareToken" element={<MapPage />} />
                 <Route path="/admin" element={<AdminPage />} />
+                <Route path="/loading-preview" element={<LoadingPreview />} />
               </Routes>
             </Router>
           </ToastProvider>

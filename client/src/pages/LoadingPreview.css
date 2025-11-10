@@ -1,0 +1,32 @@
+.loading-preview-page {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 215, 0, 0.15), transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(99, 102, 241, 0.2), transparent 50%),
+    #153285;
+  overflow: hidden;
+}
+
+.loading-preview-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(21, 50, 133, 0.6), rgba(21, 34, 94, 0.8));
+  pointer-events: none;
+}
+
+.loading-preview-container {
+  position: relative;
+  width: min(480px, 80vw);
+  height: min(480px, 80vw);
+}
+
+@media (max-width: 768px) {
+  .loading-preview-container {
+    width: min(360px, 80vw);
+    height: min(360px, 80vw);
+  }
+}
