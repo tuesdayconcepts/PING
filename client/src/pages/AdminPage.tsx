@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { LogOut, SquarePen, Check, Trash2, MapPin, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, SmartphoneNfc, Radio } from 'lucide-react';
+import { LogOut, SquarePen, Check, Trash2, Gift, X, ImageUp, LocateFixed, Link as LinkIcon, Wallet as WalletIcon, KeyRound, Unlock, Share, Bell, BellOff, SmartphoneNfc, Radio } from 'lucide-react';
 import { Hotspot, AdminLog } from '../types';
 import { getToken, setToken, removeToken, setUsername, getAuthHeaders } from '../utils/auth';
 import { formatDate } from '../utils/time';
@@ -2055,14 +2055,14 @@ function AdminPage() {
                       <div className="hotspot-header">
                         <div className="header-title-section">
                           <strong>{hotspot.title}</strong>
-                          {hotspot.locationName && (
+                          {hotspot.claimStatus === 'claimed' && (
                             <div className="hotspot-location">
                               {hotspot.claimType === 'proximity' ? (
-                                <Radio size={16} />
+                                <Radio size={12} />
                               ) : (
-                                <SmartphoneNfc size={16} />
+                                <SmartphoneNfc size={12} />
                               )}
-                              <span>{hotspot.locationName}</span>
+                              <span>{hotspot.locationName || 'Location unavailable'}</span>
                             </div>
                           )}
                         </div>
@@ -2776,10 +2776,14 @@ function AdminPage() {
                     <div className="hotspot-header">
                       <div className="header-title-section">
                         <strong>{hotspot.title}</strong>
-                        {hotspot.locationName && (
+                        {hotspot.claimStatus === 'claimed' && (
                           <div className="hotspot-location">
-                            <MapPin size={12} />
-                            <span>{hotspot.locationName}</span>
+                            {hotspot.claimType === 'proximity' ? (
+                              <Radio size={12} />
+                            ) : (
+                              <SmartphoneNfc size={12} />
+                            )}
+                            <span>{hotspot.locationName || 'Location unavailable'}</span>
                           </div>
                         )}
                       </div>
