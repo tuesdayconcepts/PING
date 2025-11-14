@@ -24,15 +24,15 @@ echo "🗄️ Step 3: Running database migrations..."
 railway run npx prisma migrate deploy
 
 echo ""
-echo "🌱 Step 4: Seeding database with admin user and sample hotspots..."
+echo "🌱 Step 4: Seeding database with sample hotspots..."
 railway run npx tsx prisma/seed.ts
 
 echo ""
 echo "✅ Database setup complete!"
 echo ""
-echo "Default admin credentials:"
-echo "  Username: admin"
-echo "  Password: admin123"
+echo "📋 Next steps:"
+echo "  - Create your first admin user through the admin panel"
+echo "  - Or use the API to create admin users"
 echo ""
-echo "You can now login at: https://solping.netlify.app/admin"
+echo "🌐 Access admin panel at: https://solping.netlify.app/admin"
 

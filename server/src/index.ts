@@ -289,26 +289,15 @@ app.get("/health", (_req, res) => {
 app.post("/api/setup", async (_req, res) => {
   try {
     // Check if admin already exists
-    const existingAdmin = await prisma.admin.findUnique({
-      where: { username: "admin" },
-    });
+    const existingAdmin = await prisma.admin.findFirst();
 
     if (existingAdmin) {
       return res.status(400).json({ 
-        error: "Setup already completed. Admin user already exists." 
+        error: "Setup already completed. Admin users already exist." 
       });
     }
 
-    // Create admin user
-    const hashedPassword = await bcrypt.hash("admin123", 10);
-    await prisma.admin.create({
-      data: {
-        username: "admin",
-        password: hashedPassword,
-      },
-    });
-
-    // Create sample hotspots
+    // Create sample hotspots only (no default admin user)
     await prisma.hotspot.createMany({
       data: [
         {
@@ -349,11 +338,8 @@ app.post("/api/setup", async (_req, res) => {
 
     res.json({
       success: true,
-      message: "Database seeded successfully!",
-      credentials: {
-        username: "admin",
-        password: "admin123",
-      },
+      message: "Database seeded successfully with sample hotspots!",
+      note: "Create your first admin user through the admin panel or API."
     });
   } catch (error) {
     console.error("Setup error:", error);
