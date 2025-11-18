@@ -22,6 +22,15 @@ import { createPortal } from 'react-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+declare global {
+  interface Window {
+    bodymovin?: any;
+  }
+}
+
+const BODYMOVIN_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/bodymovin/4.12.1/bodymovin.min.js';
+const ANIMATION_JSON = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/35984/world.json';
+
 // Session storage keys
 const CLAIM_SESSION_KEY = 'ping_claim_session';
 
@@ -138,6 +147,7 @@ function MapPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [markersLoaded, setMarkersLoaded] = useState(false);
+  const loadingAnimationRef = useRef<HTMLDivElement>(null);
   const [center, setCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 }); // Default: NYC
   const [zoom, setZoom] = useState(13);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -392,6 +402,64 @@ function MapPage() {
     };
     fetchSocialSettings();
   }, []);
+
+  // Initialize loading animation
+  useEffect(() => {
+    if (!loading || !loadingAnimationRef.current) return;
+
+    let cancelled = false;
+    let animationInstance: any;
+
+    const ensureBodymovin = () => {
+      if (window.bodymovin) {
+        return Promise.resolve(window.bodymovin);
+      }
+      return new Promise<any>((resolve, reject) => {
+        const existing = document.getElementById('bodymovin-cdn') as HTMLScriptElement | null;
+        if (existing) {
+          existing.addEventListener('load', () => resolve(window.bodymovin));
+          existing.addEventListener('error', reject);
+          return;
+        }
+        const script = document.createElement('script');
+        script.id = 'bodymovin-cdn';
+        script.src = BODYMOVIN_CDN;
+        script.async = true;
+        script.onload = () => resolve(window.bodymovin);
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    };
+
+    const initAnimation = async () => {
+      try {
+        const bodymovin = await ensureBodymovin();
+        if (cancelled || !bodymovin || !loadingAnimationRef.current) {
+          return;
+        }
+        animationInstance = bodymovin.loadAnimation({
+          wrapper: loadingAnimationRef.current,
+          animType: 'svg',
+          loop: true,
+          prerender: true,
+          autoplay: true,
+          path: ANIMATION_JSON,
+        });
+        animationInstance.setSpeed(1.4);
+      } catch (error) {
+        console.error('Failed to load bodymovin animation', error);
+      }
+    };
+
+    initAnimation();
+
+    return () => {
+      cancelled = true;
+      if (animationInstance) {
+        animationInstance.destroy();
+      }
+    };
+  }, [loading]);
 
   // Expand certificate after 2 seconds
   useEffect(() => {
@@ -807,8 +875,8 @@ function MapPage() {
 
       {/* Loading/Error States */}
       {loading && (
-        <div className="map-overlay">
-          <p>Loading map...</p>
+        <div className="map-overlay map-loading">
+          <div className="map-loading-animation" ref={loadingAnimationRef} />
         </div>
       )}
 

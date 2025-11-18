@@ -255,6 +255,44 @@
   width: 90%;
 }
 
+.map-overlay.map-loading {
+  padding: 0;
+  background: transparent;
+  width: min(480px, 80vw);
+  max-width: none;
+}
+
+.map-loading-animation {
+  position: relative;
+  width: min(480px, 80vw);
+  height: min(480px, 80vw);
+}
+
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(2) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(5) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(6) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(7) path {
+  fill: #ffd700 !important;
+  stroke: #ffd700 !important;
+}
+
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(8) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(9) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(10) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(11) path {
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+@media (max-width: 768px) {
+  .map-loading-animation {
+    width: min(360px, 80vw);
+    height: min(360px, 80vw);
+  }
+}
+
 .map-overlay.error {
   background: rgba(231, 76, 60, 0.15);
   border: 2px solid rgba(231, 76, 60, 0.4);
