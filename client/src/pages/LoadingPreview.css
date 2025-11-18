@@ -23,69 +23,19 @@
 }
 
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) path,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) circle,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) polygon,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) polyline,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) rect,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) ellipse,
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(2) path,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(2) circle,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(2) polygon,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(2) polyline,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(2) rect,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(2) ellipse,
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) path,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) circle,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) polygon,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) polyline,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) rect,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) ellipse,
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(5) path,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(5) circle,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(5) polygon,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(5) polyline,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(5) rect,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(5) ellipse,
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(6) path,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(6) circle,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(6) polygon,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(6) polyline,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(6) rect,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(6) ellipse,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(7) path,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(7) circle,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(7) polygon,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(7) polyline,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(7) rect,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(7) ellipse {
+.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(7) path {
   fill: #ffd700 !important;
   stroke: #ffd700 !important;
 }
 
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(8) path,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(8) circle,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(8) polygon,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(8) polyline,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(8) rect,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(8) ellipse,
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(9) path,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(9) circle,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(9) polygon,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(9) polyline,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(9) rect,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(9) ellipse,
 .loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(10) path,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(10) circle,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(10) polygon,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(10) polyline,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(10) rect,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(10) ellipse,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(11) path,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(11) circle,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(11) polygon,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(11) polyline,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(11) rect,
-.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(11) ellipse {
+.loading-preview-container svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(11) path {
   fill: #ffffff !important;
   stroke: #ffffff !important;
 }
