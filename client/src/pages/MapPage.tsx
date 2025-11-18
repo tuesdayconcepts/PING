@@ -148,6 +148,9 @@ function MapPage() {
   const [error, setError] = useState<string | null>(null);
   const [markersLoaded, setMarkersLoaded] = useState(false);
   const loadingAnimationRef = useRef<HTMLDivElement>(null);
+  const [animationCompletedLoop, setAnimationCompletedLoop] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(true);
   const [center, setCenter] = useState<{ lat: number; lng: number }>({ lat: 40.7128, lng: -74.0060 }); // Default: NYC
   const [zoom, setZoom] = useState(13);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -405,10 +408,13 @@ function MapPage() {
 
   // Initialize loading animation
   useEffect(() => {
-    if (!loading || !loadingAnimationRef.current) return;
+    if (!showLoadingOverlay || !loadingAnimationRef.current) return;
 
     let cancelled = false;
     let animationInstance: any;
+
+    // Reset animation completion state when animation restarts
+    setAnimationCompletedLoop(false);
 
     const ensureBodymovin = () => {
       if (window.bodymovin) {
@@ -446,8 +452,19 @@ function MapPage() {
           path: ANIMATION_JSON,
         });
         animationInstance.setSpeed(1.4);
+        
+        // Listen for loop completion
+        animationInstance.addEventListener('loopComplete', () => {
+          if (!cancelled) {
+            setAnimationCompletedLoop(true);
+          }
+        });
       } catch (error) {
         console.error('Failed to load bodymovin animation', error);
+        // If animation fails to load, allow loading to proceed
+        if (!cancelled) {
+          setAnimationCompletedLoop(true);
+        }
       }
     };
 
@@ -459,7 +476,14 @@ function MapPage() {
         animationInstance.destroy();
       }
     };
-  }, [loading]);
+  }, [showLoadingOverlay]);
+
+  // Hide loading overlay when both data is loaded and animation has completed at least one loop
+  useEffect(() => {
+    if (dataLoaded && animationCompletedLoop) {
+      setShowLoadingOverlay(false);
+    }
+  }, [dataLoaded, animationCompletedLoop]);
 
   // Expand certificate after 2 seconds
   useEffect(() => {
@@ -529,6 +553,7 @@ function MapPage() {
 
       setError(null);
       setLoading(false);
+      setDataLoaded(true);
     } catch (err) {
       const isNetworkError = err instanceof TypeError && 
         (err.message.includes('Failed to fetch') || 
@@ -546,6 +571,7 @@ function MapPage() {
       } else {
         setError(null);
         setLoading(false);
+        setDataLoaded(true);
         setMarkersLoaded(true);
         if (retryAttempt > 0) {
           showToast('Unable to connect. Showing cached data if available.', 'error', 4000);
@@ -874,7 +900,7 @@ function MapPage() {
       </nav>
 
       {/* Loading/Error States */}
-      {loading && (
+      {showLoadingOverlay && (
         <div className="map-overlay map-loading">
           <div className="map-loading-animation" ref={loadingAnimationRef} />
         </div>
