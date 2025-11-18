@@ -916,7 +916,7 @@ function MapPage() {
       )}
 
       {/* Map */}
-      {!loading && isLoaded && (
+      {!loading && isLoaded && !showLoadingOverlay && (
         <GoogleMap
           center={center}
           zoom={zoom}

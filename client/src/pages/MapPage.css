@@ -256,10 +256,20 @@
 }
 
 .map-overlay.map-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: none;
   padding: 0;
-  background: transparent;
-  width: min(480px, 80vw);
+  background: #0b28ff;
+  width: 100%;
+  height: 100%;
   max-width: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .map-loading-animation {
