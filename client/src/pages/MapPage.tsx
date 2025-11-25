@@ -856,7 +856,31 @@ function MapPage() {
                     className="hint-cta"
                     onClick={async () => {
                       if (!selectedHotspot) return;
+                      
                       try {
+                        // Check permission state first
+                        let permissionState: PermissionState = 'prompt';
+                        if ('permissions' in navigator) {
+                          try {
+                            const result = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+                            permissionState = result.state;
+                          } catch (permErr) {
+                            // Permissions API might not be supported, proceed anyway
+                            console.log('Permissions API not available, proceeding with request');
+                          }
+                        }
+                        
+                        // If permission was previously denied, show helpful instructions
+                        if (permissionState === 'denied') {
+                          showToast(
+                            'Location permission was denied. Please enable it in your browser settings and try again.',
+                            'error',
+                            5000
+                          );
+                          return;
+                        }
+                        
+                        // Permission is 'prompt' or 'granted', proceed with request
                         await navigator.geolocation.getCurrentPosition(
                           () => {
                             setProximityEnabled(true);
@@ -864,8 +888,17 @@ function MapPage() {
                             showToast('Location enabled!', 'success');
                             setShowProximityIntro(false);
                           },
-                          () => {
-                            showToast('Location permission denied', 'error');
+                          (error) => {
+                            // Handle different error types
+                            if (error.code === error.PERMISSION_DENIED) {
+                              showToast(
+                                'Location permission denied. Please enable it in your browser settings.',
+                                'error',
+                                5000
+                              );
+                            } else {
+                              showToast('Failed to get location. Please try again.', 'error');
+                            }
                           }
                         );
                       } catch (err) {
