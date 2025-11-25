@@ -151,9 +151,9 @@
   overflow-x: auto;
   overflow-y: visible;
   scroll-snap-type: x mandatory;
-  scroll-padding-left: 20px;
+  scroll-padding-left: 30px;
   -webkit-overflow-scrolling: touch;
-  padding: 8px 20px 12px;
+  padding: 8px 30px 20px;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
