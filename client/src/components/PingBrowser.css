@@ -55,7 +55,7 @@
 
 /* Expanded state: floating cards with gradient background */
 .ping-browser.expanded {
-  padding: 40px 0 20px;
+  padding: 40px 0 0;
   align-items: stretch;
   background: linear-gradient(to top, rgba(11, 40, 255, .95) 0%, rgba(11, 40, 255, .7) 80%, transparent 100%);
 }
@@ -285,7 +285,7 @@
   }
 
   .ping-browser.expanded {
-    padding: 40px 0 20px;
+    padding: 40px 0 0;
   }
 
   .ping-browser-toggle {
