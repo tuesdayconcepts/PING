@@ -1,0 +1,255 @@
+/* Ping Browser - Collapsible carousel for browsing active pings */
+
+.ping-browser {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 155; /* Above vignette (150), below modals */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  padding: 0 20px 30px;
+}
+
+/* Collapsed state: "ACTIVE PINGS" button */
+.ping-browser-toggle {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(11, 40, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 30px;
+  color: #ffd700;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.ping-browser-toggle:hover {
+  background: rgba(11, 40, 255, 0.95);
+  border-color: #ffd700;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+}
+
+.ping-browser-toggle .ping-count {
+  background: #ffd700;
+  color: #0b28ff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* Expanded state: full carousel */
+.ping-browser.expanded {
+  padding-bottom: 20px;
+}
+
+.ping-browser-content {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 600px;
+  background: rgba(11, 40, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 20px;
+  padding: 12px 16px 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header with sort options and close button */
+.ping-browser-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ping-browser-sort {
+  display: flex;
+  gap: 8px;
+}
+
+.sort-btn {
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sort-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.sort-btn.active {
+  background: #ffd700;
+  border-color: #ffd700;
+  color: #0b28ff;
+  font-weight: 600;
+}
+
+.ping-browser-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ping-browser-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Horizontally scrollable carousel */
+.ping-browser-carousel {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0;
+  margin: 0 -4px;
+}
+
+/* Hide scrollbar but keep functionality */
+.ping-browser-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.ping-browser-carousel {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Individual ping card */
+.ping-card {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 110px;
+  height: 70px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ping-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #ffd700;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.ping-card:active {
+  transform: translateY(0);
+}
+
+.ping-card-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ping-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffd700;
+}
+
+.ping-card-prize {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.ping-card-distance {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  min-height: 14px; /* Prevent layout shift */
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .ping-browser {
+    padding: 0 12px 20px;
+  }
+
+  .ping-browser-content {
+    padding: 10px 12px 14px;
+    border-radius: 16px;
+  }
+
+  .ping-browser-toggle {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .ping-card {
+    width: 100px;
+    height: 65px;
+    padding: 8px 10px;
+  }
+
+  .ping-card-prize {
+    font-size: 13px;
+  }
+
+  .sort-btn {
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+}
+

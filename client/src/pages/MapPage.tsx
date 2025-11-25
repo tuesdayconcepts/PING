@@ -16,6 +16,7 @@ import { CustomMarker } from '../components/CustomMarker';
 import { NotificationPrompt } from '../components/NotificationPrompt';
 import { useToast } from '../components/Toast';
 import { useProximityDetector } from '../components/ProximityDetector';
+import { PingBrowser } from '../components/PingBrowser';
 import { Radio, Waves } from 'lucide-react';
 import './MapPage.css';
 import { createPortal } from 'react-dom';
@@ -1350,6 +1351,31 @@ function MapPage() {
           }}
           onShowDetails={() => setShowHintModal(false)} // Just close hint modal, show main
         />
+        )}
+
+        {/* Ping Browser - Collapsible carousel for browsing active pings */}
+        {!isShareRoute && (
+          <PingBrowser
+            hotspots={hotspots.filter(h => h.active && new Date(h.endDate) >= new Date())}
+            userLocation={userLocation}
+            onSelectPing={(hotspot) => {
+              // Center map on the selected ping
+              setCenter({ lat: hotspot.lat, lng: hotspot.lng });
+              setZoom(16);
+              // Open the ping modal
+              setSelectedHotspot(hotspot);
+              // Enable proximity detection if location is available and it's a proximity ping
+              if (hotspot.claimType === 'proximity' && userLocation) {
+                setProximityEnabled(true);
+              } else {
+                setProximityEnabled(false);
+              }
+            }}
+            onRequestLocation={() => {
+              // Request location permission (same as existing flow)
+              requestUserLocation();
+            }}
+          />
         )}
 
         {/* Notification Prompt */}
