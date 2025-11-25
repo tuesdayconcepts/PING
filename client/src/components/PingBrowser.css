@@ -151,8 +151,11 @@
   overflow-x: auto;
   overflow-y: visible;
   scroll-snap-type: x mandatory;
+  scroll-padding-left: 20px;
   -webkit-overflow-scrolling: touch;
   padding: 8px 20px 12px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Hide scrollbar but keep functionality */
@@ -160,9 +163,11 @@
   display: none;
 }
 
-.ping-browser-carousel {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+@media (max-width: 480px) {
+  .ping-browser-carousel {
+    padding: 8px 12px 12px;
+    scroll-padding-left: 12px;
+  }
 }
 
 /* Individual ping card - floating with image background */
@@ -283,10 +288,6 @@
     padding: 40px 0 20px;
   }
 
-  .ping-browser-carousel {
-    padding: 8px 12px 12px;
-  }
-
   .ping-browser-toggle {
     padding: 10px 20px;
     font-size: 13px;
@@ -311,4 +312,10 @@
     padding: 6px 12px;
     font-size: 12px;
   }
+}
+
+/* Ensure first card doesn't snap flush to edge */
+.ping-card:first-child {
+  scroll-snap-align: start;
+  margin-left: 0;
 }
