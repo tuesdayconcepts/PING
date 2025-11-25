@@ -53,10 +53,12 @@
   text-align: center;
 }
 
-/* Expanded state: floating cards */
+/* Expanded state: floating cards with gradient background */
 .ping-browser.expanded {
   padding-bottom: 20px;
   align-items: stretch;
+  background: linear-gradient(to top, rgba(11, 40, 255, 0.95) 0%, rgba(11, 40, 255, 0.7) 50%, transparent 100%);
+  padding-top: 40px;
 }
 
 .ping-browser-expanded {
