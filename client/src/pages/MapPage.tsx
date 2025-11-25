@@ -221,15 +221,30 @@ function MapPage() {
     }
   }, [proximityDetector.userLocation]);
   
-  // Manage proximity intro visibility (mobile Safari fallback)
+  // Manage proximity intro visibility (only show if location is not already enabled)
   useEffect(() => {
     if (selectedHotspot?.claimType === 'proximity') {
-      const hasLocation = !!proximityDetector.userLocation;
-      setShowProximityIntro(!hasLocation);
+      // Check if location is already available (either from proximity detector or global userLocation)
+      const hasLocation = !!proximityDetector.userLocation || !!userLocation;
+      
+      // Check permission status asynchronously
+      if ('permissions' in navigator) {
+        navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((result) => {
+          const permissionGranted = result.state === 'granted';
+          // Only show intro if no location AND permission not granted
+          setShowProximityIntro(!hasLocation && !permissionGranted);
+        }).catch(() => {
+          // If permissions API not available, just check location
+          setShowProximityIntro(!hasLocation);
+        });
+      } else {
+        // If permissions API not available, just check location
+        setShowProximityIntro(!hasLocation);
+      }
     } else {
       setShowProximityIntro(false);
     }
-  }, [selectedHotspot, proximityDetector.userLocation]);
+  }, [selectedHotspot, proximityDetector.userLocation, userLocation]);
   
   // Toast functionality
   const { showToast } = useToast();
