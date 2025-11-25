@@ -880,7 +880,8 @@ function MapPage() {
                         await navigator.geolocation.getCurrentPosition(
                           () => {
                             setProximityEnabled(true);
-                            requestUserLocation(selectedHotspot.lat, selectedHotspot.lng);
+                            // Don't pass destination - route should only show when ETA time-item is clicked
+                            requestUserLocation();
                             showToast('Location enabled!', 'success');
                             setShowProximityIntro(false);
                           },
