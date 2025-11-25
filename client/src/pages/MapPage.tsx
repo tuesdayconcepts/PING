@@ -624,12 +624,8 @@ function MapPage() {
       setCenter({ lat: hotspot.lat, lng: hotspot.lng });
       setZoom(16);
       
-      // Enable proximity detection if this is a proximity ping
-      if (hotspot.claimType === 'proximity') {
-        setProximityEnabled(true);
-      } else {
-        setProximityEnabled(false);
-      }
+      // Reset proximity enabled state (user must click "Enable GPS" to enable)
+      setProximityEnabled(false);
       
       // Check if this user has a claim session for this hotspot
       const claimSession = getClaimSession(hotspotId);
@@ -1007,11 +1003,8 @@ function MapPage() {
                 onClick={() => {
                   setSelectedHotspot(hotspot);
                   setCenter({ lat: hotspot.lat, lng: hotspot.lng });
-                  if (hotspot.claimType === 'proximity') {
-                    setProximityEnabled(true);
-                  } else {
-                    setProximityEnabled(false);
-                  }
+                  // Reset proximity enabled state (user must click "Enable GPS" to enable)
+                  setProximityEnabled(false);
                 }}
                 map={mapInstance || undefined}
                 animate={true}
