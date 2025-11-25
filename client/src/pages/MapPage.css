@@ -716,6 +716,34 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
   gap: 15px;
 }
 
+/* Later button styling (for proximity intro modal) */
+.later-btn {
+  background: transparent;
+  color: #ffffffb3;
+  padding: 16px 20px;
+  border-radius: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex: 1;
+  text-align: center;
+}
+
+.later-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.later-btn:active {
+  transform: translateY(0);
+}
+
 .modal-prize .prize-badge {
   position: relative;
   overflow: hidden;

@@ -838,15 +838,22 @@ function MapPage() {
       {/* Proximity Intro Modal */}
       {showProximityIntro && selectedHotspot?.claimType === 'proximity' && !proximityUserLocation && (
         <div className="modal-overlay proximity-intro-overlay" onClick={() => setShowProximityIntro(false)}>
-          <div className="modal-wrapper proximity-intro" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowProximityIntro(false)}>✕</button>
-            <div className="modal-sections">
-              <div className="modal-section proximity-intro-content">
-                <h2>Enable GPS</h2>
-                <p>This is a proximity-based ping. Turn on location sharing to track how close you are.</p>
-                <div className="proximity-gps-buttons">
+          <div className="modal-wrapper" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content">
+              <button className="modal-close" onClick={() => setShowProximityIntro(false)}>✕</button>
+              <div className="modal-sections">
+                {/* Header section */}
+                <div className="modal-section modal-header">
+                  <h2>Enable GPS</h2>
+                  <p style={{ marginTop: '12px', fontSize: '0.95rem', color: '#ffffffb3' }}>
+                    This is a proximity-based ping. Turn on location sharing to track how close you are.
+                  </p>
+                </div>
+                
+                {/* Buttons section (similar to modal-prize) */}
+                <div className="modal-section modal-prize">
                   <button
-                    className="enable-gps-btn"
+                    className="hint-cta"
                     onClick={async () => {
                       if (!selectedHotspot) return;
                       try {
