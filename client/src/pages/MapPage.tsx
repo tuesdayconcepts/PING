@@ -868,7 +868,15 @@ function MapPage() {
                   >
                     Enable GPS
                   </button>
-                  <button className="later-btn" onClick={() => setShowProximityIntro(false)}>Later</button>
+                  <button 
+                    className="later-btn" 
+                    onClick={() => {
+                      setShowProximityIntro(false);
+                      // Regular modal will show automatically since selectedHotspot is still set
+                    }}
+                  >
+                    Later
+                  </button>
                 </div>
               </div>
             </div>
@@ -1006,7 +1014,8 @@ function MapPage() {
       )}
 
       {/* Hotspot Modal Popup */}
-      {selectedHotspot && !showHintModal && (
+      {/* Don't show regular modal if proximity intro is showing (intro should appear first) */}
+      {selectedHotspot && !showHintModal && !showProximityIntro && (
         <div className={`modal-overlay ${isModalClosing ? 'closing' : ''}`} onClick={() => setSelectedHotspot(null)}>
           <div className="modal-wrapper">
             <div className={`modal-content ${isModalClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>

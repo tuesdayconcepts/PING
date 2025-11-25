@@ -515,6 +515,11 @@
   padding: 20px;
 }
 
+/* Proximity Intro Modal - Higher z-index to appear above regular modal */
+.modal-overlay.proximity-intro-overlay {
+  z-index: 1100;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
