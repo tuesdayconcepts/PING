@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Radio, Waves, ChevronDown, ChevronUp } from 'lucide-react';
+import { Radio, Waves, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 import { Hotspot } from '../types';
 import { calculateDistance, formatDistance } from '../utils/distance';
 import './PingBrowser.css';
@@ -15,7 +15,7 @@ interface PingBrowserProps {
 type SortOption = 'prize' | 'distance';
 
 /**
- * Compact card component for displaying a single ping
+ * Card component for displaying a single ping with image background
  */
 const PingCard = ({
   hotspot,
@@ -28,19 +28,56 @@ const PingCard = ({
 }) => {
   const isNFC = hotspot.claimType === 'nfc' || !hotspot.claimType;
   
+  // Extract short location (city, country) from full location name
+  const shortLocation = useMemo(() => {
+    if (!hotspot.locationName) return null;
+    // locationName format is typically "Address, City, State, Country"
+    const parts = hotspot.locationName.split(',').map(p => p.trim());
+    if (parts.length >= 2) {
+      // Get last two meaningful parts (usually city and country/state)
+      return `${parts[parts.length - 2]}, ${parts[parts.length - 1]}`;
+    }
+    return hotspot.locationName;
+  }, [hotspot.locationName]);
+  
   return (
-    <button className="ping-card" onClick={onClick}>
-      <div className="ping-card-row">
-        <span className="ping-card-icon">
-          {isNFC ? <Radio size={16} /> : <Waves size={16} />}
+    <button 
+      className="ping-card" 
+      onClick={onClick}
+      style={{
+        backgroundImage: hotspot.imageUrl 
+          ? `linear-gradient(to bottom, rgba(11, 40, 255, 0.75), rgba(11, 40, 255, 0.9)), url(${hotspot.imageUrl})`
+          : undefined
+      }}
+    >
+      {/* Top row: claim type icon and prize */}
+      <div className="ping-card-header">
+        <span className="ping-card-type">
+          {isNFC ? <Radio size={14} /> : <Waves size={14} />}
         </span>
         <span className="ping-card-prize">
           {hotspot.prize !== null ? `${hotspot.prize} SOL` : 'TBD'}
         </span>
       </div>
-      {/* Distance row always takes space to prevent layout shift */}
-      <div className="ping-card-distance">
-        {distance !== null ? formatDistance(distance) : '\u00A0'}
+      
+      {/* Title */}
+      <div className="ping-card-title">
+        {hotspot.title || 'Untitled Ping'}
+      </div>
+      
+      {/* Bottom row: location and distance */}
+      <div className="ping-card-footer">
+        {shortLocation && (
+          <span className="ping-card-location">
+            <MapPin size={10} />
+            {shortLocation}
+          </span>
+        )}
+        {distance !== null && (
+          <span className="ping-card-distance">
+            {formatDistance(distance)}
+          </span>
+        )}
       </div>
     </button>
   );
@@ -129,10 +166,10 @@ export const PingBrowser = ({
         </button>
       )}
 
-      {/* Expanded state: carousel with sort options */}
+      {/* Expanded state: floating cards with header */}
       {isExpanded && (
-        <div className="ping-browser-content">
-          {/* Header with sort options and close button */}
+        <div className="ping-browser-expanded">
+          {/* Header with sort options and close button - floating */}
           <div className="ping-browser-header">
             <div className="ping-browser-sort">
               <button
@@ -156,7 +193,7 @@ export const PingBrowser = ({
             </button>
           </div>
 
-          {/* Horizontally scrollable card carousel */}
+          {/* Horizontally scrollable floating cards */}
           <div className="ping-browser-carousel">
             {sortedHotspots.map(({ hotspot, distance }) => (
               <PingCard
@@ -172,4 +209,3 @@ export const PingBrowser = ({
     </div>
   );
 };
-
