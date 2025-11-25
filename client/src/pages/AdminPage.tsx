@@ -327,6 +327,7 @@ function AdminPage() {
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [hotspotsLoading, setHotspotsLoading] = useState(true);
   const [walletBalances, setWalletBalances] = useState<Record<string, number>>({});
+  const fetchedWalletPubkeysRef = useRef<Set<string>>(new Set()); // Track fetched pubkeys to avoid duplicates
   
   // Pagination state for claimed hotspots (lazy-loaded)
   const [claimedHotspots, setClaimedHotspots] = useState<Hotspot[]>([]);
@@ -554,19 +555,18 @@ function AdminPage() {
         setClaimedHasMore(data.hasMore);
         setClaimedOffset(offset + data.hotspots.length);
         
-        // Preload wallet balances for new hotspots
-        data.hotspots.forEach((h: Hotspot) => {
-          if (h.prizePublicKey) {
-            // Check current balances state before fetching
-            setWalletBalances(prev => {
-              if (prev[h.prizePublicKey!] === undefined) {
-                // Fetch balance asynchronously (don't await)
-                fetchWalletBalance(h.prizePublicKey!).catch(console.error);
-              }
-              return prev;
-            });
-          }
-        });
+        // Batch fetch wallet balances for new hotspots (parallel for speed)
+        const pubkeysToFetch = data.hotspots
+          .filter((h: Hotspot) => h.prizePublicKey)
+          .map((h: Hotspot) => h.prizePublicKey as string)
+          .filter((pk: string) => !fetchedWalletPubkeysRef.current.has(pk));
+        
+        if (pubkeysToFetch.length > 0) {
+          // Mark as fetching to prevent duplicates
+          pubkeysToFetch.forEach((pk: string) => fetchedWalletPubkeysRef.current.add(pk));
+          // Fetch all balances in parallel
+          Promise.all(pubkeysToFetch.map((pk: string) => fetchWalletBalance(pk)));
+        }
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
@@ -856,12 +856,8 @@ function AdminPage() {
       if (response.ok) {
         const data = await response.json();
         setHotspots(data);
-        const claimedWithWallet = data.filter((h: Hotspot) => h.claimStatus === 'claimed' && h.prizePublicKey);
-        for (const h of claimedWithWallet) {
-          if (h.prizePublicKey && walletBalances[h.prizePublicKey] === undefined) {
-            fetchWalletBalance(h.prizePublicKey);
-          }
-        }
+        // Note: Wallet balances are fetched in fetchClaimedHotspots when History tab is opened
+        
         if (!hasInitiallyLoaded) {
           const firstActivePing = data.find((h: Hotspot) => h.active && h.claimStatus === 'unclaimed');
           if (firstActivePing && adminMapInstance) {

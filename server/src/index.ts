@@ -424,10 +424,10 @@ app.get("/api/hotspots", async (req, res) => {
     }
 
     // For public: only show active pings that aren't claimed
-    // For admin: show all hotspots ordered by active status and creation date
+    // For admin: show unclaimed/pending hotspots (claimed ones are fetched separately via /api/admin/hotspots/claimed)
     const hotspots = await prisma.hotspot.findMany({
       where: includeInactive 
-        ? {} 
+        ? { claimStatus: { not: "claimed" } } // Admin: exclude claimed (they have separate endpoint)
         : { 
             active: true, 
             claimStatus: { not: "claimed" }
