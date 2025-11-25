@@ -165,8 +165,8 @@
 
 @media (max-width: 480px) {
   .ping-browser-carousel {
-    padding: 8px 12px 12px;
-    scroll-padding-left: 12px;
+    padding: 8px 25px 20px;
+    scroll-padding-left: 25px;
   }
 }
 
