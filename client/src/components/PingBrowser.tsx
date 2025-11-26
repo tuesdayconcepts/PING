@@ -154,34 +154,37 @@ export const PingBrowser = ({
 
   return (
     <div className={`ping-browser ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      {/* Unified morphing header - same element transitions between states */}
-      <div 
-        className="ping-browser-header"
-        onClick={() => !isExpanded && setIsExpanded(true)}
-      >
-        {/* Label - visible when collapsed, morphs out when expanded */}
-        <span className="ping-browser-label">EXPLORE ACTIVE PINGS</span>
-        
-        {/* Sort buttons - hidden when collapsed, morph in when expanded */}
-        <div className="ping-browser-sort">
-          <button
-            className={`sort-btn ${sortBy === 'prize' ? 'active' : ''}`}
-            onClick={(e) => { e.stopPropagation(); handleSortChange('prize'); }}
-          >
-            Prize
-          </button>
-          <button
-            className={`sort-btn ${sortBy === 'distance' ? 'active' : ''}`}
-            onClick={(e) => { e.stopPropagation(); handleSortChange('distance'); }}
-          >
-            Distance
-          </button>
+      {/* Unified morphing header - pill + split-out close button */}
+      <div className="ping-browser-header">
+        {/* The morphing pill - contains label (collapsed) or sort buttons (expanded) */}
+        <div 
+          className="ping-browser-pill"
+          onClick={() => !isExpanded && setIsExpanded(true)}
+        >
+          {/* Label - visible when collapsed, morphs out when expanded */}
+          <span className="ping-browser-label">EXPLORE ACTIVE PINGS</span>
+          
+          {/* Sort buttons - hidden when collapsed, morph in when expanded */}
+          <div className="ping-browser-sort">
+            <button
+              className={`sort-btn ${sortBy === 'prize' ? 'active' : ''}`}
+              onClick={(e) => { e.stopPropagation(); handleSortChange('prize'); }}
+            >
+              Prize
+            </button>
+            <button
+              className={`sort-btn ${sortBy === 'distance' ? 'active' : ''}`}
+              onClick={(e) => { e.stopPropagation(); handleSortChange('distance'); }}
+            >
+              Distance
+            </button>
+          </div>
         </div>
         
-        {/* Close button - splits out from the main element when expanded */}
+        {/* Close button - splits out from the pill when expanded */}
         <button
           className="ping-browser-close"
-          onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
+          onClick={() => setIsExpanded(false)}
         >
           <X size={18} />
         </button>
