@@ -75,17 +75,18 @@
   letter-spacing: 1px;
   color: #ffd700;
   white-space: nowrap;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s 0s;
   transform-origin: center;
 }
 
 /* Hide label when expanded */
 .ping-browser.expanded .ping-browser-label {
   opacity: 0;
+  visibility: hidden;
   transform: scale(0.8);
-  width: 0;
-  padding: 0;
+  max-width: 0;
   overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s 0.35s;
 }
 
 /* ============================================
@@ -96,20 +97,21 @@
   display: flex;
   gap: 4px;
   opacity: 0;
+  visibility: hidden;
   transform: scale(0.8);
-  width: 0;
+  max-width: 0;
   overflow: hidden;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  transition-delay: 0s;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s 0.35s;
 }
 
 /* Show sort buttons when expanded */
 .ping-browser.expanded .ping-browser-sort {
   opacity: 1;
+  visibility: visible;
   transform: scale(1);
-  width: auto;
+  max-width: 300px;
   overflow: visible;
-  transition-delay: 0.1s;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, visibility 0s 0s;
 }
 
 .sort-btn {
@@ -145,19 +147,20 @@
   align-items: center;
   justify-content: center;
   width: 0;
+  min-width: 0;
   height: 32px;
   padding: 0;
   background: #ffffff40;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 2px solid #ffffff1a;
+  border: 2px solid transparent;
   border-radius: 50%;
   color: #ffffff8c;
   cursor: pointer;
   opacity: 0;
+  visibility: hidden;
   transform: scale(0.5) translateX(-20px);
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  transition-delay: 0s;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s 0.35s;
   box-shadow: 0 4px 16px #0000004d;
   overflow: hidden;
 }
@@ -165,10 +168,12 @@
 /* Expanded: close button splits out */
 .ping-browser.expanded .ping-browser-close {
   width: 32px;
-  padding: 0;
+  min-width: 32px;
   opacity: 1;
+  visibility: visible;
+  border-color: #ffffff1a;
   transform: scale(1) translateX(0);
-  transition-delay: 0.15s;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.15s, visibility 0s 0s;
 }
 
 .ping-browser-close:hover {
