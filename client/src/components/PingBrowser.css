@@ -24,19 +24,20 @@
    MORPHING HEADER - Unified element that transforms
    ============================================ */
 
-/* Header container - stays centered, holds the pill and split-out close button */
+/* Header container - holds the pill and split-out close button */
 .ping-browser-header {
   pointer-events: auto;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0;
+  padding: 10px 25px;
   transition: gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Expanded: add gap between pill and close button */
 .ping-browser.expanded .ping-browser-header {
-  gap: 8px;
+  gap: 10px;
 }
 
 /* ============================================
