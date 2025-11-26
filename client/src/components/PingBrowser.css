@@ -1,4 +1,4 @@
-/* Ping Browser - Collapsible carousel for browsing active pings */
+/* Ping Browser - Collapsible carousel with liquid glass morphing effect */
 
 .ping-browser {
   position: fixed;
@@ -13,105 +13,117 @@
   padding: 0 20px 30px;
 }
 
-/* Collapsed state: "ACTIVE PINGS" button */
-.ping-browser-toggle {
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: #ffffff40;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 2px solid #ffffff1a;
-  border-radius: 25px;
-  color: #ffd700;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 0 20px #00000040;
-}
-
-.ping-browser-toggle:hover {
-  background: #ffffff50;
-  border-color: #ffffff30;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 25px #00000050;
-}
-
-.ping-browser-toggle .ping-count {
-  background: #ffd700;
-  color: #0b28ff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 12px;
-  min-width: 24px;
-  text-align: center;
-}
-
-/* Expanded state: floating cards with gradient background */
+/* Expanded state: gradient background behind carousel */
 .ping-browser.expanded {
   padding: 40px 0 0;
   align-items: stretch;
   background: linear-gradient(to top, rgba(11, 40, 255, .95) 0%, rgba(11, 40, 255, .7) 80%, transparent 100%);
 }
 
-.ping-browser-expanded {
-  pointer-events: auto;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  animation: slideUp 0.3s ease-out;
-}
+/* ============================================
+   MORPHING HEADER - Unified element that transforms
+   ============================================ */
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Header with sort options and close button - floating pill */
 .ping-browser-header {
+  pointer-events: auto;
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  gap: 10px;
-  padding: 0 25px;
-}
-
-.ping-browser-sort {
-  display: flex;
-  gap: 8px;
-  padding: 5px;
+  justify-content: center;
+  gap: 0;
+  padding: 12px 24px;
+  margin: 0 auto;
   background: #ffffff40;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  border: 2px solid #ffffff1a;
   border-radius: 25px;
   box-shadow: 0 0 20px #00000040;
-  border: 2px solid #ffffff1a;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, gap, padding;
+}
+
+.ping-browser-header:hover {
+  background: #ffffff50;
+  border-color: #ffffff30;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 25px #00000050;
+}
+
+/* Expanded header - wider with gap for split elements */
+.ping-browser.expanded .ping-browser-header {
+  gap: 10px;
+  padding: 5px 5px 5px 5px;
+  margin: 0 25px;
+  justify-content: flex-start;
+  cursor: default;
+  transform: none;
+}
+
+.ping-browser.expanded .ping-browser-header:hover {
+  transform: none;
+}
+
+/* ============================================
+   LABEL - "EXPLORE ACTIVE PINGS" text
+   ============================================ */
+
+.ping-browser-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #ffd700;
+  white-space: nowrap;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+/* Hide label when expanded */
+.ping-browser.expanded .ping-browser-label {
+  opacity: 0;
+  transform: scale(0.8);
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ============================================
+   SORT BUTTONS - Morph in from center
+   ============================================ */
+
+.ping-browser-sort {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transform: scale(0.8);
+  width: 0;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0s;
+}
+
+/* Show sort buttons when expanded */
+.ping-browser.expanded .ping-browser-sort {
+  opacity: 1;
+  transform: scale(1);
+  width: auto;
+  overflow: visible;
+  transition-delay: 0.1s;
 }
 
 .sort-btn {
   padding: 8px 16px;
   background: transparent;
   border: none;
-  border-radius: 14px;
+  border-radius: 20px;
   color: #ffffff75;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .sort-btn:hover {
@@ -124,12 +136,17 @@
   font-weight: 600;
 }
 
+/* ============================================
+   CLOSE BUTTON - Splits out from the main pill
+   ============================================ */
+
 .ping-browser-close {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 0;
+  height: 32px;
+  padding: 0;
   background: #ffffff40;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -137,16 +154,33 @@
   border-radius: 50%;
   color: #ffffff8c;
   cursor: pointer;
-  transition: all 0.2s ease;
+  opacity: 0;
+  transform: scale(0.5) translateX(-20px);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0s;
   box-shadow: 0 4px 16px #0000004d;
+  overflow: hidden;
+}
+
+/* Expanded: close button splits out */
+.ping-browser.expanded .ping-browser-close {
+  width: 32px;
+  padding: 0;
+  opacity: 1;
+  transform: scale(1) translateX(0);
+  transition-delay: 0.15s;
 }
 
 .ping-browser-close:hover {
-  background: rgba(11, 40, 255, 0.95);
+  background: #ffffff60;
   color: #fff;
+  border-color: #ffffff40;
 }
 
-/* Horizontally scrollable floating cards - full width */
+/* ============================================
+   CAROUSEL - Slides up when expanded
+   ============================================ */
+
 .ping-browser-carousel {
   display: flex;
   gap: 14px;
@@ -156,8 +190,28 @@
   scroll-padding-left: 30px;
   -webkit-overflow-scrolling: touch;
   padding: 8px 30px 20px;
+  pointer-events: auto;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0s;
+}
+
+/* Show carousel when expanded */
+.ping-browser.expanded .ping-browser-carousel {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.2s;
+}
+
+/* Hide carousel completely when collapsed */
+.ping-browser.collapsed .ping-browser-carousel {
+  height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 /* Hide scrollbar but keep functionality */
@@ -165,14 +219,10 @@
   display: none;
 }
 
-@media (max-width: 480px) {
-  .ping-browser-carousel {
-    padding: 8px 25px 20px;
-    scroll-padding-left: 25px;
-  }
-}
+/* ============================================
+   PING CARDS - Floating with image background
+   ============================================ */
 
-/* Individual ping card - floating with image background */
 .ping-card {
   flex-shrink: 0;
   scroll-snap-align: start;
@@ -280,7 +330,10 @@
   white-space: nowrap;
 }
 
-/* Mobile adjustments */
+/* ============================================
+   MOBILE ADJUSTMENTS
+   ============================================ */
+
 @media (max-width: 480px) {
   .ping-browser {
     padding: 0 12px 20px;
@@ -290,9 +343,22 @@
     padding: 40px 0 0;
   }
 
-  .ping-browser-toggle {
+  .ping-browser-header {
     padding: 10px 20px;
+  }
+
+  .ping-browser-label {
     font-size: 13px;
+  }
+
+  .ping-browser.expanded .ping-browser-header {
+    margin: 0 15px;
+    padding: 4px;
+  }
+
+  .ping-browser-carousel {
+    padding: 8px 25px 20px;
+    scroll-padding-left: 25px;
   }
 
   .ping-card {

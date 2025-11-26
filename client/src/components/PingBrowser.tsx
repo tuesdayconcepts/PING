@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Radio, Waves, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
+import { Radio, Waves, MapPin, X } from 'lucide-react';
 import { Hotspot } from '../types';
 import { calculateDistance, formatDistance } from '../utils/distance';
 import './PingBrowser.css';
@@ -154,58 +154,50 @@ export const PingBrowser = ({
 
   return (
     <div className={`ping-browser ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      {/* Collapsed state: just a button */}
-      {!isExpanded && (
-        <button
-          className="ping-browser-toggle"
-          onClick={() => setIsExpanded(true)}
-        >
-          <span>ACTIVE PINGS</span>
-          <span className="ping-count">{hotspots.length}</span>
-          <ChevronUp size={18} />
-        </button>
-      )}
-
-      {/* Expanded state: floating cards with header */}
-      {isExpanded && (
-        <div className="ping-browser-expanded">
-          {/* Header with sort options and close button - floating */}
-          <div className="ping-browser-header">
-            <div className="ping-browser-sort">
-              <button
-                className={`sort-btn ${sortBy === 'prize' ? 'active' : ''}`}
-                onClick={() => handleSortChange('prize')}
-              >
-                Prize
-              </button>
-              <button
-                className={`sort-btn ${sortBy === 'distance' ? 'active' : ''}`}
-                onClick={() => handleSortChange('distance')}
-              >
-                Distance
-              </button>
-            </div>
-            <button
-              className="ping-browser-close"
-              onClick={() => setIsExpanded(false)}
-            >
-              <ChevronDown size={20} />
-            </button>
-          </div>
-
-          {/* Horizontally scrollable floating cards */}
-          <div className="ping-browser-carousel">
-            {sortedHotspots.map(({ hotspot, distance }) => (
-              <PingCard
-                key={hotspot.id}
-                hotspot={hotspot}
-                distance={sortBy === 'distance' ? distance : null}
-                onClick={() => handleCardClick(hotspot)}
-              />
-            ))}
-          </div>
+      {/* Unified morphing header - same element transitions between states */}
+      <div 
+        className="ping-browser-header"
+        onClick={() => !isExpanded && setIsExpanded(true)}
+      >
+        {/* Label - visible when collapsed, morphs out when expanded */}
+        <span className="ping-browser-label">EXPLORE ACTIVE PINGS</span>
+        
+        {/* Sort buttons - hidden when collapsed, morph in when expanded */}
+        <div className="ping-browser-sort">
+          <button
+            className={`sort-btn ${sortBy === 'prize' ? 'active' : ''}`}
+            onClick={(e) => { e.stopPropagation(); handleSortChange('prize'); }}
+          >
+            Prize
+          </button>
+          <button
+            className={`sort-btn ${sortBy === 'distance' ? 'active' : ''}`}
+            onClick={(e) => { e.stopPropagation(); handleSortChange('distance'); }}
+          >
+            Distance
+          </button>
         </div>
-      )}
+        
+        {/* Close button - splits out from the main element when expanded */}
+        <button
+          className="ping-browser-close"
+          onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Carousel - only visible when expanded */}
+      <div className="ping-browser-carousel">
+        {sortedHotspots.map(({ hotspot, distance }) => (
+          <PingCard
+            key={hotspot.id}
+            hotspot={hotspot}
+            distance={sortBy === 'distance' ? distance : null}
+            onClick={() => handleCardClick(hotspot)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
