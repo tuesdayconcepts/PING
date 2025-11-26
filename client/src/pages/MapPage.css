@@ -653,7 +653,7 @@ body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-moda
 .modal-section {
   padding: 20px 25px;
   margin: 0;
-  border: 2px solid rgb(255 255 255 / 3%);
+  border: 2px solid rgb(255 255 255 / 10%);
   color: #fffffff2;
   border-radius: 25px;
   transform: translateZ(0); /* GPU acceleration */
