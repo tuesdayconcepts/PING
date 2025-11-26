@@ -156,7 +156,7 @@
    ============================================ */
 
 .ping-browser-close {
-  display: flex;
+  display: none; /* Hidden in collapsed state - removed from layout */
   align-items: center;
   justify-content: center;
   width: 44px;
@@ -169,20 +169,17 @@
   color: #ffffff8c;
   cursor: pointer;
   opacity: 0;
-  visibility: hidden;
   transform: scale(0) translateX(-20px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 0 20px #00000040;
-  margin-left: -8px; /* Overlap slightly with pill when appearing */
 }
 
 /* Expanded: close button splits out from pill */
 .ping-browser.expanded .ping-browser-close {
+  display: flex;
   opacity: 1;
-  visibility: visible;
   transform: scale(1) translateX(0);
-  margin-left: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, visibility 0s 0s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
 }
 
 .ping-browser-close:hover {
