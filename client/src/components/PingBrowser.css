@@ -61,9 +61,8 @@
 }
 
 .ping-browser-pill:hover {
-  background: #ffffff50;
-  border-color: #ffffff30;
-  transform: translateY(-2px);
+  background: #ffffff40;
+  border-color: #ffffff17;
   box-shadow: 0 4px 25px #00000050;
 }
 
