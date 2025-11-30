@@ -154,17 +154,19 @@ export const PingBrowser = ({
 
   return (
     <div className={`ping-browser ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      {/* Unified morphing header - pill + split-out close button */}
-      <div className="ping-browser-header">
-        {/* The morphing pill - contains label (collapsed) or sort buttons (expanded) */}
+      {/* Collapsed header - visible when collapsed */}
+      <div className="ping-browser-header ping-browser-header-collapsed">
         <div 
           className="ping-browser-pill"
           onClick={() => !isExpanded && setIsExpanded(true)}
         >
-          {/* Label - visible when collapsed, morphs out when expanded */}
           <span className="ping-browser-label">EXPLORE ACTIVE PINGS</span>
-          
-          {/* Sort buttons - hidden when collapsed, morph in when expanded */}
+        </div>
+      </div>
+
+      {/* Expanded header - slides up with carousel */}
+      <div className="ping-browser-header ping-browser-header-expanded">
+        <div className="ping-browser-pill">
           <div className="ping-browser-sort">
             <button
               className={`sort-btn ${sortBy === 'prize' ? 'active' : ''}`}
@@ -180,8 +182,6 @@ export const PingBrowser = ({
             </button>
           </div>
         </div>
-        
-        {/* Close button - splits out from the pill when expanded */}
         <button
           className="ping-browser-close"
           onClick={() => setIsExpanded(false)}
