@@ -196,7 +196,7 @@ export const PingBrowser = ({
           <PingCard
             key={hotspot.id}
             hotspot={hotspot}
-            distance={sortBy === 'distance' ? distance : null}
+            distance={distance}
             onClick={() => handleCardClick(hotspot)}
           />
         ))}
