@@ -1,0 +1,73 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "An interactive location-based scavenger hunt game with NFC card support, social verification via Twitter, and Solana cryptocurrency prizes. Users tap NFC cards to discover hotspots, admins approve claims live on stream, and winners receive encrypted private keys for Solana wallets.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "prisma generate",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint src",
+    "format": "prettier -w ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tuesdayconcepts/PING.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tuesdayconcepts/PING/issues"
+  },
+  "homepage": "https://github.com/tuesdayconcepts/PING#readme",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "@react-google-maps/api": "^2.20.8",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/wallet-adapter-wallets": "^0.19.38",
+    "@solana/web3.js": "^1.98.4",
+    "@supabase/supabase-js": "^2.104.0",
+    "bcrypt": "^6.0.0",
+    "bs58": "^6.0.0",
+    "buffer": "^6.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^1.8.0",
+    "next": "^16.2.4",
+    "node-fetch": "^3.3.2",
+    "prisma": "^6.19.3",
+    "react": "^19.2.5",
+    "react-confetti": "^6.4.0",
+    "react-dom": "^19.2.5",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.6.0",
+    "@types/node-fetch": "^2.6.13",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/web-push": "^3.6.4",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.4",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.0"
+  },
+  "private": true,
+  "type": "module"
+}

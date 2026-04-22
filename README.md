@@ -2,6 +2,45 @@
 
 An interactive location-based scavenger hunt game with NFC card support, social verification via Twitter, and Solana cryptocurrency prizes. Users tap NFC cards to discover hotspots, admins approve claims live on stream, and winners receive encrypted private keys for Solana wallets.
 
+## ✅ Current deployment shape (revived)
+
+This repository is being migrated from **Vite + Netlify (frontend)** + **Express + Railway (backend)** to a **single Next.js app** intended for **Vercel**, with **Supabase Postgres** as the database.
+
+- **App**: Next.js App Router in `src/app/*`
+- **UI**: migrated legacy UI lives in `src/legacy/*` (ported from `client/src/*`)
+- **API**: legacy Express routes are mounted under `/api/*` via `src/app/api/[[...path]]/route.ts` + `src/server/legacy/*`
+- **DB**: Prisma schema + migrations live in `prisma/*` (copied from `server/prisma/*`)
+- **Supabase**: use Supabase’s **Postgres** connection string as `DATABASE_URL` (Prisma). Optional Supabase JS client helpers live in `src/server/supabase.ts` (set `NEXT_PUBLIC_SUPABASE_*` + `SUPABASE_SERVICE_ROLE_KEY` when you add Auth/Storage).
+
+### Supabase setup (database)
+
+1. Create a project in [Supabase](https://supabase.com/).
+2. **Settings → Database → Connection string** → copy the **URI** (use the pooler mode Vercel recommends, often “Transaction” for serverless).
+3. Paste it into `DATABASE_URL` locally and in the Vercel project settings.
+4. Run `npx prisma migrate deploy` once against that database to apply the schema.
+
+### Local development
+
+```bash
+npm install
+cp .env.example .env
+# Set DATABASE_URL to your Supabase Postgres connection string
+
+# Apply migrations + generate Prisma client
+npx prisma migrate deploy
+npx prisma generate
+
+npm run dev
+```
+
+### Vercel environment variables
+
+Use `.env.example` as the checklist. At minimum you’ll need:
+
+- **`DATABASE_URL`**: Supabase Postgres URI
+- **`JWT_SECRET`**, **`ENCRYPTION_KEY`**, **`TREASURY_PRIVATE_KEY`**, **`SOLANA_RPC_URL`** (if you use treasury funding)
+- **`NEXT_PUBLIC_*`**: browser-visible keys (Google Maps + Solana RPC)
+
 ## 🚀 Features
 
 ### NFC Claim System
@@ -42,40 +81,27 @@ An interactive location-based scavenger hunt game with NFC card support, social 
 
 ## 📦 Tech Stack
 
-**Frontend:**
-- React 18 + TypeScript
-- Vite for build tooling
-- React Leaflet for maps
-- React Router for navigation
-- Deployed on Netlify
+**App (current):**
+- Next.js (App Router) + TypeScript
+- Prisma ORM + PostgreSQL (Supabase)
 
-**Backend:**
-- Node.js 20 + Express
-- TypeScript
-- Prisma ORM
-- PostgreSQL database
-- JWT authentication
-- Deployed on Railway
+**Legacy reference (not used for new deploys):**
+- `client/` (old Vite app)
+- `server/` (old standalone Express app)
 
 ## 🏗️ Project Structure
 
 ```
 PING/
-├─ client/              # React frontend
-│  ├─ src/
-│  │  ├─ pages/        # MapPage & AdminPage
-│  │  ├─ utils/        # Helper functions
-│  │  └─ types.ts      # TypeScript types
-│  └─ package.json
-├─ server/              # Express backend
-│  ├─ src/
-│  │  └─ index.ts      # API routes
-│  ├─ prisma/
-│  │  ├─ schema.prisma # Database schema
-│  │  └─ seed.ts       # Seed data
-│  └─ package.json
-├─ netlify.toml
-├─ railway.toml
+├─ src/
+│  ├─ app/                 # Next.js routes + API adapter
+│  ├─ legacy/              # migrated UI (from client/src)
+│  └─ server/legacy/       # migrated Express API (from server/src)
+├─ prisma/                 # Prisma schema + migrations
+├─ public/                 # static assets + service worker
+├─ client/                 # legacy Vite app (reference)
+├─ server/                 # legacy standalone server (reference)
+├─ deploy-legacy/          # archived Netlify/Railway configs (not used)
 └─ README.md
 ```
 
@@ -83,184 +109,41 @@ PING/
 
 ### Prerequisites
 - Node.js 20+
-- PostgreSQL database (or use Railway's managed database)
-- npm or yarn
+- A Supabase Postgres database (recommended) or any Postgres compatible with Prisma
+- npm
 
-### Backend Setup
+### Install + run
 
-1. **Install dependencies:**
 ```bash
-cd server
 npm install
-```
-
-2. **Setup environment variables:**
-```bash
-# Copy example env file
 cp .env.example .env
 
-# Edit .env with your values:
-# PORT=8080
-# DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DBNAME
-# JWT_SECRET=your-secret-key-change-in-production
-# ENCRYPTION_KEY=your-32-byte-hex-key-for-solana-private-keys
+# Apply migrations to your DATABASE_URL
+npx prisma migrate deploy
+npx prisma generate
 
-# Generate a secure 32-byte hex key for ENCRYPTION_KEY:
-# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-3. **Setup database:**
-```bash
-# Run Prisma migrations
-npm run prisma:migrate
-
-# Seed database with admin user and sample data
-npm run prisma:seed
-```
-
-4. **Start development server:**
-```bash
 npm run dev
-# Server runs on http://localhost:8080
-```
-
-### Frontend Setup
-
-1. **Install dependencies:**
-```bash
-cd client
-npm install
-```
-
-2. **Setup environment variables:**
-```bash
-# Create .env file
-echo "VITE_API_URL=http://localhost:8080" > .env
-```
-
-3. **Start development server:**
-```bash
-npm run dev
-# Client runs on http://localhost:5173
 ```
 
 ## 🔐 Default Admin Credentials
 
-After seeding the database:
-- **Username:** `admin`
-- **Password:** `admin123`
-
-⚠️ **Change these credentials in production!**
+If you still use the legacy seed flow, the old defaults were `admin` / `admin123` — **do not use defaults in production**.
 
 ## 📡 API Endpoints
 
-### Authentication
-- `POST /api/auth/login` - Admin login (rate-limited)
-
-### Hotspots (Public)
-- `GET /api/hotspots` - Get active hotspots (queue position 0, not claimed)
-- `GET /api/hotspots/:id` - Get single hotspot
-- `POST /api/hotspots/:id/claim` - Claim a hotspot (geofence verification)
-
-### Hotspots (Admin)
-- `GET /api/hotspots?admin=true` - Get all hotspots (requires auth)
-- `POST /api/hotspots` - Create hotspot with optional private key (requires auth)
-- `PUT /api/hotspots/:id` - Update hotspot (requires auth)
-- `DELETE /api/hotspots/:id` - Delete hotspot (requires auth)
-- `POST /api/hotspots/:id/approve` - Approve claim & reveal private key (requires auth)
-
-### Admin
-- `GET /api/admin/logs` - Get admin activity logs (requires auth)
-- `GET /api/admin/claims` - Get pending claims (requires auth)
+The API is still the legacy Express surface, now served from the Next.js deployment at `/api/*`.
 
 ## 🌐 Deployment
 
-### Railway (Backend)
-
-1. **Install Railway CLI:**
-```bash
-npm i -g @railway/cli
-railway login
-```
-
-2. **Connect GitHub repo:**
-- Go to Railway dashboard
-- Create new project from GitHub repo
-- Set **Root Directory** to `server` in Settings → Build
-
-3. **Add PostgreSQL:**
-- Add PostgreSQL plugin in Railway dashboard
-- `DATABASE_URL` is automatically injected
-
-4. **Set environment variables:**
-- `JWT_SECRET` - Your secret key for JWT tokens
-- `ENCRYPTION_KEY` - 32-byte hex key for encrypting Solana private keys (generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
-- `TREASURY_PRIVATE_KEY` - Base64-encoded Solana private key for treasury wallet
-- `VAPID_PUBLIC_KEY` - VAPID public key for push notifications
-- `VAPID_PRIVATE_KEY` - VAPID private key for push notifications
-- `VAPID_SUBJECT` - VAPID subject (mailto: or https: URL, e.g., `mailto:admin@ping.com`)
-- `LOW_BALANCE_THRESHOLD_SOL` - Threshold for low balance alerts (default: 1.0)
-- `PORT` - Will be set automatically by Railway
-
-5. **Deploy:**
-```bash
-cd server
-railway up
-```
-
-6. **Generate domain:**
-- Go to Settings → Networking
-- Click "Generate Domain"
-- Save this URL for frontend configuration
-
-### Netlify (Frontend)
-
-1. **Install Netlify CLI:**
-```bash
-npm i -g netlify-cli
-netlify login
-```
-
-2. **Initialize site:**
-```bash
-cd client
-netlify init
-```
-
-3. **Set environment variable:**
-In Netlify dashboard:
-- Go to Site configuration → Environment variables
-- Add `VITE_API_URL` with your Railway backend URL
-
-4. **Deploy:**
-```bash
-netlify deploy --prod
-```
-
-### GitHub Actions (Optional)
-
-Add these secrets to your GitHub repo:
-- `RAILWAY_TOKEN` - From `railway whoami --token`
-- `NETLIFY_AUTH_TOKEN` - From `netlify login --print-token`
-- `NETLIFY_SITE_ID` - From `netlify sites:list`
+Deploy on Vercel as a Next.js project (root directory = repo root). Configure env vars from `.env.example`.
 
 ## 🛠️ Development Commands
 
-### Backend
 ```bash
-npm run dev          # Start dev server with hot reload
-npm run build        # Build for production
-npm start            # Run production build
-npm run prisma:migrate  # Run database migrations
-npm run prisma:seed     # Seed database
-npm run prisma:generate # Generate Prisma client
-```
-
-### Frontend
-```bash
-npm run dev        # Start Vite dev server
-npm run build      # Build for production
-npm run preview    # Preview production build
+npm run dev        # Next.js dev server
+npm run build      # Production build
+npm run start      # Production server
+npm run lint       # ESLint (runs eslint directly)
 ```
 
 ## 🔒 Security Features
@@ -274,34 +157,7 @@ npm run preview    # Preview production build
 
 ## 📝 Database Schema
 
-### Admin
-- `id` - UUID
-- `username` - Unique string
-- `password` - bcrypt hashed
-- `createdAt` - Timestamp
-
-### Hotspot
-- `id` - UUID
-- `title` - String
-- `description` - String
-- `lat` - Float (-90 to 90)
-- `lng` - Float (-180 to 180)
-- `prize` - Optional string
-- `startDate` - DateTime
-- `endDate` - DateTime
-- `active` - Boolean
-- `imageUrl` - Optional string
-- `createdAt` - Timestamp
-- `updatedAt` - Timestamp
-
-### AdminLog
-- `id` - UUID
-- `adminId` - String (references Admin)
-- `action` - String (CREATE, UPDATE, DELETE)
-- `entity` - String (Hotspot)
-- `entityId` - String
-- `details` - Optional string
-- `timestamp` - Timestamp
+See `prisma/schema.prisma`.
 
 ## 🎯 Roadmap / Stretch Goals
 
@@ -323,18 +179,4 @@ MIT
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
----
-TEST PK: sfw9874FG3X3oi85hwWKUy3Tqcy7KAi84gH2fXgjJRfCrv6LrfLbiB6k2HqTK11d5RHT8cceSe6m6wh8GGVX91S
-Built with ❤️ using React, Express, Prisma, and Leaflet
-
-FOR CONVERTING BASE58 to BASE64:
-node -e "import('bs58').then(({default: bs58})=>{const s='YOUR_BASE58';const b=bs58.decode(s);console.log('base64:',Buffer.from(b).toString('base64'));console.log('json:',JSON.stringify(Array.from(b)));})"
-
-
-vapid keys:
-
-Public Key:
-BN9buyiXVeVNRBWzRrnFhexj14_c-yMdkyX932rBB9Wa2G95ly8hI1LZ3TGKpVfE6-F2sIKR-XhI6w7mQxCmo2o
-
-Private Key:
-e8B2AR5OtrvU_httxHQ3HGDAZTK3ktcavVK3ewDTsYM
+Built with ❤️ using Next.js, Prisma, and modern web standards.

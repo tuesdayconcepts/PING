@@ -1,0 +1,2077 @@
+import "dotenv/config";
+import express, { Request } from "express";
+import cors from "cors";
+import crypto from "crypto";
+import { prisma } from "../prisma";
+import { generatePrizeWallet, solToLamports, transferFromTreasury, getSolBalance } from "./services/solana";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
+import { getLocationName } from "./utils/geocoding";
+import { verifyHintPurchaseTransaction, getPingPriceFromJupiter } from "./utils/solanaVerify";
+import { sendPushToUserType, sendPushToAdmin, getVapidPublicKey } from "./services/pushNotifications";
+import { validateProximityClaim } from "./utils/proximityVerify";
+
+// Extend Express Request type to include adminId
+declare global {
+  namespace Express {
+    interface Request {
+      adminId?: string;
+    }
+  }
+}
+
+function getParamString(req: Request, name: string): string | undefined {
+  const raw = req.params[name];
+  if (typeof raw === "string") return raw;
+  if (Array.isArray(raw)) return raw[0];
+  return undefined;
+}
+
+const app = express();
+// Prisma client is shared across Next.js route invocations (see `src/server/prisma.ts`).
+
+// Trust Railway proxy
+app.set('trust proxy', 1);
+
+// CORS configuration - explicitly allow production domain
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['https://solping.netlify.app', 'http://localhost:5173', 'http://localhost:3000', '*'];
+
+// Middleware
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, etc.) in development
+    if (!origin && (process.env.NODE_ENV === 'development' || allowedOrigins.includes('*'))) {
+      return callback(null, true);
+    }
+    // Check if origin is in allowed list or wildcard is present
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin || '')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
+app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images
+
+// Handle preflight requests explicitly
+// NOTE: Express 5 / path-to-regexp rejects bare `*` patterns; use a wildcard param instead.
+app.options("/*splat", cors());
+
+// Global JSON serializer to safely handle BigInt/Date across all responses
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (data: any) => {
+    try {
+      const safe = serializeBigInts(data);
+      return originalJson(safe);
+    } catch (_e) {
+      // Fallback: use JSON.stringify replacer
+      const replacer = (_k: string, v: any) => (typeof v === 'bigint' ? v.toString() : v instanceof Date ? v.toISOString() : v);
+      const text = JSON.stringify(data, replacer);
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      // @ts-ignore send accepts string
+      return res.send(text);
+    }
+  };
+  next();
+});
+
+// JWT Secret from environment
+const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production";
+
+// Encryption key for Solana private keys (32 bytes = 64 hex characters)
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "0000000000000000000000000000000000000000000000000000000000000000"; // 64 hex chars = 32 bytes
+const algorithm = 'aes-256-cbc';
+
+// Validate encryption key length
+if (Buffer.from(ENCRYPTION_KEY, 'hex').length !== 32) {
+  console.error('⚠️  WARNING: ENCRYPTION_KEY must be 64 hexadecimal characters (32 bytes)');
+  console.error(`Current length: ${Buffer.from(ENCRYPTION_KEY, 'hex').length} bytes`);
+  console.error('Generate a secure key with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+}
+
+// Encryption utilities
+const encrypt = (text: string): string => {
+  try {
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(algorithm, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return iv.toString('hex') + ':' + encrypted;
+  } catch (error) {
+    console.error('Encryption error:', error);
+    throw new Error('Failed to encrypt data. Check ENCRYPTION_KEY configuration.');
+  }
+};
+
+const decrypt = (text: string): string => {
+  try {
+    const parts = text.split(':');
+    const iv = Buffer.from(parts[0], 'hex');
+    const encryptedText = Buffer.from(parts[1], 'hex');
+    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString('utf8');
+  } catch (error) {
+    console.error('Decryption error:', error);
+    throw new Error('Failed to decrypt data. Check ENCRYPTION_KEY configuration.');
+  }
+};
+
+// Rate limiter for login endpoint (10 attempts per 5 minutes)
+const loginLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10, // 10 requests per window
+  message: { error: "Too many login attempts, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiter for claim endpoint (5 attempts per hour per IP)
+const claimLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 requests per window
+  message: { error: "Too many claim attempts, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    // Use IP address for rate limiting
+    return req.ip || req.socket.remoteAddress || 'unknown';
+  },
+});
+
+// In-memory store for claim attempts per hotspot (for additional rate limiting)
+const claimAttempts = new Map<string, { count: number; resetAt: number }>();
+
+// Clean up old entries every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of claimAttempts.entries()) {
+    if (value.resetAt < now) {
+      claimAttempts.delete(key);
+    }
+  }
+}, 10 * 60 * 1000);
+
+// Authentication middleware for admin routes
+const authenticateAdmin = async (req: any, res: any, next: any) => {
+  // Skip authentication for OPTIONS preflight requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1]; // Bearer <token>
+
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized: No token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { adminId: string };
+    req.adminId = decoded.adminId;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: "Unauthorized: Invalid token" });
+  }
+};
+
+// Input validation helpers
+const validateCoordinates = (lat: number, lng: number): boolean => {
+  return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+};
+
+// Round coordinates to 6 decimal places (~11cm precision)
+const roundCoordinate = (coord: number): number => {
+  return Math.round(coord * 1000000) / 1000000;
+};
+
+const validateDates = (startDate: string, endDate: string): boolean => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  return start < end;
+};
+
+const sanitizeString = (input: string): string => {
+  return input.trim();
+};
+
+// Minimal base58 encoder (Bitcoin alphabet) for returning keys in Phantom-friendly format
+const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+function base58Encode(bytes: Uint8Array): string {
+  if (bytes.length === 0) return "";
+  // Count leading zeros
+  let zeros = 0;
+  while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
+
+  // Convert base-256 to base-58
+  const encoded: number[] = [];
+  const input = bytes.slice();
+  let startAt = zeros;
+  while (startAt < input.length) {
+    let carry = 0;
+    for (let i = startAt; i < input.length; i++) {
+      const val = (input[i] & 0xff) + carry * 256;
+      input[i] = val / 58 | 0;
+      carry = val % 58;
+    }
+    encoded.push(carry);
+    while (startAt < input.length && input[startAt] === 0) startAt++;
+  }
+
+  // Add leading zeros
+  let result = "";
+  for (let i = 0; i < zeros; i++) result += "1";
+  for (let i = encoded.length - 1; i >= 0; i--) result += BASE58_ALPHABET[encoded[i]];
+  return result;
+}
+
+// Serialize Prisma results by converting BigInt fields to strings to avoid JSON errors
+const serializeBigInts = (input: any): any => {
+  if (input === null || input === undefined) return input;
+  if (typeof input === 'bigint') return input.toString();
+  if (input instanceof Date) return input.toISOString();
+  if (Array.isArray(input)) return input.map((v) => serializeBigInts(v));
+  if (typeof input === 'object') {
+    const out: any = {};
+    for (const [k, v] of Object.entries(input)) {
+      out[k] = serializeBigInts(v as any);
+    }
+    return out;
+  }
+  return input;
+};
+
+// Reorder queue positions after a claim is approved
+const promoteNextHotspot = async () => {
+  // Queue system removed - no longer needed
+  // This function is kept for compatibility but does nothing
+};
+
+// Log admin action helper
+const logAdminAction = async (
+  adminId: string,
+  action: string,
+  entity: string,
+  entityId: string,
+  details?: string
+) => {
+  // Fetch username to include in log
+  const admin = await prisma.admin.findUnique({
+    where: { id: adminId },
+    select: { username: true },
+  });
+
+  await prisma.adminLog.create({
+    data: {
+      adminId,
+      username: admin?.username || null, // Include username from Admin table
+      action,
+      entity,
+      entityId,
+      details,
+    },
+  });
+};
+
+// Health check endpoint
+app.get("/health", (_req, res) => {
+  res.json({ 
+    ok: true, 
+    service: "scavenger-hunt-server",
+    version: "1.0.0",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// One-time setup endpoint to seed database (call this once after first deploy)
+app.post("/api/setup", async (_req, res) => {
+  try {
+    // Check if admin already exists
+    const existingAdmin = await prisma.admin.findUnique({
+      where: { username: "admin" },
+    });
+
+    if (existingAdmin) {
+      return res.status(400).json({ 
+        error: "Setup already completed. Admin user already exists." 
+      });
+    }
+
+    // Create admin user
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+    await prisma.admin.create({
+      data: {
+        username: "admin",
+        password: hashedPassword,
+      },
+    });
+
+    // Create sample hotspots
+    await prisma.hotspot.createMany({
+      data: [
+        {
+          id: "1",
+          title: "Central Park Treasure",
+          description: "Find the hidden bench near Bethesda Fountain. Look for the brass plaque with a riddle. Solve it to claim your prize!",
+          lat: 40.7711,
+          lng: -73.9747,
+          prize: 0.5, // 0.5 SOL
+          startDate: new Date("2025-01-01T09:00:00Z"),
+          endDate: new Date("2025-12-31T18:00:00Z"),
+          active: true,
+        },
+        {
+          id: "2",
+          title: "Brooklyn Bridge Mystery",
+          description: "Walk to the center of Brooklyn Bridge. Count the number of lampposts on the Manhattan side. The answer is your clue!",
+          lat: 40.7061,
+          lng: -73.9969,
+          prize: 1.0, // 1.0 SOL
+          startDate: new Date("2025-01-15T10:00:00Z"),
+          endDate: new Date("2025-06-30T20:00:00Z"),
+          active: true,
+        },
+        {
+          id: "3",
+          title: "Times Square Challenge",
+          description: "Find the red stairs at Times Square. Take a photo with the costumed characters. Show it at the info booth to win!",
+          lat: 40.758,
+          lng: -73.9855,
+          prize: 2.5, // 2.5 SOL
+          startDate: new Date("2024-12-01T08:00:00Z"),
+          endDate: new Date("2024-12-31T23:59:59Z"),
+          active: false,
+        },
+      ],
+    });
+
+    res.json({
+      success: true,
+      message: "Database seeded successfully!",
+      credentials: {
+        username: "admin",
+        password: "admin123",
+      },
+    });
+  } catch (error) {
+    console.error("Setup error:", error);
+    res.status(500).json({ error: "Setup failed", details: error });
+  }
+});
+
+// ===== AUTHENTICATION ROUTES =====
+
+// POST /api/auth/login - Admin login
+app.post("/api/auth/login", loginLimiter, async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password required" });
+    }
+
+    // Find admin user
+    const admin = await prisma.admin.findUnique({
+      where: { username: sanitizeString(username) },
+    });
+
+    if (!admin) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, admin.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Generate JWT token (7 day expiry)
+    const token = jwt.sign({ adminId: admin.id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.json({
+      token,
+      role: admin.role || 'editor', // Include role in login response
+      username: admin.username,
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ===== HOTSPOT ROUTES =====
+
+// GET /api/hotspots - Get all hotspots (active only for public, all for admin)
+app.get("/api/hotspots", async (req, res) => {
+  try {
+    const isAdmin = req.query.admin === "true";
+    const token = req.headers.authorization?.split(" ")[1];
+
+    let includeInactive = false;
+
+    // Check if authenticated admin when requesting all hotspots
+    if (isAdmin && token) {
+      try {
+        jwt.verify(token, JWT_SECRET);
+        includeInactive = true;
+      } catch {
+        // Invalid token, only return active hotspots
+      }
+    }
+
+    // For public: only show active pings that aren't claimed
+    // For admin: show unclaimed/pending hotspots (claimed ones are fetched separately via /api/admin/hotspots/claimed)
+    const hotspots = await prisma.hotspot.findMany({
+      where: includeInactive 
+        ? { claimStatus: { not: "claimed" } } // Admin: exclude claimed (they have separate endpoint)
+        : { 
+            active: true, 
+            claimStatus: { not: "claimed" }
+          },
+      orderBy: [
+        { active: "desc" }, // Active first
+        { createdAt: "desc" } // Then newest first
+      ],
+    });
+
+    // Convert BigInt fields (e.g., prizeAmountLamports) to strings
+    const safe = hotspots.map(h => serializeBigInts(h));
+    res.json(safe);
+  } catch (error) {
+    console.error("Get hotspots error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/hotspots/:id - Get single hotspot
+app.get("/api/hotspots/:id", async (req, res) => {
+  try {
+    const id = getParamString(req, "id");
+    if (!id) {
+      return res.status(400).json({ error: "Missing hotspot id" });
+    }
+
+    const hotspot = await prisma.hotspot.findUnique({
+      where: { id },
+    });
+
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Determine if requester appears to be the claimer (simple IP match)
+    const requesterIp = req.ip || req.headers["x-forwarded-for"] as string | undefined;
+    const isClaimer = hotspot.claimedBy && requesterIp && hotspot.claimedBy === requesterIp;
+
+    // Build response (no private key by default)
+    const baseResponse: any = { ...hotspot };
+
+    // Only add privateKey for original claimer once claimed
+    if (hotspot.claimStatus === 'claimed' && isClaimer) {
+      let revealedKey: string | null = null;
+      try {
+        if ((hotspot as any).prizePrivateKeyEnc) {
+          const revealedKeyBase64 = decrypt((hotspot as any).prizePrivateKeyEnc as string);
+          const secretBytes = Buffer.from(revealedKeyBase64, 'base64');
+          revealedKey = base58Encode(new Uint8Array(secretBytes));
+        } else if (hotspot.privateKey) {
+          const revealedKeyBase64 = decrypt(hotspot.privateKey);
+          const secretBytes = Buffer.from(revealedKeyBase64, 'base64');
+          revealedKey = base58Encode(new Uint8Array(secretBytes));
+        }
+      } catch (e) {
+        console.error('Failed to decrypt key for claimer:', (e as Error).message);
+      }
+      baseResponse.privateKey = revealedKey;
+    } else {
+      baseResponse.privateKey = null;
+    }
+
+    return res.json(serializeBigInts(baseResponse));
+  } catch (error) {
+    console.error("Get hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Admin route to fetch private key (auth required)
+app.get('/api/admin/hotspots/:id/key', authenticateAdmin, async (req: any, res) => {
+  try {
+    const id = getParamString(req, "id");
+    if (!id) {
+      return res.status(400).json({ error: "Missing hotspot id" });
+    }
+    const hotspot = await prisma.hotspot.findUnique({ where: { id } });
+    if (!hotspot) return res.status(404).json({ error: 'Hotspot not found' });
+    if (hotspot.claimStatus !== 'claimed') return res.status(400).json({ error: 'Hotspot not claimed yet' });
+
+    let base58Key: string | null = null;
+    let base64Key: string | null = null;
+    if ((hotspot as any).prizePrivateKeyEnc) {
+      const b64 = decrypt((hotspot as any).prizePrivateKeyEnc as string);
+      base64Key = b64;
+      base58Key = base58Encode(new Uint8Array(Buffer.from(b64, 'base64')));
+    } else if (hotspot.privateKey) {
+      const b64 = decrypt(hotspot.privateKey);
+      base64Key = b64;
+      base58Key = base58Encode(new Uint8Array(Buffer.from(b64, 'base64')));
+    }
+
+    if (!base58Key) return res.status(500).json({ error: 'Key unavailable' });
+    return res.json({ privateKey: base58Key, privateKeyBase64: base64Key });
+  } catch (e) {
+    console.error('Admin get key error:', (e as Error).message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/hotspots - Create new hotspot (admin only)
+app.post("/api/hotspots", authenticateAdmin, async (req: any, res) => {
+  try {
+    const {
+      title,
+      lat,
+      lng,
+      prize,
+      endDate,
+      active,
+      imageUrl,
+      privateKey,
+      hint1,
+      hint2,
+      hint3,
+      hint1PriceUsd,
+      hint2PriceUsd,
+      hint3PriceUsd,
+      firstHintFree,
+      claimType,
+      proximityRadius,
+    } = req.body;
+
+    // Validation
+    if (!title || lat === undefined || lng === undefined) {
+      return res.status(400).json({
+        error: "Title, latitude, and longitude are required",
+      });
+    }
+
+    if (!validateCoordinates(lat, lng)) {
+      return res.status(400).json({
+        error: "Invalid coordinates (lat: -90 to 90, lng: -180 to 180)",
+      });
+    }
+
+    // Auto-set startDate to now
+    const startDate = new Date();
+    
+    // Default endDate to 100 years in future if not provided (no expiration)
+    const finalEndDate = endDate 
+      ? new Date(endDate) 
+      : new Date(startDate.getTime() + 100 * 365 * 24 * 60 * 60 * 1000);
+
+    if (endDate && !validateDates(startDate.toISOString(), endDate)) {
+      return res.status(400).json({
+        error: "End date must be in the future",
+      });
+    }
+
+    // Round coordinates to 6 decimal places
+    const roundedLat = roundCoordinate(parseFloat(lat));
+    const roundedLng = roundCoordinate(parseFloat(lng));
+
+    // Validate and process claimType
+    const validClaimType = (claimType === 'proximity' || claimType === 'nfc') 
+      ? claimType 
+      : 'nfc'; // Default to NFC if invalid or not provided
+
+    // Validate and process proximityRadius
+    let finalProximityRadius: number | null = null;
+    if (validClaimType === 'proximity') {
+      // For proximity pings, require proximityRadius (default 5m)
+      if (proximityRadius !== undefined && proximityRadius !== null) {
+        const radius = parseFloat(proximityRadius);
+        if (Number.isFinite(radius) && radius > 0 && radius <= 100) {
+          finalProximityRadius = radius;
+        } else {
+          return res.status(400).json({
+            error: "Proximity radius must be between 0 and 100 meters",
+          });
+        }
+      } else {
+        finalProximityRadius = 5; // Default 5 meters for proximity pings
+      }
+    }
+    // For NFC pings, proximityRadius remains null
+
+    // New flow: auto-generate prize wallet always; ignore manual privateKey
+    const { publicKeyBase58, secretKeyBase64 } = generatePrizeWallet();
+    const now = new Date();
+    const prizeSol = prize ? parseFloat(prize) : 0;
+    const prizeAmountLamports = solToLamports(Number.isFinite(prizeSol) ? prizeSol : 0);
+    const encryptedPrizeSecret = encrypt(secretKeyBase64);
+
+    // Fetch location name for the coordinates
+    const locationName = await getLocationName(roundedLat, roundedLng);
+
+    // Generate shareToken (UUID) for view-only/share links
+    const shareToken = crypto.randomUUID();
+
+    // Create hotspot
+    const hotspot = await prisma.hotspot.create({
+      data: {
+        title: sanitizeString(title),
+        description: '', // Empty string as default
+        lat: roundedLat,
+        lng: roundedLng,
+        prize: prize ? parseFloat(prize) : null, // legacy field (display only)
+        startDate,
+        endDate: finalEndDate,
+        active: active !== undefined ? active : true,
+        imageUrl: imageUrl ? sanitizeString(imageUrl) : null,
+        privateKey: null, // legacy manual key removed in new flow
+        queuePosition: 0, // Legacy field, kept for compatibility but not used
+        claimStatus: 'unclaimed',
+        locationName,
+        shareToken, // UUID for share links
+        // Prize wallet lifecycle (no funding yet)
+        prizePrivateKeyEnc: encryptedPrizeSecret,
+        prizePublicKey: publicKeyBase58,
+        prizeAmountLamports: prizeAmountLamports,
+        fundStatus: 'pending',
+        walletCreatedAt: now,
+        // Hint system fields
+        hint1: hint1 ? sanitizeString(hint1) : null,
+        hint2: hint2 ? sanitizeString(hint2) : null,
+        hint3: hint3 ? sanitizeString(hint3) : null,
+        hint1PriceUsd: hint1PriceUsd ? parseFloat(hint1PriceUsd) : null,
+        hint2PriceUsd: hint2PriceUsd ? parseFloat(hint2PriceUsd) : null,
+        hint3PriceUsd: hint3PriceUsd ? parseFloat(hint3PriceUsd) : null,
+        firstHintFree: firstHintFree === true,
+        // Proximity claim system fields
+        claimType: validClaimType,
+        proximityRadius: finalProximityRadius,
+      },
+    });
+
+    // Log action
+    await logAdminAction(
+      req.adminId,
+      "CREATE",
+      "Hotspot",
+      hotspot.id,
+      `Created hotspot: ${hotspot.title}`
+    );
+
+    // Send push notification to all users about new ping
+    if (hotspot.active && hotspot.claimStatus === 'unclaimed' && hotspot.shareToken) {
+      sendPushToUserType('user', {
+        title: 'New PING Available!',
+        body: `${hotspot.title} - ${hotspot.prize || 0} SOL`,
+        data: {
+          shareToken: hotspot.shareToken, // User notifications link to share URL
+        },
+        tag: 'new-ping',
+      }).catch((err) => console.error('[Push] Error sending new ping notification:', err));
+    }
+
+    res.status(201).json(serializeBigInts(hotspot));
+  } catch (error) {
+    console.error("Create hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PUT /api/hotspots/:id - Update hotspot (admin only)
+app.put("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
+  try {
+    const id = getParamString(req, "id");
+    if (!id) {
+      return res.status(400).json({ error: "Missing hotspot id" });
+    }
+    const {
+      title,
+      lat,
+      lng,
+      prize,
+      startDate,
+      endDate,
+      active,
+      imageUrl,
+      hint1,
+      hint2,
+      hint3,
+      hint1PriceUsd,
+      hint2PriceUsd,
+      hint3PriceUsd,
+      firstHintFree,
+      proximityRadius,
+    } = req.body;
+
+    // Check if hotspot exists
+    const existing = await prisma.hotspot.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Lock edits after pending/claimed for critical fields
+    const isLocked = existing.claimStatus === 'pending' || existing.claimStatus === 'claimed';
+
+    // Validation
+    if (lat !== undefined && lng !== undefined) {
+      if (!validateCoordinates(lat, lng)) {
+        return res.status(400).json({
+          error: "Invalid coordinates (lat: -90 to 90, lng: -180 to 180)",
+        });
+      }
+    }
+
+    if (startDate && endDate) {
+      if (!validateDates(startDate, endDate)) {
+        return res.status(400).json({
+          error: "Start date must be before end date",
+        });
+      }
+    }
+
+    // Round coordinates if provided
+    const roundedLat = lat !== undefined ? roundCoordinate(parseFloat(lat)) : undefined;
+    const roundedLng = lng !== undefined ? roundCoordinate(parseFloat(lng)) : undefined;
+
+    // Fetch location name if coordinates changed
+    let locationName = undefined;
+    if (roundedLat !== undefined && roundedLng !== undefined) {
+      locationName = await getLocationName(roundedLat, roundedLng);
+    }
+
+    // Build update data honoring locks
+    const updateData: any = {};
+    if (title) updateData.title = sanitizeString(title);
+    if (!isLocked) {
+      if (roundedLat !== undefined) updateData.lat = roundedLat;
+      if (roundedLng !== undefined) updateData.lng = roundedLng;
+      if (prize !== undefined) {
+        // Keep legacy display field updated
+        updateData.prize = prize ? parseFloat(prize) : null;
+        // CRITICAL: keep lamports used by approval funding in sync with edited prize
+        const prizeNum = prize ? parseFloat(prize) : 0;
+        updateData.prizeAmountLamports = solToLamports(Number.isFinite(prizeNum) ? prizeNum : 0);
+        // If still unclaimed, ensure funding state is pending (clean any previous flags)
+        if (existing.claimStatus === 'unclaimed') {
+          updateData.fundStatus = 'pending';
+          updateData.fundTxSig = null;
+          updateData.fundedAt = null;
+        }
+      }
+      if (startDate) updateData.startDate = new Date(startDate);
+      if (endDate) updateData.endDate = new Date(endDate);
+      if (locationName !== undefined) updateData.locationName = locationName;
+    }
+    if (active !== undefined) updateData.active = active;
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl ? sanitizeString(imageUrl) : null;
+    // Hint system fields
+    if (hint1 !== undefined) updateData.hint1 = hint1 ? sanitizeString(hint1) : null;
+    if (hint2 !== undefined) updateData.hint2 = hint2 ? sanitizeString(hint2) : null;
+    if (hint3 !== undefined) updateData.hint3 = hint3 ? sanitizeString(hint3) : null;
+    if (hint1PriceUsd !== undefined) updateData.hint1PriceUsd = hint1PriceUsd ? parseFloat(hint1PriceUsd) : null;
+    if (hint2PriceUsd !== undefined) updateData.hint2PriceUsd = hint2PriceUsd ? parseFloat(hint2PriceUsd) : null;
+    if (hint3PriceUsd !== undefined) updateData.hint3PriceUsd = hint3PriceUsd ? parseFloat(hint3PriceUsd) : null;
+    if (firstHintFree !== undefined) updateData.firstHintFree = firstHintFree;
+    // Proximity radius can be updated (but claimType is immutable)
+    if (proximityRadius !== undefined && existing.claimType === 'proximity') {
+      updateData.proximityRadius = parseFloat(proximityRadius);
+    }
+
+    const hotspot = await prisma.hotspot.update({ where: { id }, data: updateData });
+
+    // Log action
+    await logAdminAction(
+      req.adminId,
+      "UPDATE",
+      "Hotspot",
+      hotspot.id,
+      `Updated hotspot: ${hotspot.title}`
+    );
+
+    res.json(serializeBigInts(hotspot));
+  } catch (error) {
+    console.error("Update hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// DELETE /api/hotspots/:id - Delete hotspot (admin only)
+app.delete("/api/hotspots/:id", authenticateAdmin, async (req: any, res) => {
+  try {
+    const id = getParamString(req, "id");
+    if (!id) {
+      return res.status(400).json({ error: "Missing hotspot id" });
+    }
+
+    // Check if hotspot exists
+    const existing = await prisma.hotspot.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Prevent delete if pending or claimed
+    if (existing.claimStatus !== 'unclaimed') {
+      return res.status(400).json({ error: 'Cannot delete a pending or claimed hotspot' });
+    }
+
+    // Delete hotspot
+    await prisma.hotspot.delete({ where: { id } });
+
+    // Queue system removed - no longer needed
+
+    // Log action
+    await logAdminAction(
+      req.adminId,
+      "DELETE",
+      "Hotspot",
+      id,
+      `Deleted hotspot: ${existing.title}`
+    );
+
+    res.json({ message: "Hotspot deleted successfully" });
+  } catch (error) {
+    console.error("Delete hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/hotspots/:id/claim - Claim a hotspot (public)
+app.post("/api/hotspots/:id/claim", claimLimiter, async (req, res) => {
+  try {
+    const id = getParamString(req, "id");
+    if (!id) {
+      return res.status(400).json({ error: "Missing hotspot id" });
+    }
+    const { tweetUrl, userLat, userLng } = req.body;
+
+    // Get hotspot
+    const hotspot = await prisma.hotspot.findUnique({ where: { id } });
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Check if already claimed or pending
+    if (hotspot.claimStatus !== "unclaimed") {
+      return res.status(400).json({
+        error: `This hotspot is already ${hotspot.claimStatus}`,
+      });
+    }
+
+    // Additional rate limiting: max 1 claim per hotspot per IP per hour
+    const userIp = req.ip || req.socket.remoteAddress || 'unknown';
+    const rateLimitKey = `${userIp}:${id}`;
+    const now = Date.now();
+    const attempt = claimAttempts.get(rateLimitKey);
+    
+    if (attempt && attempt.resetAt > now) {
+      if (attempt.count >= 1) {
+        return res.status(429).json({
+          error: "You have already attempted to claim this ping. Please wait before trying again.",
+        });
+      }
+      attempt.count++;
+    } else {
+      claimAttempts.set(rateLimitKey, { count: 1, resetAt: now + 60 * 60 * 1000 }); // 1 hour
+    }
+
+    // Validate proximity claim if claimType is "proximity"
+    if (hotspot.claimType === "proximity") {
+      // Require user location for proximity claims
+      if (userLat === undefined || userLng === undefined) {
+        return res.status(400).json({
+          error: "Location coordinates are required for proximity claims. Please enable GPS and try again.",
+        });
+      }
+
+      // Get proximity check history
+      const history = hotspot.proximityCheckHistory 
+        ? (hotspot.proximityCheckHistory as Array<{ lat: number; lng: number; timestamp: number; ip?: string }>)
+        : [];
+
+      // Validate proximity claim
+      const validation = validateProximityClaim(
+        userLat,
+        userLng,
+        {
+          lat: hotspot.lat,
+          lng: hotspot.lng,
+          proximityRadius: hotspot.proximityRadius,
+          claimType: hotspot.claimType,
+        },
+        history
+      );
+
+      if (!validation.valid) {
+        // Update proximity check history
+        const updatedHistory = [
+          ...history.slice(-9), // Keep last 9 entries
+          {
+            lat: userLat,
+            lng: userLng,
+            timestamp: now,
+            ip: userIp,
+          },
+        ];
+
+        await prisma.hotspot.update({
+          where: { id },
+          data: {
+            proximityCheckHistory: updatedHistory,
+          },
+        });
+
+        return res.status(400).json({
+          error: validation.error || "You are too far from the ping location.",
+          distance: validation.distance,
+          suspicious: validation.suspicious,
+        });
+      }
+
+      // Update proximity check history with successful check
+      const updatedHistory = [
+        ...history.slice(-9), // Keep last 9 entries
+        {
+          lat: userLat,
+          lng: userLng,
+          timestamp: now,
+          ip: userIp,
+        },
+      ];
+
+      await prisma.hotspot.update({
+        where: { id },
+        data: {
+          proximityCheckHistory: updatedHistory,
+        },
+      });
+    }
+
+    // Get user identifier (IP address as fallback)
+    const claimedBy = userIp;
+
+    // Update hotspot to pending status
+    await prisma.hotspot.update({
+      where: { id },
+      data: {
+        claimStatus: "pending",
+        claimedBy,
+        claimedAt: new Date(),
+        tweetUrl: tweetUrl || null,
+      },
+    });
+
+    // Send push notification to all admins about new claim request
+    sendPushToUserType('admin', {
+      title: 'New Claim Request',
+      body: `${hotspot.title} - Waiting for approval`,
+      data: {
+        url: `/admin#hotspot-${hotspot.id}`, // Admin claim notifications link to specific claim card
+      },
+      tag: 'claim-request',
+      requireInteraction: true,
+    }).catch((err) => console.error('[Push] Error sending claim notification:', err));
+
+    res.json({
+      success: true,
+      message: "Claim submitted! Waiting for admin approval.",
+      status: "pending",
+    });
+  } catch (error) {
+    console.error("Claim hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/hotspots/:id/approve - Approve a claim (admin only)
+app.post("/api/hotspots/:id/approve", authenticateAdmin, async (req: any, res) => {
+  try {
+    const id = getParamString(req, "id");
+    if (!id) {
+      return res.status(400).json({ error: "Missing hotspot id" });
+    }
+
+    // Serialize concurrent approvals for this hotspot using a short DB lock
+    let alreadyFunded = false;
+    let alreadySkipped = false;
+    let alreadyProcessing = false;
+    let lockedHotspot: any = null;
+    await prisma.$transaction(async (tx) => {
+      // Lock this hotspot row for the duration of the check-and-mark phase
+      await tx.$queryRaw`SELECT id FROM "Hotspot" WHERE id = ${id} FOR UPDATE`;
+
+      // Re-read under lock
+      const hs = await tx.hotspot.findUnique({ where: { id } });
+      if (!hs) {
+        throw new Error("NOT_FOUND");
+      }
+
+      // If already funded (even if claim already marked as claimed), short-circuit to success
+      if (hs.fundStatus === 'success' && hs.fundTxSig) {
+        alreadyFunded = true;
+        lockedHotspot = hs;
+        return;
+      }
+      // If zero-prize path already completed, short-circuit to success as well
+      if (hs.fundStatus === 'skipped' && hs.claimStatus === 'claimed') {
+        alreadySkipped = true;
+        lockedHotspot = hs;
+        return;
+      }
+
+      // From here on we expect a pending approval to proceed
+      if (hs.claimStatus !== 'pending') {
+        throw new Error("NOT_PENDING");
+      }
+
+      // Ensure a single transfer log row exists as the idempotency anchor
+      const log = await tx.treasuryTransferLog.upsert({
+        where: { hotspotId_type: { hotspotId: id, type: 'funding' } as any },
+        update: {},
+        create: {
+          hotspotId: id,
+          lamports: (hs.prizeAmountLamports ?? BigInt(0)) as any,
+          type: 'funding',
+          status: 'pending',
+        },
+        select: { status: true, txSig: true },
+      });
+
+      // If a previous success exists, we’re done
+      if (log.status === 'success' && log.txSig) {
+        alreadyFunded = true;
+      } else if (log.status === 'processing') {
+        // Someone else is actively funding
+        alreadyProcessing = true;
+      } else {
+        // Claim ownership: switch to 'processing' so others see it's in-flight
+        await tx.treasuryTransferLog.update({
+          where: { hotspotId_type: { hotspotId: id, type: 'funding' } as any },
+          data: { status: 'processing' },
+        });
+      }
+
+      lockedHotspot = hs;
+    }, { timeout: 10000 });
+
+    if (!lockedHotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+    if (lockedHotspot.claimStatus !== 'pending') {
+      return res.status(400).json({ error: "Hotspot is not pending approval" });
+    }
+    if (alreadyFunded) {
+      const decryptedKeyBase64 = decrypt(lockedHotspot.prizePrivateKeyEnc!);
+      const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
+      const decryptedKey = base58Encode(new Uint8Array(secretBytes));
+      return res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus: 'success', fundingSignature: lockedHotspot.fundTxSig });
+    }
+    if (alreadySkipped) {
+      const decryptedKeyBase64 = decrypt(lockedHotspot.prizePrivateKeyEnc!);
+      const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
+      const decryptedKey = base58Encode(new Uint8Array(secretBytes));
+      return res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus: 'skipped', fundingSignature: null });
+    }
+    if (alreadyProcessing) {
+      return res.status(409).json({ error: 'Funding already in progress for this hotspot. Please wait.' });
+    }
+
+    // Funding on approval (if configured > 0)
+    let fundingSignature: string | null = null;
+    let fundStatus: "success" | "skipped" | "failed" = "skipped";
+
+    const lamports = lockedHotspot.prizeAmountLamports ?? BigInt(0);
+    if (lamports > BigInt(0)) {
+      console.log(`[APPROVE] Funding start hotspot=${id} to=${lockedHotspot.prizePublicKey} lamports=${lamports.toString()}`);
+
+      // Caps and buffer checks (optional via env)
+      const maxPerHotspotSol = parseFloat(process.env.MAX_PRIZE_PER_HOTSPOT_SOL || "1000");
+      const maxDailyOutSol = parseFloat(process.env.MAX_DAILY_TREASURY_OUT_SOL || "10000");
+
+      if (lockedHotspot.prize && lockedHotspot.prize > maxPerHotspotSol) {
+        return res.status(400).json({ error: `Prize exceeds MAX_PRIZE_PER_HOTSPOT_SOL (${maxPerHotspotSol})` });
+      }
+
+      // Sum today's successful outflows
+      const startOfDay = new Date();
+      startOfDay.setHours(0,0,0,0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23,59,59,999);
+
+      const logs = await prisma.treasuryTransferLog.findMany({
+        where: {
+          createdAt: { gte: startOfDay, lte: endOfDay },
+          status: "success",
+        },
+        select: { lamports: true },
+      });
+      const dailyOutLamports = logs.reduce((acc, l) => acc + BigInt(l.lamports.toString()), BigInt(0));
+      const outAfter = dailyOutLamports + lamports;
+      const maxDailyLamports = BigInt(Math.round(maxDailyOutSol * 1_000_000_000));
+      if (outAfter > maxDailyLamports) {
+        return res.status(429).json({ error: "Daily treasury cap reached. Try again later." });
+      }
+
+      try {
+        const toPk = lockedHotspot.prizePublicKey!;
+        const { signature } = await transferFromTreasury({ toPublicKey: toPk, lamports, timeoutMs: 20000, memo: `PING:hotspot:${id}` as any });
+        fundingSignature = signature;
+        fundStatus = "success";
+
+        await prisma.treasuryTransferLog.update({
+          where: { hotspotId_type: { hotspotId: id, type: "funding" } as any },
+          data: { status: "success", txSig: signature },
+        });
+
+        await prisma.hotspot.update({
+          where: { id },
+          data: { fundStatus: "success", fundTxSig: signature, fundedAt: new Date() },
+        });
+      } catch (e) {
+        console.error(`[APPROVE] Funding failed hotspot=${id}:`, (e as Error).message);
+        fundStatus = "failed";
+        await prisma.treasuryTransferLog.updateMany({
+          where: { hotspotId: id, type: "funding" },
+          data: { status: "failed" },
+        });
+        await prisma.hotspot.update({ where: { id }, data: { fundStatus: "failed" } });
+        return res.status(502).json({ error: "Funding failed", details: (e as Error).message });
+      }
+    } else {
+      // zero-prize path
+      await prisma.hotspot.update({ where: { id }, data: { fundStatus: "skipped" } });
+    }
+
+    // Update hotspot to claimed status
+    await prisma.hotspot.update({ where: { id }, data: { claimStatus: "claimed" } });
+
+    // Promote next hotspot in queue
+    await promoteNextHotspot();
+
+    // Approval duration log
+    if (lockedHotspot.claimedAt) {
+      const ms = Date.now() - new Date(lockedHotspot.claimedAt).getTime();
+      console.log(`[APPROVE] hotspot=${id} approvalDurationMs=${ms}`);
+    }
+
+    // Decrypt prize wallet key to return to user (base58)
+    let decryptedKey: string | null = null;
+    try {
+      const decryptedKeyBase64 = decrypt(lockedHotspot.prizePrivateKeyEnc!);
+      const secretBytes = Buffer.from(decryptedKeyBase64, 'base64');
+      decryptedKey = base58Encode(new Uint8Array(secretBytes));
+    } catch (e) {
+      console.error('Failed to decrypt prize key after approval:', e);
+    }
+
+    res.json({ success: true, message: "Claim approved!", privateKey: decryptedKey, fundStatus, fundingSignature });
+  } catch (error) {
+    if ((error as Error).message === 'NOT_FOUND') {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+    if ((error as Error).message === 'NOT_PENDING') {
+      return res.status(400).json({ error: "Hotspot is not pending approval" });
+    }
+    console.error("Approve claim error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/claims - Get pending claims (admin only)
+app.get("/api/admin/claims", authenticateAdmin, async (req, res) => {
+  try {
+    const pendingClaims = await prisma.hotspot.findMany({
+      where: { claimStatus: "pending" },
+      orderBy: { claimedAt: "asc" },
+    });
+
+    res.json(serializeBigInts(pendingClaims));
+  } catch (error) {
+    console.error("Get pending claims error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ===== ADMIN LOG ROUTES =====
+
+// GET /api/admin/logs - Get recent admin actions (admin only)
+app.get("/api/admin/logs", authenticateAdmin, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = parseInt(req.query.offset as string) || 0;
+    
+    const [logs, total] = await Promise.all([
+      prisma.adminLog.findMany({
+        take: limit,
+        skip: offset,
+        orderBy: { timestamp: "desc" },
+      }),
+      prisma.adminLog.count(),
+    ]);
+
+    res.json({ 
+      logs, 
+      total, 
+      hasMore: offset + limit < total,
+      limit,
+      offset 
+    });
+  } catch (error) {
+    console.error("Get logs error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/hotspots/claimed - Get claimed hotspots with pagination (admin only)
+app.get("/api/admin/hotspots/claimed", authenticateAdmin, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = parseInt(req.query.offset as string) || 0;
+    
+    const [hotspots, total] = await Promise.all([
+      prisma.hotspot.findMany({
+        where: { claimStatus: 'claimed' },
+        orderBy: { claimedAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.hotspot.count({
+        where: { claimStatus: 'claimed' },
+      }),
+    ]);
+    
+    // Convert BigInt fields to strings
+    const safe = hotspots.map(h => serializeBigInts(h));
+    res.json({ 
+      hotspots: safe, 
+      total, 
+      hasMore: offset + limit < total,
+      limit,
+      offset 
+    });
+  } catch (error) {
+    console.error("Get claimed hotspots error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ===== WALLET UTILS (ADMIN ONLY) =====
+
+// GET /api/admin/wallet/balance?pubkey=...
+app.get('/api/admin/wallet/balance', authenticateAdmin, async (req, res) => {
+  try {
+    const pubkey = req.query.pubkey as string | undefined;
+    if (!pubkey) {
+      return res.status(400).json({ error: 'pubkey is required' });
+    }
+    const balance = await getSolBalance(pubkey);
+    res.json({ pubkey, balance });
+  } catch (e) {
+    console.error('Get balance error:', (e as Error).message);
+    res.status(502).json({ error: 'Failed to fetch balance', details: (e as Error).message });
+  }
+});
+
+// ===== USER MANAGEMENT ROUTES (ADMIN ONLY) =====
+
+// Middleware to check if user is admin role
+const requireAdmin = async (req: any, res: any, next: any) => {
+  try {
+    const admin = await prisma.admin.findUnique({
+      where: { id: req.adminId },
+      select: { role: true },
+    });
+
+    if (!admin || admin.role !== 'admin') {
+      return res.status(403).json({ error: "Forbidden: Admin role required" });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Role check error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// GET /api/admin/users - List all admin users (admin only)
+app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
+  try {
+    // Get current user's role
+    const currentAdmin = await prisma.admin.findUnique({
+      where: { id: req.adminId },
+      select: { role: true },
+    });
+
+    // Get all users (only if current user is admin)
+    if (currentAdmin?.role === 'admin') {
+      const users = await prisma.admin.findMany({
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      res.json({
+        users,
+        currentUserRole: currentAdmin.role,
+      });
+    } else {
+      // Editors can only see their own info
+      const currentUser = await prisma.admin.findUnique({
+        where: { id: req.adminId },
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      res.json({
+        users: currentUser ? [currentUser] : [],
+        currentUserRole: currentAdmin?.role || 'editor',
+      });
+    }
+  } catch (error) {
+    console.error("Get users error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/admin/users - Create new admin user (admin only)
+app.post("/api/admin/users", authenticateAdmin, requireAdmin, async (req, res) => {
+  try {
+    const { username, password, role } = req.body;
+
+    if (!username || !password || !role) {
+      return res.status(400).json({ error: "Username, password, and role required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
+    if (role !== 'admin' && role !== 'editor') {
+      return res.status(400).json({ error: "Role must be 'admin' or 'editor'" });
+    }
+
+    // Check if username already exists
+    const existing = await prisma.admin.findUnique({
+      where: { username: sanitizeString(username) },
+    });
+
+    if (existing) {
+      return res.status(400).json({ error: "Username already exists" });
+    }
+
+    // Hash password and create user
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await prisma.admin.create({
+      data: {
+        username: sanitizeString(username),
+        password: hashedPassword,
+        role,
+      },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    // Log the action
+    await logAdminAction(
+      req.adminId!,
+      "CREATE",
+      "Admin",
+      newUser.id,
+      `Created ${role} user: ${username}`
+    );
+
+    res.json(newUser);
+  } catch (error) {
+    console.error("Create user error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PUT /api/admin/users/:id/role - Update user role (admin only)
+app.put("/api/admin/users/:id/role", authenticateAdmin, requireAdmin, async (req, res) => {
+  try {
+    const id = getParamString(req, "id");
+    if (!id) {
+      return res.status(400).json({ error: "Missing user id" });
+    }
+    const { role } = req.body;
+
+    if (role !== 'admin' && role !== 'editor') {
+      return res.status(400).json({ error: "Role must be 'admin' or 'editor'" });
+    }
+
+    // Can't change your own role
+    if (id === req.adminId) {
+      return res.status(400).json({ error: "Cannot change your own role" });
+    }
+
+    const user = await prisma.admin.update({
+      where: { id },
+      data: { role },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    // Log the action
+    await logAdminAction(
+      req.adminId!,
+      "UPDATE",
+      "Admin",
+      id,
+      `Changed role to ${role} for user: ${user.username}`
+    );
+
+    res.json(user);
+  } catch (error) {
+    console.error("Update role error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// DELETE /api/admin/users/:id - Delete admin user (admin only)
+app.delete("/api/admin/users/:id", authenticateAdmin, requireAdmin, async (req, res) => {
+  try {
+    const id = getParamString(req, "id");
+    if (!id) {
+      return res.status(400).json({ error: "Missing user id" });
+    }
+
+    // Can't delete yourself
+    if (id === req.adminId) {
+      return res.status(400).json({ error: "Cannot delete your own account" });
+    }
+
+    const user = await prisma.admin.findUnique({
+      where: { id },
+      select: { username: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await prisma.admin.delete({
+      where: { id },
+    });
+
+    // Log the action
+    await logAdminAction(
+      req.adminId!,
+      "DELETE",
+      "Admin",
+      id,
+      `Deleted user: ${user.username}`
+    );
+
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ===== HINT SYSTEM ROUTES =====
+
+// GET /api/hints/settings - Get hint settings and current $PING price (public)
+app.get("/api/hints/settings", async (req, res) => {
+  try {
+    // Get or create hint settings
+    let settings = await prisma.hintSettings.findUnique({
+      where: { id: "singleton" },
+    });
+
+    if (!settings) {
+      // Create default settings if not exists
+      settings = await prisma.hintSettings.create({
+        data: { id: "singleton" },
+      });
+    }
+
+    // Fetch current $PING price from Jupiter
+    const pingPrice = settings.pingTokenMint
+      ? await getPingPriceFromJupiter(settings.pingTokenMint)
+      : null;
+
+    res.json({
+      treasuryWallet: settings.treasuryWallet,
+      burnWallet: settings.burnWallet,
+      pingTokenMint: settings.pingTokenMint,
+      currentPingPrice: pingPrice, // USD per $PING
+      buyButtonUrl: settings.buyButtonUrl || '',
+      pumpFunUrl: settings.pumpFunUrl || '',
+      pumpFunEnabled: settings.pumpFunEnabled || false,
+      xUsername: settings.xUsername || '',
+      xEnabled: settings.xEnabled || false,
+      instagramUsername: settings.instagramUsername || '',
+      instagramEnabled: settings.instagramEnabled || false,
+      tiktokUsername: settings.tiktokUsername || '',
+      tiktokEnabled: settings.tiktokEnabled || false,
+    });
+  } catch (error) {
+    console.error("Get hint settings error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/debug/hotspot/:id - Debug endpoint to check hotspot data (public)
+app.get("/api/debug/hotspot/:id", async (req, res) => {
+  try {
+    const id = getParamString(req, "id");
+    if (!id) {
+      return res.status(400).json({ error: "Missing hotspot id" });
+    }
+    const hotspot = await prisma.hotspot.findUnique({
+      where: { id },
+    });
+    
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+    
+    res.json({
+      id: hotspot.id,
+      firstHintFree: hotspot.firstHintFree,
+      firstHintFreeType: typeof hotspot.firstHintFree,
+      hint1: hotspot.hint1,
+      hint1PriceUsd: hotspot.hint1PriceUsd,
+    });
+  } catch (error) {
+    console.error("Debug hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/debug/cleanup-purchases - Clean up old free purchases (public)
+app.post("/api/debug/cleanup-purchases", async (req, res) => {
+  try {
+    const { hotspotId, walletAddress } = req.body;
+    
+    if (!hotspotId || !walletAddress) {
+      return res.status(400).json({ error: "hotspotId and walletAddress required" });
+    }
+    
+    // Delete all purchases for this wallet + hotspot
+    const deleted = await prisma.hintPurchase.deleteMany({
+      where: {
+        hotspotId,
+        walletAddress,
+      },
+    });
+    
+    res.json({
+      success: true,
+      deletedCount: deleted.count,
+      message: `Deleted ${deleted.count} purchase records for wallet ${walletAddress} and hotspot ${hotspotId}`
+    });
+  } catch (error) {
+    console.error("Cleanup purchases error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/hints/:hotspotId/purchased - Get purchased hints for a wallet (public)
+app.get("/api/hints/:hotspotId/purchased", async (req, res) => {
+  try {
+    const hotspotId = getParamString(req, "hotspotId");
+    if (!hotspotId) {
+      return res.status(400).json({ error: "Missing hotspot id" });
+    }
+    const { wallet } = req.query;
+
+    if (!wallet || typeof wallet !== 'string') {
+      return res.status(400).json({ error: "Wallet address required" });
+    }
+
+    // Get hotspot
+    const hotspot = await prisma.hotspot.findUnique({
+      where: { id: hotspotId },
+    });
+
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Get purchased hints for this wallet + hotspot
+    const purchases = await prisma.hintPurchase.findMany({
+      where: {
+        hotspotId,
+        walletAddress: wallet,
+      },
+      orderBy: { hintLevel: 'asc' },
+    });
+
+    // Build response - no special handling for firstHintFree
+    const response = {
+      hint1: {
+        purchased: purchases.some(p => p.hintLevel === 1),
+        text: purchases.some(p => p.hintLevel === 1) ? hotspot.hint1 : undefined,
+      },
+      hint2: {
+        purchased: purchases.some(p => p.hintLevel === 2),
+        text: purchases.some(p => p.hintLevel === 2) ? hotspot.hint2 : undefined,
+      },
+      hint3: {
+        purchased: purchases.some(p => p.hintLevel === 3),
+        text: purchases.some(p => p.hintLevel === 3) ? hotspot.hint3 : undefined,
+      },
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Get purchased hints error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/hints/purchase - Purchase a hint (public)
+app.post("/api/hints/purchase", async (req, res) => {
+  try {
+    const { hotspotId, walletAddress, hintLevel, txSignature, paidAmount } = req.body;
+
+    // Validation
+    if (!hotspotId || !walletAddress || !hintLevel) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    if (hintLevel < 1 || hintLevel > 3) {
+      return res.status(400).json({ error: "Invalid hint level" });
+    }
+
+    // Get hotspot
+    const hotspot = await prisma.hotspot.findUnique({
+      where: { id: hotspotId },
+    });
+
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    // Get hint settings
+    const settings = await prisma.hintSettings.findUnique({
+      where: { id: "singleton" },
+    });
+
+    if (!settings) {
+      return res.status(500).json({ error: "Hint system not configured" });
+    }
+
+    // Check if hint exists for this level
+    const hintText = hintLevel === 1 ? hotspot.hint1 : hintLevel === 2 ? hotspot.hint2 : hotspot.hint3;
+    if (!hintText) {
+      return res.status(404).json({ error: `Hint ${hintLevel} not available for this hotspot` });
+    }
+
+    // Check for existing purchase
+    const existingPurchase = await prisma.hintPurchase.findUnique({
+      where: {
+        walletAddress_hotspotId_hintLevel: {
+          walletAddress,
+          hotspotId,
+          hintLevel,
+        },
+      },
+    });
+
+    if (existingPurchase) {
+      // Already purchased, return the hint
+      return res.json({ success: true, hintText, alreadyPurchased: true });
+    }
+
+    // Validate progressive unlock (need hint 1 before 2, need hint 2 before 3)
+    if (hintLevel > 1) {
+      const previousHint = await prisma.hintPurchase.findUnique({
+        where: {
+          walletAddress_hotspotId_hintLevel: {
+            walletAddress,
+            hotspotId,
+            hintLevel: hintLevel - 1,
+          },
+        },
+      });
+
+      if (!previousHint) {
+        return res.status(400).json({ 
+          error: `Must purchase Hint ${hintLevel - 1} before Hint ${hintLevel}` 
+        });
+      }
+    }
+
+    // Get hint price for this level
+    const hintPriceUsd = hintLevel === 1
+      ? hotspot.hint1PriceUsd
+      : hintLevel === 2
+      ? hotspot.hint2PriceUsd
+      : hotspot.hint3PriceUsd;
+
+    const isFree = hintPriceUsd === null;
+
+    // Handle free hint
+    if (isFree) {
+      // Record free purchase
+      await prisma.hintPurchase.create({
+        data: {
+          hotspotId,
+          walletAddress,
+          hintLevel,
+          paidAmount: 0,
+          paidUsd: 0,
+          txSignature: null,
+        },
+      });
+
+      return res.json({ success: true, hintText, free: true });
+    }
+
+    // Handle paid hint
+    if (!txSignature) {
+      return res.status(400).json({ error: "Transaction signature required for paid hints" });
+    }
+
+    // Get current $PING price
+    const pingPrice = await getPingPriceFromJupiter(settings.pingTokenMint);
+    if (!pingPrice) {
+      return res.status(503).json({ error: "Unable to fetch $PING price. Try again later." });
+    }
+
+    // Calculate expected amount in $PING
+    const expectedPingAmount = hintPriceUsd / pingPrice;
+
+    // Verify transaction on-chain
+    const verification = await verifyHintPurchaseTransaction(
+      txSignature,
+      walletAddress,
+      settings.treasuryWallet,
+      settings.burnWallet,
+      expectedPingAmount,
+      settings.pingTokenMint
+    );
+
+    if (!verification.valid) {
+      return res.status(400).json({ error: `Transaction verification failed: ${verification.error}` });
+    }
+
+    // Record purchase
+    await prisma.hintPurchase.create({
+      data: {
+        hotspotId,
+        walletAddress,
+        hintLevel,
+        paidAmount: paidAmount || expectedPingAmount,
+        paidUsd: hintPriceUsd,
+        txSignature,
+      },
+    });
+
+    // Return hint text
+    res.json({ 
+      success: true, 
+      hintText,
+      treasuryAmount: verification.treasuryAmount,
+      burnAmount: verification.burnAmount,
+    });
+  } catch (error) {
+    console.error("Hint purchase error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/hints/settings - Get hint settings (admin only)
+app.get("/api/admin/hints/settings", authenticateAdmin, async (req, res) => {
+  try {
+    let settings = await prisma.hintSettings.findUnique({
+      where: { id: "singleton" },
+    });
+
+    if (!settings) {
+      settings = await prisma.hintSettings.create({
+        data: { id: "singleton" },
+      });
+    }
+
+    res.json(settings);
+  } catch (error) {
+    console.error("Get admin hint settings error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PUT /api/admin/hints/settings - Update hint settings (admin only)
+app.put("/api/admin/hints/settings", authenticateAdmin, async (req, res) => {
+  try {
+    const { 
+      treasuryWallet, 
+      burnWallet, 
+      pingTokenMint,
+      buyButtonUrl,
+      pumpFunUrl,
+      pumpFunEnabled,
+      xUsername,
+      xEnabled,
+      instagramUsername,
+      instagramEnabled,
+      tiktokUsername,
+      tiktokEnabled
+    } = req.body;
+
+    const settings = await prisma.hintSettings.upsert({
+      where: { id: "singleton" },
+      update: {
+        treasuryWallet,
+        burnWallet,
+        pingTokenMint,
+        buyButtonUrl,
+        pumpFunUrl,
+        pumpFunEnabled,
+        xUsername,
+        xEnabled,
+        instagramUsername,
+        instagramEnabled,
+        tiktokUsername,
+        tiktokEnabled,
+      },
+      create: {
+        id: "singleton",
+        treasuryWallet,
+        burnWallet,
+        pingTokenMint,
+        buyButtonUrl,
+        pumpFunUrl,
+        pumpFunEnabled,
+        xUsername,
+        xEnabled,
+        instagramUsername,
+        instagramEnabled,
+        tiktokUsername,
+        tiktokEnabled,
+      },
+    });
+
+    // Log admin action
+    await logAdminAction(
+      req.adminId!,
+      "UPDATE",
+      "HintSettings",
+      "singleton",
+      "Updated hint system configuration"
+    );
+
+    res.json(settings);
+  } catch (error) {
+    console.error("Update hint settings error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ===== SHARE ROUTES =====
+
+// GET /api/share/:shareToken - Get hotspot by share token (view-only, public)
+app.get("/api/share/:shareToken", async (req, res) => {
+  try {
+    const shareToken = getParamString(req, "shareToken");
+    if (!shareToken) {
+      return res.status(400).json({ error: "Missing share token" });
+    }
+
+    const hotspot = await prisma.hotspot.findUnique({
+      where: { shareToken },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        lat: true,
+        lng: true,
+        prize: true,
+        startDate: true,
+        endDate: true,
+        active: true,
+        imageUrl: true,
+        claimStatus: true,
+        queuePosition: true,
+        locationName: true,
+        shareToken: true,
+        hint1: true,
+        hint2: true,
+        hint3: true,
+        hint1PriceUsd: true,
+        hint2PriceUsd: true,
+        hint3PriceUsd: true,
+        firstHintFree: true,
+        createdAt: true,
+        updatedAt: true,
+        // Exclude private keys and sensitive data
+      },
+    });
+
+    if (!hotspot) {
+      return res.status(404).json({ error: "Hotspot not found" });
+    }
+
+    res.json(serializeBigInts(hotspot));
+  } catch (error) {
+    console.error("Get share hotspot error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ===== PUSH NOTIFICATION ROUTES =====
+
+// GET /api/push/vapid-public-key - Get VAPID public key for frontend
+app.get("/api/push/vapid-public-key", (_req, res) => {
+  try {
+    const publicKey = getVapidPublicKey();
+    if (!publicKey) {
+      return res.status(503).json({ error: "VAPID keys not configured" });
+    }
+    res.json({ publicKey });
+  } catch (error) {
+    console.error("Get VAPID key error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/push/subscribe - Subscribe to push notifications (public)
+app.post("/api/push/subscribe", async (req, res) => {
+  try {
+    const { endpoint, keys, userType, userId } = req.body;
+
+    if (!endpoint || !keys || !keys.p256dh || !keys.auth || !userType) {
+      return res.status(400).json({
+        error: "Missing required fields: endpoint, keys.p256dh, keys.auth, userType",
+      });
+    }
+
+    if (userType !== 'user' && userType !== 'admin') {
+      return res.status(400).json({
+        error: "userType must be 'user' or 'admin'",
+      });
+    }
+
+    // If admin, verify userId exists
+    if (userType === 'admin' && userId) {
+      const admin = await prisma.admin.findUnique({ where: { id: userId } });
+      if (!admin) {
+        return res.status(404).json({ error: "Admin user not found" });
+      }
+    }
+
+    // Upsert subscription (update if exists, create if not)
+    const subscription = await prisma.pushSubscription.upsert({
+      where: { endpoint },
+      update: {
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+        userId: userType === 'admin' ? userId : null,
+        userType,
+        lastUsed: new Date(),
+      },
+      create: {
+        endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+        userId: userType === 'admin' ? userId : null,
+        userType,
+      },
+    });
+
+    res.json({ success: true, subscriptionId: subscription.id });
+  } catch (error) {
+    console.error("Subscribe to push error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/push/unsubscribe - Unsubscribe from push notifications
+app.post("/api/push/unsubscribe", async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+
+    if (!endpoint) {
+      return res.status(400).json({ error: "endpoint is required" });
+    }
+
+    await prisma.pushSubscription.deleteMany({
+      where: { endpoint },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Unsubscribe from push error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/wallet/balance - Get treasury wallet balance (admin only)
+app.get("/api/admin/wallet/balance", authenticateAdmin, async (_req, res) => {
+  try {
+    const treasuryPrivateKey = process.env.TREASURY_PRIVATE_KEY;
+    if (!treasuryPrivateKey) {
+      return res.status(500).json({ error: "Treasury wallet not configured" });
+    }
+
+    // Get public key from private key
+    const { Keypair } = await import('@solana/web3.js');
+    const bs58 = (await import('bs58')).default;
+    const secretKey = bs58.decode(treasuryPrivateKey);
+    const keypair = Keypair.fromSecretKey(secretKey);
+    const publicKey = keypair.publicKey.toBase58();
+
+    const balance = await getSolBalance(publicKey);
+    const balanceSol = Number(balance) / 1e9;
+
+    // Check low balance threshold
+    const lowBalanceThreshold = parseFloat(process.env.LOW_BALANCE_THRESHOLD_SOL || '1.0');
+    const isLowBalance = balanceSol < lowBalanceThreshold;
+
+    res.json({
+      balance: balanceSol,
+      balanceLamports: balance.toString(),
+      publicKey,
+      isLowBalance,
+      threshold: lowBalanceThreshold,
+    });
+  } catch (error) {
+    console.error("Get wallet balance error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * Build the legacy Express app without starting an HTTP listener.
+ *
+ * Next.js Route Handlers should adapt incoming `Request` objects to this app
+ * (see `src/server/legacy/nextAdapter.ts`).
+ */
+export function createLegacyExpressApp(): express.Express {
+  return app;
+}

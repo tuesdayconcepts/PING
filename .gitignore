@@ -13,6 +13,7 @@ node_modules/
 # Build outputs
 dist/
 build/
+.next/
 *.tsbuildinfo
 
 # Logs
@@ -49,3 +50,4 @@ coverage/
 
 # Local Netlify folder
 .netlify
+

@@ -1,0 +1,162 @@
+// Service Worker for PWA and Push Notifications
+const CACHE_NAME = 'ping-app-v1';
+// API is same-origin on Vercel (`/api/*`), so we don't hardcode Railway anymore.
+
+// Install event - cache static assets
+self.addEventListener('install', (event) => {
+  console.log('[SW] Service Worker installing...');
+  self.skipWaiting(); // Activate immediately
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Service Worker activating...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
+      );
+    })
+  );
+  return self.clients.claim(); // Take control of all pages
+});
+
+// Push event - handle incoming push notifications
+self.addEventListener('push', (event) => {
+  console.log('[SW] Push notification received:', event);
+  
+  let notificationData = {
+    title: 'PING',
+    body: 'You have a new notification',
+    icon: '/logo/ping-logo.svg',
+    badge: '/logo/ping-logo.svg',
+    data: {},
+  };
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      notificationData = {
+        title: payload.title || notificationData.title,
+        body: payload.body || notificationData.body,
+        icon: payload.icon || notificationData.icon,
+        badge: payload.badge || notificationData.badge,
+        data: payload.data || {},
+        tag: payload.tag, // Group notifications
+        requireInteraction: payload.requireInteraction || false,
+      };
+    } catch (e) {
+      console.error('[SW] Error parsing push payload:', e);
+      notificationData.body = event.data.text() || notificationData.body;
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(notificationData.title, {
+      body: notificationData.body,
+      icon: notificationData.icon,
+      badge: notificationData.badge,
+      data: notificationData.data,
+      tag: notificationData.tag,
+      requireInteraction: notificationData.requireInteraction,
+    })
+  );
+});
+
+// Notification click event - handle user clicking on notification
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] Notification clicked:', event);
+  
+  event.notification.close();
+
+  const notificationData = event.notification.data || {};
+  let urlToOpen = '/';
+
+  // Determine URL based on notification data
+  // Priority: explicit URL (admin) > shareToken (user) > default root
+  if (notificationData.url) {
+    // Admin notifications (claim requests, etc.) - always use explicit URL
+    urlToOpen = notificationData.url;
+  } else if (notificationData.shareToken) {
+    // User notifications (new ping available) - link to share URL
+    urlToOpen = `/share/${notificationData.shareToken}`;
+  }
+  // No fallback for hotspotId - if neither url nor shareToken, default to '/'
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Check if app is already open
+      for (const client of clientList) {
+        if (client.url === self.location.origin + urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Open new window/focus existing
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
+
+// Fetch event - handle network requests (optional caching)
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Skip API requests - let browser handle them directly to avoid CORS issues in SW context
+  // This prevents CORS errors from appearing in service worker console
+  if (url.pathname.startsWith('/api/')) {
+    // Don't intercept API requests - let them pass through to browser
+    return;
+  }
+  
+  // Only intercept navigation requests (for offline support) and app resources
+  // Navigation requests are typically HTML pages
+  if (event.request.mode === 'navigate') {
+    // Try network first, fallback to cache for navigation
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Return response if valid, otherwise fallback to cache
+          if (response && response.status === 200) {
+            return response;
+          }
+          return caches.match('/index.html');
+        })
+        .catch(() => {
+          // If fetch fails, try cache
+          return caches.match('/index.html');
+        })
+        .then((response) => {
+          // Ensure we always return a valid Response
+          if (response) {
+            return response;
+          }
+          // Last resort: return a minimal HTML response
+          return new Response('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PING</title><meta http-equiv="refresh" content="0;url=/"></head><body><script>window.location.href="/"</script></body></html>', {
+            headers: { 'Content-Type': 'text/html' }
+          });
+        })
+    );
+  } else {
+    // For other resources (JS, CSS, images), try network first
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          // If fetch fails, try cache
+          return caches.match(event.request);
+        })
+        .then((response) => {
+          // Ensure we always return a valid Response
+          if (response) {
+            return response;
+          }
+          // Return a minimal error response if both network and cache fail
+          return new Response('', { status: 404, statusText: 'Not Found' });
+        })
+    );
+  }
+});
+
