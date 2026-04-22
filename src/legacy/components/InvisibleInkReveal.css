@@ -1,0 +1,109 @@
+.invisible-ink-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.invisible-ink-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 0.95rem;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  text-align: center;
+  width: 90%;
+}
+
+.invisible-ink-text.revealed {
+  opacity: 1;
+}
+
+.invisible-ink-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: 15px; /* Match hint slide border radius */
+}
+
+/* Debug Controller */
+.ink-debug-controller {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.95);
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 20px;
+  z-index: 999999;
+  max-width: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+}
+
+.ink-debug-controller h4 {
+  margin: 0 0 16px 0;
+  color: #ffd700;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.ink-debug-controller label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ink-debug-controller input[type="range"] {
+  width: 100%;
+  cursor: pointer;
+}
+
+.ink-debug-controller button {
+  width: 100%;
+  padding: 10px;
+  background: #ffd700;
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.ink-debug-controller button:hover {
+  background: #ffed4e;
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

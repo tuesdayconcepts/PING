@@ -1,0 +1,17 @@
+/* Migrated from legacy Vite app styles */
+
+@import "../legacy/index.css";
+@import "../legacy/App.css";
+@import "../legacy/pages/MapPage.css";
+@import "../legacy/pages/AdminPage.css";
+@import "../legacy/pages/LoadingPreview.css";
+@import "../legacy/components/Toast.css";
+@import "../legacy/components/HintModal.css";
+@import "../legacy/components/HotspotSkeleton.css";
+@import "../legacy/components/PingBrowser.css";
+@import "../legacy/components/GoldenTicket.css";
+@import "../legacy/components/InvisibleInkReveal.css";
+@import "../legacy/components/NotificationPrompt.css";
+@import "../legacy/components/MenuContent.css";
+@import "../legacy/components/menu/MenuSections.css";
+

@@ -1,0 +1,159 @@
+// Prisma schema for PING (Next.js + Supabase Postgres)
+// Note: This schema is copied from the legacy `server/prisma/schema.prisma`
+// to preserve the existing data model while migrating hosting providers.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String   @default("editor") // admin | editor
+  createdAt DateTime @default(now())
+
+  pushSubscriptions PushSubscription[]
+}
+
+model Hotspot {
+  id          String  @id @default(uuid())
+  title       String
+  description String
+  lat         Float
+  lng         Float
+  prize       Float?
+  startDate   DateTime
+  endDate     DateTime
+  active      Boolean @default(true)
+  imageUrl    String?
+  privateKey  String?
+  claimStatus String  @default("unclaimed") // unclaimed | pending | claimed
+  claimedBy   String?
+  claimedAt   DateTime?
+  tweetUrl    String?
+  queuePosition Int   @default(0)
+  locationName  String?
+  shareToken    String? @unique
+
+  // Automated prize wallet + funding lifecycle
+  prizePrivateKeyEnc  String?
+  prizePublicKey      String?
+  prizeAmountLamports BigInt     @default(0) @db.BigInt
+  fundStatus          FundStatus @default(pending)
+  fundTxSig           String?
+  fundedAt            DateTime?
+  walletCreatedAt     DateTime?
+
+  // Hint system fields
+  hint1         String?
+  hint2         String?
+  hint3         String?
+  hint1PriceUsd Float?
+  hint2PriceUsd Float?
+  hint3PriceUsd Float?
+  firstHintFree Boolean @default(false)
+
+  // Proximity claim system fields
+  claimType            String @default("nfc") // nfc | proximity
+  proximityRadius      Float?
+  proximityCheckHistory Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hintPurchases HintPurchase[]
+  transfers     TreasuryTransferLog[]
+
+  @@index([active, createdAt(sort: Desc)])
+  @@index([claimStatus])
+  @@index([active, claimStatus])
+}
+
+enum FundStatus {
+  pending
+  success
+  failed
+  skipped
+}
+
+model TreasuryTransferLog {
+  id        String   @id @default(uuid())
+  hotspotId String
+  lamports  BigInt   @db.BigInt
+  type      String
+  txSig     String?
+  status    String
+  createdAt DateTime @default(now())
+
+  hotspot Hotspot @relation(fields: [hotspotId], references: [id], onDelete: Cascade)
+
+  @@index([hotspotId])
+  @@unique([hotspotId, type])
+}
+
+model AdminLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  username  String?
+  action    String
+  entity    String
+  entityId  String
+  details   String?
+  timestamp DateTime @default(now())
+}
+
+model HintPurchase {
+  id            String   @id @default(uuid())
+  hotspotId     String
+  walletAddress String
+  hintLevel     Int
+  paidAmount    Float
+  paidUsd       Float
+  txSignature   String?
+  createdAt     DateTime @default(now())
+
+  hotspot Hotspot @relation(fields: [hotspotId], references: [id], onDelete: Cascade)
+
+  @@unique([walletAddress, hotspotId, hintLevel])
+  @@index([walletAddress, hotspotId])
+  @@index([hotspotId])
+}
+
+model HintSettings {
+  id             String  @id @default("singleton")
+  treasuryWallet String  @default("")
+  burnWallet     String  @default("")
+  pingTokenMint  String  @default("")
+  buyButtonUrl   String  @default("")
+  pumpFunUrl     String  @default("")
+  pumpFunEnabled Boolean @default(false)
+  xUsername      String  @default("")
+  xEnabled       Boolean @default(false)
+  instagramUsername String @default("")
+  instagramEnabled  Boolean @default(false)
+  tiktokUsername String @default("")
+  tiktokEnabled  Boolean @default(false)
+  updatedAt      DateTime @updatedAt
+}
+
+model PushSubscription {
+  id       String @id @default(uuid())
+  endpoint String @unique
+  p256dh   String
+  auth     String
+  userId   String?
+  userType String // admin | user
+  createdAt DateTime @default(now())
+  lastUsed  DateTime @default(now())
+
+  admin Admin? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userType])
+  @@index([userId])
+}

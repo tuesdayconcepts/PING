@@ -1,0 +1,1529 @@
+/* Map Page Styles */
+
+.map-page {
+  width: 100%;
+  height: 100vh;
+  /* height: 100dvh; */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Confetti wrapper - above everything */
+.confetti-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Vignette overlay - intense dark fade from all edges on desktop, top only on mobile */
+.vignette-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, #00000000 3%, rgb(11 40 255 / 58%) 50%, rgb(11 40 255) 80%);
+  z-index: 150;
+}
+
+/* Mobile: top and bottom gradients */
+@media (max-width: 768px) {
+  .vignette-overlay {
+    background: linear-gradient(to bottom, #0b28ff, #0b28ffe5 90px, #0b28ffa1 150px, #0000 300px), linear-gradient(to top, #0b28ff, #0b28ffc7 20px, #0b28ff8f 50px, #0000 150px);
+  }
+}
+
+/* Sticky navigation bar */
+.map-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 160; /* Above vignette (150) */
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 30px 40px;
+  background: transparent;
+}
+
+.nav-logo {
+  height: 45px;
+  width: auto;
+  position: relative;
+  z-index: 171;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 100%;
+  transform: translateZ(0);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  gap: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+  z-index: 165;
+  background: linear-gradient(180deg, rgba(11, 40, 255, 0) 0%, rgba(11, 40, 255, 1) 100%);
+}
+
+.menu-overlay.menu-open {
+  opacity: 1;
+  pointer-events: auto;
+  display: flex;
+}
+
+/* Hamburger Menu */
+.hamburger-menu {
+  display: flex;
+  width: 50px;
+  height: 25px;
+  flex-direction: column;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 170;
+  transition: transform .33s ease-out;
+}
+
+.hamburger-menu.open {
+  transform: rotate(-45deg);
+}
+
+.hamburger-menu.open .line-menu {
+  box-shadow: none;
+}
+
+.line-menu {
+  background-color: #fff;
+  border-radius: 2px;
+  width: 100%;
+  height: 4px;
+  box-shadow: 2px 3px #000;
+  max-width: 85%;
+  align-self: center;
+}
+
+.line-menu.half {
+  width: 50%;
+  align-self: flex-end;
+}
+
+.line-menu.start {
+  transition: transform .33s cubic-bezier(.54, -.81, .57, .57);
+  transform-origin: left;
+}
+
+.hamburger-menu.open .line-menu.start {
+  transform: rotate(90deg) translate(-6px);
+}
+
+.line-menu.end {
+  align-self: flex-start;
+  transition: transform .33s cubic-bezier(.54, -.81, .57, .57);
+  transform-origin: right;
+}
+
+.hamburger-menu.open .line-menu.end {
+  transform: rotate(-90deg) translate(12px);
+}
+
+/* Map container - base layer */
+.map-container {
+  width: 100%;
+  height: 100%;
+  background: #0b28ff;
+  position: relative;
+  z-index: 0;
+}
+
+/* Override Google Maps default background */
+.map-container > div {
+  background: #0b28ff !important;
+}
+
+.gm-style > div {
+  background-color: #0b28ff !important;
+}
+
+/* Custom positioning for Google Maps controls */
+.gm-zoom-control {
+  top: 10px !important;
+  right: 10px !important;
+  bottom: auto !important;
+  left: auto !important;
+}
+
+/* Hide Google Maps branding and legal text */
+.gm-style-cc {
+  display: none !important;
+}
+
+.gm-style .gm-style-cc {
+  display: none !important;
+}
+
+/* Hide Google logo */
+.gm-style .gm-style-iw-c {
+  display: none !important;
+}
+
+/* Hide terms and keyboard shortcuts */
+.gm-style-cc a {
+  display: none !important;
+}
+
+/* Hide attribution */
+.gm-style a[href*="google.com/maps"] {
+  display: none !important;
+}
+
+/* Hide additional Google Maps elements */
+.gmnoprint {
+  display: none !important;
+}
+
+/* Ensure Leaflet map panes stay at base level */
+.map-container .leaflet-pane {
+  z-index: 0;
+}
+
+.map-container .leaflet-tile-pane {
+  z-index: 0;
+}
+
+.map-container .leaflet-overlay-pane {
+  z-index: 0;
+}
+
+/* Markers should be above vignette */
+.map-container .leaflet-marker-pane {
+  z-index: 50 !important;
+}
+
+.map-container .leaflet-popup-pane {
+  z-index: 50 !important;
+}
+
+/* Move Leaflet controls to bottom right */
+.map-container .leaflet-top {
+  top: auto;
+  bottom: 20px;
+  z-index: 200 !important;
+}
+
+.map-container .leaflet-left {
+  left: auto;
+  right: 10px;
+  z-index: 200 !important;
+}
+
+.map-container .leaflet-control-zoom {
+  z-index: 200 !important;
+}
+
+/* Hide attribution */
+.map-container .leaflet-bottom.leaflet-right {
+  display: none;
+}
+
+/* Loading/Error overlay */
+.map-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 700;
+  padding: 25px 30px;
+  border-radius: 25px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.map-overlay.map-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: none;
+  padding: 0;
+  background: #0b28ff;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-loading-animation {
+  position: relative;
+  width: min(480px, 80vw);
+  height: min(480px, 80vw);
+}
+
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(1) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(2) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(4) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(5) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(6) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(7) path {
+  fill: #ffd700 !important;
+  stroke: #ffd700 !important;
+}
+
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(8) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(9) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(10) path,
+.map-loading-animation svg g[clip-path^='url(#animationMask_'] > g:nth-of-type(11) path {
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+@media (max-width: 768px) {
+  .map-loading-animation {
+    width: min(360px, 80vw);
+    height: min(360px, 80vw);
+  }
+}
+
+.map-overlay.error {
+  background: rgba(231, 76, 60, 0.15);
+  border: 2px solid rgba(231, 76, 60, 0.4);
+  color: #fff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.map-overlay.error p {
+  margin: 0 0 15px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.map-overlay button {
+  margin-top: 10px;
+  padding: 10px 24px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.map-overlay button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Popup styles */
+.hotspot-popup .popup-content {
+  padding: 5px;
+}
+
+.hotspot-popup h3 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.prize-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #e74c3c;
+  color: white;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.status-line {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.hotspot-popup .description {
+  color: #34495e;
+  font-size: 0.9rem;
+  margin: 10px 0;
+  line-height: 1.4;
+}
+
+.popup-actions {
+  margin-top: 10px;
+}
+
+.details-btn {
+  padding: 6px 16px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.3s;
+}
+
+.details-btn:hover {
+  background: #2980b9;
+}
+
+/* Empty state */
+.empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 700;
+}
+
+.empty-state p {
+  margin: 10px 0;
+  color: #7f8c8d;
+  font-size: 1.1rem;
+}
+
+/* Pulsing marker animation */
+.pulse-marker {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  z-index: 500;
+  transition: transform 0.3s ease;
+}
+
+.pulse-marker:hover {
+  transform: scale(1.2);
+  z-index: 501;
+}
+
+.pulse-marker-star {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)) drop-shadow(0 0 16px rgba(255, 215, 0, 0.6));
+  z-index: 10;
+}
+
+.pulse-marker.inactive .pulse-marker-star {
+  filter: drop-shadow(0 0 6px rgba(149, 165, 166, 0.7));
+}
+
+.pulse-marker-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  animation: pulse-ring 4s ease-out infinite;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.4));
+}
+
+.pulse-marker-ring:nth-child(2) {
+  animation-delay: 1s;
+}
+
+.pulse-marker-ring:nth-child(3) {
+  animation-delay: 2s;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3.5);
+    opacity: 0;
+  }
+}
+
+/* Inactive marker (gray) - no pulse animation */
+.pulse-marker.inactive .pulse-marker-ring {
+  filter: drop-shadow(0 0 6px rgba(149, 165, 166, 0.5));
+  animation: none;
+  opacity: 0;
+}
+
+/* Marker slide-up entrance animation */
+.marker-slide-up {
+  animation: markerSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes markerSlideUp {
+  0% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+
+
+/* Modal Overlay (Backdrop) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #0000;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* Proximity Intro Modal - Higher z-index to appear above regular modal */
+.modal-overlay.proximity-intro-overlay {
+  z-index: 1100;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Wrapper - Contains modal-content and certificate */
+.modal-wrapper {
+  position: relative;
+  max-width: 900px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Modal Content */
+.modal-content {
+  position: relative;
+  max-width: 450px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: visible;
+  animation: slideUp 0.3s ease;
+}
+
+/* Hide hint modal content when wallet adapter modal is open */
+.wallet-adapter-modal-overlay:not([style*="display: none"]) ~ .hint-modal-overlay .modal-content,
+body:has(.wallet-adapter-modal-overlay:not([style*="display: none"])) .hint-modal-overlay .modal-content {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* Modal Sections Wrapper */
+.modal-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: relative;
+  overflow: visible;
+}
+
+/* Smooth view transitions - children fade/slide when view changes */
+.modal-sections > * {
+  animation: fadeSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+}
+
+/* Closing animation */
+.modal-content.closing {
+  animation: slideDown 0.3s ease forwards;
+}
+
+.modal-overlay.closing {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Modal Close Button */
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #ffffff40;
+  transform: translateZ(0); /* GPU acceleration */
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 501;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Modal Sections (Segmented/Separated) */
+.modal-section {
+  padding: 20px 25px;
+  margin: 0;
+  border: 2px solid rgb(255 255 255 / 10%);
+  color: #fffffff2;
+  border-radius: 25px;
+  transform: translateZ(0); /* GPU acceleration */
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  contain: layout style paint; /* Rendering optimization */
+  background: #ffffff40;
+}
+
+/* Combined Header Section (Title + Time Info) */
+.modal-header {
+  background: #ffffff40;
+  padding: 20px;
+}
+
+.modal-header h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+.location-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffffa3;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: solid 1.5px #ffffff0a;
+}
+
+.location-info svg {
+  flex-shrink: 0;
+}
+
+.header-time-info {
+  display: flex;
+  flex-direction: row;
+  /* gap: 22px; */
+  font-size: 0.95rem;
+  flex-wrap: wrap;
+}
+
+/* Prize Section - Shimmer Sweep with Custom Gradient */
+.modal-prize {
+  background: none;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Later button styling (for proximity intro modal) */
+.later-btn {
+  background: transparent;
+  color: #ffffffb3;
+  padding: 16px 20px;
+  border-radius: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex: 1;
+  text-align: center;
+}
+
+.later-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.later-btn:active {
+  transform: translateY(0);
+}
+
+.modal-prize .prize-badge {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  padding: 8px 15px;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0;
+  background: linear-gradient(135deg, #b11eff, #19d27f);
+  background-clip: padding-box; /* Prevents gradient from bleeding under border */
+  border: 3px solid #ffffff4d;
+  color: #ffffff9c;
+  flex-shrink: 0;
+}
+
+/* Shimmer sweep effect */
+.modal-prize .prize-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: shimmerSweep 4s infinite; /* 1.5s sweep + 2.5s pause */
+  z-index: 1;
+}
+
+.prize-icon,
+.prize-text {
+  position: relative;
+  z-index: 2;
+}
+
+.prize-icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
+  animation: prizeWiggle 4s infinite; /* Synced with shimmer */
+}
+
+.prize-text {
+  flex: 1;
+  text-align: center;
+}
+
+@keyframes shimmerSweep {
+  0% { left: -100%; }
+  37.5% { left: 100%; } /* Sweep completes at 1.5s (37.5% of 4s) */
+  100% { left: 100%; } /* Stay off-screen for remaining 2.5s */
+}
+
+@keyframes prizeWiggle {
+  0%, 37.5%, 100% { transform: rotate(0deg) scale(1); } /* Still during pause */
+  5% { transform: rotate(-12deg) scale(1.15); } /* Start wiggle - double shakes */
+  7.5% { transform: rotate(12deg) scale(1.15); }
+  10% { transform: rotate(-12deg) scale(1.15); }
+  12.5% { transform: rotate(12deg) scale(1.15); }
+  15% { transform: rotate(-12deg) scale(1.15); }
+  17.5% { transform: rotate(12deg) scale(1.15); }
+  20% { transform: rotate(-12deg) scale(1.15); }
+  22.5% { transform: rotate(12deg) scale(1.15); }
+  25% { transform: rotate(-10deg) scale(1.1); }
+  27.5% { transform: rotate(10deg) scale(1.1); }
+  30% { transform: rotate(-6deg) scale(1.05); }
+  32.5% { transform: rotate(6deg) scale(1.05); }
+  35% { transform: rotate(0deg) scale(1); } /* End wiggle */
+}
+
+/* Hint CTA Button */
+.hint-cta {
+  background: linear-gradient(135deg, #ffe87c, #ffd700); /* Light gold to gold */
+  color: #000000ad;
+  padding: 16px 20px;
+  border-radius: 50px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex: 1;
+  text-align: center;
+}
+
+
+.hint-cta:active {
+  transform: translateY(0);
+}
+
+/* Time Item Styles (used in header) */
+.time-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  margin: 0 20px 10px 0;
+}
+
+.time-icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+  color: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
+}
+
+.time-value {
+  color: #ffffffa3;
+  font-weight: 600;
+}
+
+/* Pulsing gold animation for "Get ETA" text and icon when location not available */
+.time-item.eta-inactive .time-value,
+.time-item.eta-inactive .time-icon {
+  animation: etaPulse 2s ease-in-out infinite;
+}
+
+@keyframes etaPulse {
+  0%, 100% { color: #ffffffa3; }
+  50% { color: #ffd700; } /* Gold */
+}
+
+/* Description Section */
+.modal-description {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 20px 25px;
+}
+
+.modal-description h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.modal-description p {
+  margin: 0;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+}
+
+/* Image Section */
+.modal-image {
+  /* background: #0003; */
+  padding: 0;
+  overflow: hidden;
+}
+
+.modal-image img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover; /* Crop to fill 16:9 ratio */
+  display: block;
+}
+
+/* Action Section */
+.modal-actions {
+  background: none;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+}
+
+.claim-btn {
+  background: linear-gradient(135deg, #ffe87c, #ffd700);
+  color: #000000ad;
+  padding: 16px 20px;
+  border-radius: 50px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex: 1;
+  text-align: center;
+}
+
+.claim-btn:hover {
+  background: #ffd700;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.claim-btn:active {
+  transform: translateY(0);
+}
+
+.claim-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #ffe87c, #ffd700);
+}
+
+.claim-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Claim Error */
+.claim-error-section {
+  text-align: center;
+  background: #ffffff40;
+  border: 2px solid rgb(255 255 255 / 11%);
+  border-radius: 20px;
+  padding: 28px 24px;
+}
+
+.claim-error-section h2 {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.claim-error-text {
+  margin: 0;
+  color: #ffffffd9;
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 0 20px;
+}
+
+/* Claim Intro State */
+.modal-claim-intro {
+  background: #ffffff40;
+  text-align: center;
+  padding: 30px 25px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated gold radial gradient */
+.modal-claim-intro::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, rgba(255, 215, 0, 0) 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: goldExpand 2s ease-out forwards;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.modal-claim-intro > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes goldExpand {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    width: 800px;
+    height: 800px;
+    opacity: 0;
+  }
+}
+
+.modal-claim-intro h3 {
+  margin: 0 0 20px;
+  font-size: 1.3rem;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.modal-claim-intro p {
+  margin: 0 0 20px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.modal-claim-intro p:last-of-type {
+  margin-bottom: 0;
+}
+
+/* Prize amount highlight */
+.prize-amount {
+  color: #FFD700;
+  font-weight: 700;
+  font-size: 1.15em;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.6),
+               0 0 40px rgba(255, 215, 0, 0.3);
+}
+
+/* Queued State */
+.modal-queued {
+  background: #ffffff40;
+  text-align: left;
+  padding: 25px 25px !important;
+}
+
+.modal-queued h3 {
+  margin: 0 0 20px;
+  font-size: 1.3rem;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.modal-queued p {
+  margin: 0 0 25px 0;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.7;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.view-active-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #ffe87c, #ffd700);
+  color: #000000ad;
+  padding: 16px 20px;
+  border-radius: 50px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.view-active-btn:hover {
+  background: #ffd700;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.view-active-btn:active {
+  transform: translateY(0);
+}
+
+/* Pending State */
+.modal-pending {
+  background: #ffffff40;
+  text-align: center;
+  padding: 30px 25px !important;
+}
+
+/* Success Animation Container */
+.sa {
+  width: 140px;
+  height: 140px;
+  padding: 26px;
+  background-color: transparent;
+  margin: 0 auto 20px;
+  position: relative;
+}
+
+/* Spinning loader circle - shown during pending */
+.sa-spinner {
+  width: 88px;
+  height: 88px;
+  border: 4px solid rgba(165, 220, 134, 0.25);
+  border-top: 4px solid #A5DC86;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Hide spinner when checkmark shows */
+.show-checkmark .sa-spinner {
+  opacity: 0;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Checkmark container - hidden by default */
+.sa-success {
+  border-radius: 50%;
+  border: 4px solid #A5DC86;
+  box-sizing: content-box;
+  height: 80px;
+  padding: 0;
+  position: absolute;
+  background-color: transparent;
+  width: 80px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Show checkmark container when approved */
+.show-checkmark .sa-success {
+  opacity: 1;
+}
+
+.sa-success-tip,
+.sa-success-long {
+  background-color: #A5DC86;
+  border-radius: 2px;
+  height: 5px;
+  position: absolute;
+  z-index: 2;
+  width: 0;
+}
+
+/* Animate checkmark when approved */
+.show-checkmark .sa-success-tip {
+  left: 14px;
+  top: 46px;
+  transform: rotate(45deg);
+  animation: animateSuccessTip 0.75s forwards;
+}
+
+.show-checkmark .sa-success-long {
+  right: 8px;
+  top: 38px;
+  transform: rotate(-45deg);
+  animation: animateSuccessLong 0.75s forwards;
+}
+
+@keyframes animateSuccessTip {
+  0%, 54% {
+    width: 0;
+    left: 1px;
+    top: 19px;
+  }
+  70% {
+    width: 50px;
+    left: -8px;
+    top: 37px;
+  }
+  84% {
+    width: 17px;
+    left: 21px;
+    top: 48px;
+  }
+  100% {
+    width: 25px;
+    left: 14px;
+    top: 45px;
+  }
+}
+
+@keyframes animateSuccessLong {
+  0%, 65% {
+    width: 0;
+    right: 46px;
+    top: 54px;
+  }
+  84% {
+    width: 55px;
+    right: 0;
+    top: 35px;
+  }
+  100% {
+    width: 47px;
+    right: 8px;
+    top: 38px;
+  }
+}
+
+.modal-pending h3 {
+  margin: 0 0 20px;
+  font-size: 1.3rem;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.modal-pending p {
+  margin: 10px 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.pending-note {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Claimed/Reveal State */
+.modal-reveal {
+  background: #ffffff40;
+  text-align: center;
+  padding: 20px 20px !important;
+}
+
+.congrats-title {
+  text-transform: uppercase;
+  margin: 0 0 10px;
+  font-size: 1.3rem;
+  color: #fff;
+  text-shadow: 0px 0 108px rgb(218 175 95);
+}
+
+.congrats-text {
+  margin: 0 0 25px 0;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.private-key-box {
+  background: #00000042;
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.private-key-box label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.private-key-box code {
+  /* display: block; */
+  margin: 10px 0 0;
+  color: #d2b35f;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+  line-height: 1.3;
+  position: relative;
+}
+
+.clickable-key {
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 60px;
+  justify-content: center;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.copy-btn:active {
+  transform: translateY(0);
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+  .map-nav {
+    padding: 25px 15px 0 25px;
+  }
+
+  .hotspot-popup h3 {
+    font-size: 1rem;
+  }
+
+  .modal-content {
+    max-width: 95%;
+  }
+
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Certificate Container - Expands smoothly with max-height */
+.certificate-container {
+  display: flex;
+  justify-content: center;
+  max-width: 450px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  margin-top: 20px;
+  
+  /* Start collapsed */
+  opacity: 0;
+  max-height: 0;
+  /* Custom cubic-bezier: Fast start, strong deceleration, smooth landing */
+  transition: opacity 2.5s cubic-bezier(0.54, 0.03, 0, 1), max-height 2.5s cubic-bezier(0.46, 0.07, 0, 0.95);
+  pointer-events: none;
+}
+
+/* Expand after 3 seconds */
+.certificate-container.expanded {
+  opacity: 1;
+  max-height: 1000px;
+  overflow: visible; /* Allow 3D transforms to show */
+  pointer-events: auto;
+}
+
+/* Share Text - Regular text that becomes clickable */
+.share-text {
+  text-align: center;
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 17.6px;
+  color: #ffffff;
+  transition: all 0.5s ease;
+}
+
+/* Clickable state - subtle underline on hover */
+.share-text.clickable {
+  cursor: pointer;
+}
+
+.share-text.clickable:hover {
+  text-decoration: underline;
+  color: #d4af37;
+}
+
+/* Animated dots for printing text */
+.printing-dots-inline {
+  margin-left: 2px;
+}
+
+.printing-dots-inline span {
+  animation: dotPulse 1.4s infinite;
+  opacity: 0;
+}
+
+.printing-dots-inline span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.printing-dots-inline span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.printing-dots-inline span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 60%, 100% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+/* Scale down certificate on mobile */
+@media (max-width: 768px) {
+  .modal-wrapper {
+    gap: 0;
+  }
+  
+  .certificate-container {
+    max-width: 95%;
+  }
+}
+
+
+/* Proximity Ping Styles */
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.claim-type-badge-small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #ffffff1a;
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.claim-type-badge-small svg {
+  color: #8e9bff;
+}
+
+.proximity-distance {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.distance-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.distance-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.distance-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.location-error-text {
+  margin: 8px 0 0 0;
+  color: #ef4444;
+  font-size: 0.9rem;
+}
+
+.verify-proximity-btn {
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  border: none;
+  border-radius: 50px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.verify-proximity-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.4);
+}
+
+.claim-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Proximity markers: pulse rings only show when focused (controlled by isFocused prop in CustomMarker) */
+.user-location-marker {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #ffd700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  position: absolute;
+  transform: translate3d(0, 0, 0);
+}

@@ -6,45 +6,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  backend:
+  # NOTE: This repo previously deployed `client/` to Netlify and `server/` to Railway.
+  # The app is now a single Next.js deployment on Vercel, so CI deploy steps were removed
+  # to avoid failing workflows when those integrations are gone.
+  noop:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: server
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm run build
-      # Deploy via Railway CLI (requires token)
-      - name: Install Railway CLI
-        run: npm i -g @railway/cli
-      - name: Link & Deploy
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          railway up --service backend
-
-  frontend:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: client
-    needs: backend
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm run build
-      - name: Deploy to Netlify
-        uses: netlify/actions/cli@v4.0.1
-        with:
-          args: deploy --dir=dist --prod
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      - name: No-op
+        run: echo "Deploy is handled by Vercel for this repository."
 

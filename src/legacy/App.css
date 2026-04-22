@@ -1,0 +1,31 @@
+/* Global App Styles */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure buttons inherit Montserrat */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Leaflet popup customization */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-content {
+  margin: 8px;
+}
