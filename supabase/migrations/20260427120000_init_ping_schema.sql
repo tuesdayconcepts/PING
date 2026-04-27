@@ -137,6 +137,13 @@ create table if not exists public.push_subscriptions (
 create index if not exists idx_push_user_type on public.push_subscriptions (user_type);
 create index if not exists idx_push_user_id on public.push_subscriptions (user_id);
 
+-- Serverless claim throttling: one key per IP+hotspot per hour (replaces in-memory map)
+create table if not exists public.claim_rate_limit (
+  key text primary key,
+  count int not null default 0,
+  reset_at timestamptz not null
+);
+
 -- RLS: block direct client access; Next.js server uses service role (bypasses RLS)
 alter table public.admins enable row level security;
 alter table public.hotspots enable row level security;
@@ -145,16 +152,8 @@ alter table public.admin_logs enable row level security;
 alter table public.hint_purchases enable row level security;
 alter table public.hint_settings enable row level security;
 alter table public.push_subscriptions enable row level security;
-
 alter table public.claim_rate_limit enable row level security;
 
 -- no policies: anon/auth cannot read/write; service_role bypasses RLS
-
--- In-memory claim map replacement for serverless: one key per IP+hotspot per hour
-create table if not exists public.claim_rate_limit (
-  key text primary key,
-  count int not null default 0,
-  reset_at timestamptz not null
-);
 
 comment on table public.hotspots is 'NFC / proximity hunt hotspots; accessed via Vercel API only (service role)';
