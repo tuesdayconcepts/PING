@@ -74,10 +74,17 @@ PING/
 │  │  ├─ schema.prisma # Database schema
 │  │  └─ seed.ts       # Seed data
 │  └─ package.json
+├─ web/                 # Next.js 15 + Tailwind + Motion (API + future UI)
+│  └─ README.md         # Supabase + Vercel setup
+├─ supabase/migrations/ # SQL to run in Supabase for the Next stack
 ├─ netlify.toml
 ├─ railway.toml
 └─ README.md
 ```
+
+### Next.js + Supabase + Vercel (new stack)
+
+The `web/` app hosts **Route Handlers** that mirror the legacy Express API and talk to **Supabase Postgres** (connection string in `DATABASE_URL`). See `web/README.md` for running the SQL migration, env vars, and which endpoints are implemented. The Vite `client/` can stay pointed at the deployed Next URL via `VITE_API_URL` until the map UI is ported.
 
 ## 🚀 Getting Started
 
