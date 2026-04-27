@@ -129,16 +129,13 @@ const loginLimiter = rateLimit({
 });
 
 // Rate limiter for claim endpoint (5 attempts per hour per IP)
+// Use default key generator (uses express-rate-limit's ipKeyGenerator for correct IPv4/IPv6 behavior)
 const claimLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5, // 5 requests per window
   message: { error: "Too many claim attempts, please try again later" },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    // Use IP address for rate limiting
-    return req.ip || req.socket.remoteAddress || 'unknown';
-  },
 });
 
 // In-memory store for claim attempts per hotspot (for additional rate limiting)
